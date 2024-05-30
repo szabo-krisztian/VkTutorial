@@ -1,0 +1,86 @@
+# Build directories
+build/
+Build/
+bin/
+Bin/
+obj/
+Obj/
+
+# Compiled object files
+*.o
+*.obj
+*.lo
+*.ko
+*.dll
+*.so
+*.so.*
+*.dylib
+*.exe
+*.out
+*.app
+
+# CMake build files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Visual Studio Code settings
+.vscode/
+*.code-workspace
+
+# Compiled Static Libraries
+*.lib
+*.a
+
+# Compiled Dynamic Libraries
+*.dylib
+*.dll
+*.so
+
+# Logs
+*.log
+
+# GLFW specific ignores
+_glfw*
+
+# Other temporary files
+*.tmp
+*.swp
+*~
+
+# Ignore directories for projects
+.project
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore files created by debuggers
+*.dSYM/
+*.pdb
+
+# Ignore files created by test runners
+test-results/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore user-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore files created by patch
+*.orig
+
+# Ignore lock files
+*.lock
+
+# Ignore generated API documentation
+docs/api/
