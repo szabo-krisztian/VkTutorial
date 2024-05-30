@@ -1,5 +1,7 @@
 #include "vlk_window.hpp"
 
+#include <stdexcept>
+
 namespace vlk
 {
 
@@ -18,6 +20,14 @@ bool VlkWindow::ShouldClose()
 
 {
     return glfwWindowShouldClose(mWindow);
+}
+
+void VlkWindow::CreateWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
+{
+    if (glfwCreateWindowSurface(instance, mWindow, nullptr, surface) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create window surface");
+    }
 }
 
 void VlkWindow::InitWindow()

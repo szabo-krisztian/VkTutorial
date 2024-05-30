@@ -9,15 +9,6 @@ namespace vlk
     
 class VlkWindow 
 {
-private:
-    GLFWwindow* mWindow;
-    const int   mWidth;
-    const int   mHeight;
-    std::string mWindowName;
-
-    void InitWindow();
-    
-
 public:
     VlkWindow(int width, int height, std::string windowName);
     ~VlkWindow();
@@ -26,6 +17,16 @@ public:
     VlkWindow &operator=(const VlkWindow &) = delete;
 
     bool ShouldClose();
+
+    void CreateWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
+
+private:
+    GLFWwindow* mWindow;
+    const int   mWidth;
+    const int   mHeight;
+    std::string mWindowName;
+
+    void InitWindow();
 };
 
 } // namespace vlk

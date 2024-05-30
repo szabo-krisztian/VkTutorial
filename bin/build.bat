@@ -28,7 +28,7 @@ SET    extLinks=/link^
                 /LIBPATH:%vulkanLinkDirectory% %vulkanLibs%
 
 
-SET locSrc=../src/vlk_window.cpp ../src/first_app.cpp ../src/vlk_pipeline.cpp
+SET locSrc=../src/vlk_window.cpp ../src/first_app.cpp ../src/vlk_pipeline.cpp ../src/vlk_device.cpp
 SET mainSrc=../src/main.cpp
 SET objDir=objs
 
