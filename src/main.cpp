@@ -1,22 +1,25 @@
-#include "first_app.hpp"
+#include "my_instance.hpp"
 
-#include <cstdlib>
-#include <stdexcept>
 #include <iostream>
+#include <vector>
+
 
 int main()
 {
-    vlk::FirstApp app;
+    tlr::MyVulkanInstance instance;
 
-    try
+    uint32_t physicalDevicesCount = 0;
+    vkEnumeratePhysicalDevices(instance.Get(), &physicalDevicesCount, nullptr);
+    std::vector<VkPhysicalDevice> physicalDevices(physicalDevicesCount);
+    vkEnumeratePhysicalDevices(instance.Get(), &physicalDevicesCount, physicalDevices.data());
+
+    for (const auto& device : physicalDevices)
     {
-        app.Run();
+        VkPhysicalDeviceProperties deviceProperties = {};
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+        std::cout << deviceProperties.deviceName << std::endl;
     }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        return EXIT_FAILURE;
-    }
-    
-    return EXIT_SUCCESS;
+
+    return 0;
 }
