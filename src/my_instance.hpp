@@ -20,7 +20,7 @@ public:
     MyVulkanInstance(const MyVulkanInstance&) = delete;
     MyVulkanInstance operator=(const MyVulkanInstance&) = delete;
 
-    VkInstance Get();
+    VkInstance Get() const;
 private:
     const std::vector<const char*> M_VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
     VkInstance mInstance;

@@ -1,25 +1,29 @@
 #include "my_instance.hpp"
+#include "my_device.hpp"
+#include "my_window.hpp"
 
 #include <iostream>
 #include <vector>
-
+#include <stdexcept>
+#include <optional>
 
 int main()
 {
-    tlr::MyVulkanInstance instance;
-
-    uint32_t physicalDevicesCount = 0;
-    vkEnumeratePhysicalDevices(instance.Get(), &physicalDevicesCount, nullptr);
-    std::vector<VkPhysicalDevice> physicalDevices(physicalDevicesCount);
-    vkEnumeratePhysicalDevices(instance.Get(), &physicalDevicesCount, physicalDevices.data());
-
-    for (const auto& device : physicalDevices)
+    try
     {
-        VkPhysicalDeviceProperties deviceProperties = {};
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
-
-        std::cout << deviceProperties.deviceName << std::endl;
+        tlr::MyVulkanInstance instance;
+        tlr::MyVulkanWindow window(instance);
+        tlr::MyVulkanDevice device(instance, window);
+        while (window.IsWindowActive())
+        {
+            glfwPollEvents();
+        }
+        
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << e.what()<< std::endl;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

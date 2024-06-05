@@ -58,15 +58,18 @@ MyVulkanInstance::~MyVulkanInstance()
 {
     DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
     vkDestroyInstance(mInstance, nullptr);
+    glfwTerminate();
 }
 
-VkInstance MyVulkanInstance::Get()
+VkInstance MyVulkanInstance::Get() const
 {
     return mInstance;
 }
 
 void MyVulkanInstance::InitVulkanInstance()
 {
+    glfwInit();
+    
     /*
     // Provided by VK_VERSION_1_0
     typedef struct VkInstanceCreateInfo {
