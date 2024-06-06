@@ -15,7 +15,7 @@ public:
     MyVulkanWindow operator=(const MyVulkanWindow&) = delete;
 
     const VkSurfaceKHR& GetSurface() const;
-    const GLFWwindow* GetWindow() const;
+    GLFWwindow* GetWindow();
     bool IsWindowActive();
 private:
     const uint32_t M_WIDTH = 800;

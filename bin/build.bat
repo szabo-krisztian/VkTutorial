@@ -9,7 +9,7 @@ SET    extLinks=/link^
                 /LIBPATH:"C:/CppLibraries/glfw-3.4/build/src/Release" glfw3.lib gdi32.lib user32.lib shell32.lib^
                 /LIBPATH:"%VULKAN_SDK%/Lib" vulkan-1.lib
 
-SET locSrc=../src/my_instance.cpp ../src/my_device.cpp ../src/my_window.cpp
+SET locSrc=../src/my_instance.cpp ../src/my_device.cpp ../src/my_window.cpp ../src/my_swap_chain.cpp
 SET mainSrc=../src/main.cpp
 SET objDir=objs
 

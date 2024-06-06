@@ -38,7 +38,7 @@ const VkSurfaceKHR& MyVulkanWindow::GetSurface() const
     return mSurface;
 }
 
-const GLFWwindow* MyVulkanWindow::GetWindow() const
+GLFWwindow* MyVulkanWindow::GetWindow()
 {
     return mWindow;
 }

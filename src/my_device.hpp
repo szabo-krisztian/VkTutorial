@@ -20,34 +20,53 @@ struct QueueFamilyIndices
     }
 };
 
+struct SwapChainSupportDetails
+{
+    VkSurfaceCapabilitiesKHR        capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR>   presentModes;
+};
+
 class MyVulkanDevice
 {
 public:
     MyVulkanDevice(MyVulkanInstance& instance, MyVulkanWindow& window);
     ~MyVulkanDevice();
 
+    MyVulkanDevice(const MyVulkanDevice&) = delete;
+    MyVulkanDevice operator=(const MyVulkanDevice&) = delete;
+
+    const VkPhysicalDevice&        GetPhysical()           const;
+    const VkDevice&                GetLogical()            const;
+    const QueueFamilyIndices&      GetQueueFamilyIndices() const;
+    const SwapChainSupportDetails& GetSwapChainSupport()   const;
 
 private:
     const std::vector<const char*> M_VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
-    MyVulkanInstance& mInstance;
-    MyVulkanWindow& mWindow;
-    VkPhysicalDevice mPhysicalDevice;
-    QueueFamilyIndices mFamilyIndices;
-    VkDevice mLogicalDevice;
-    VkQueue mGraphicsQueue;
-    VkQueue mPresentQueue;
-
+    const std::vector<const char*> M_DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #ifdef NDEBUG
     const bool M_ENABLE_VALIDATION_LAYERS = false;
 #else
     const bool M_ENABLE_VALIDATION_LAYERS = true;
 #endif
 
-    VkPhysicalDevice GetPhysicalDevice();
-    bool IsPhysicalDeviceSuitable(const VkPhysicalDevice& device);
-    QueueFamilyIndices GetQueueFamilyIndices(const VkPhysicalDevice& device);
+    MyVulkanInstance&       mInstance;
+    MyVulkanWindow&         mWindow;
+    VkPhysicalDevice        mPhysicalDevice;
+    QueueFamilyIndices      mFamilyIndices;
+    SwapChainSupportDetails mSwapChainSupportDetails;
+    VkDevice                mLogicalDevice;
+    VkQueue                 mGraphicsQueue;
+    VkQueue                 mPresentQueue;
+
+    VkPhysicalDevice                     GetPhysicalDevice();
+    std::vector<VkPhysicalDevice>        GetPhysicalDevices();
+    bool                                 IsPhysicalDeviceSuitable(const VkPhysicalDevice& device);
+    bool                                 IsDeviceExtensionsSupported(const VkPhysicalDevice& physicalDevice);
+    SwapChainSupportDetails              GetSwapChainSupport(const VkPhysicalDevice& physicalDevice);
+    QueueFamilyIndices                   GetQueueFamilyIndices(const VkPhysicalDevice& device);
     std::vector<VkQueueFamilyProperties> GetQueueFamilies(const VkPhysicalDevice& physicalDevice);
-    VkResult InitLogicalDevice();
+    VkResult                             InitLogicalDevice();
 };
 
 } // namespace tlr
