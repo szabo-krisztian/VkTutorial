@@ -23,22 +23,22 @@ public:
     VkInstance Get() const;
 private:
     const std::vector<const char*> M_VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
-    VkInstance mInstance;
-    VkDebugUtilsMessengerEXT mDebugMessenger;
-
 #ifdef NDEBUG
-    const bool M_ENABLE_VALIDATION_LAYERS = false;
+    const bool                     M_ENABLE_VALIDATION_LAYERS = false;
 #else
-    const bool M_ENABLE_VALIDATION_LAYERS = true;
+    const bool                     M_ENABLE_VALIDATION_LAYERS = true;
 #endif
 
-    void InitVulkanInstance();
-    void CreateAppInfo(VkApplicationInfo& appInfo);
-    bool AreValidationLayersSupported();
-    bool IsValidationLayerSupported(const char* layerName, const std::vector<VkLayerProperties>& availableLayerProperties);
+    VkInstance                     mInstance;
+    VkDebugUtilsMessengerEXT       mDebugMessenger;
+
+    void                     InitVulkanInstance();
+    void                     CreateAppInfo(VkApplicationInfo& appInfo);
+    bool                     AreValidationLayersSupported();
+    bool                     IsValidationLayerSupported(const char* layerName, const std::vector<VkLayerProperties>& availableLayerProperties);
     std::vector<const char*> GetRequiredExtensions();
-    void CreateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-    void InitDebugMessengerInstance();
+    void                     CreateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+    void                     InitDebugMessengerInstance();
 };
 
 } // namespace tlr

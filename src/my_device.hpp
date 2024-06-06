@@ -45,9 +45,9 @@ private:
     const std::vector<const char*> M_VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
     const std::vector<const char*> M_DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #ifdef NDEBUG
-    const bool M_ENABLE_VALIDATION_LAYERS = false;
+    const bool                     M_ENABLE_VALIDATION_LAYERS = false;
 #else
-    const bool M_ENABLE_VALIDATION_LAYERS = true;
+    const bool                     M_ENABLE_VALIDATION_LAYERS = true;
 #endif
 
     MyVulkanInstance&       mInstance;
