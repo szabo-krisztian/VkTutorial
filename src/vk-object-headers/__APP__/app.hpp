@@ -2,8 +2,12 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include "vertex.hpp"
 
+#include <chrono>
+#include <ctime>
+#include <cmath>
+
+#include "vertex.hpp"
 #include "debug_instance_builder.hpp"
 #include "my_instance.hpp"
 #include "my_debug_messenger.hpp"
@@ -49,13 +53,9 @@ private:
 
     std::vector<Vertex> mVertices =
     {
-        { { -1.0f,  -1.0f }, { 0.0f, 0.0f, 1.0f } },
-        { { 1.0f,  -1.0f }, { 0.0f, 1.0f, 1.0f } },
-        { { 1.0f,  1.0f }, { 0.5f, 0.0f, 1.0f } },
-        { { -1.0f,  -1.0f }, { 0.0f, 0.0f, 1.0f } },
-        { { 1.0f,  1.0f }, { 0.5f, 0.0f, 1.0f } },
-        { { -1.0f,  1.0f }, { 0.0f, 0.0f, 1.0f } }
-        
+        { { -0.75f,  0.75f }, { 1.0f, 0.0f, 0.0f } },
+        { { 0.0f,  -0.75f }, { 0.0f, 1.0f, 0.0f } },
+        { { 0.75f,  0.75f }, { 0.0f, 0.0f, 1.0f } }
     };
     VkBuffer mVertexBuffer;
     VkDeviceMemory mVertexBufferMemory;
@@ -69,6 +69,7 @@ private:
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     void     Update();
     void     Draw();
+    void     DrawTriangle(Vertex v1, Vertex v2, Vertex v3, int depth);
 };
 
 } // namespace tlr

@@ -10,6 +10,7 @@ App::App()
     InitFrameBuffers();
     InitCommandPool();
     InitCommandBuffers();
+    DrawTriangle(mVertices[0], mVertices[1], mVertices[2], 5);
     CreateVertexBuffer();
     mCurrentFrame = 0;
 }
@@ -44,8 +45,6 @@ void App::Run()
     }
     vkDeviceWaitIdle(mDevice.GetLogical());
 }
-
-
 
 void App::InitSyncObjects()
 {
@@ -227,8 +226,6 @@ uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properti
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-bool a = false;
-
 void App::Update()
 {
     Draw();
@@ -277,6 +274,30 @@ void App::Draw()
     vkQueuePresentKHR(mDevice.GetGraphicsQueue(), &presentInfo);
 
     mCurrentFrame = (mCurrentFrame + 1) % M_MAX_FRAMES_IN_FLIGHT;
+}
+
+void App::DrawTriangle(Vertex v1, Vertex v2, Vertex v3, int depth)
+{
+    if (depth <= 0)
+    {
+        return;
+    }
+
+    glm::vec2 v_v1 = {v3.pos.x / 2 + v1.pos.x / 2, v3.pos.y / 2 + v1.pos.y / 2};
+    glm::vec2 v_v2 = {v1.pos.x / 2 + v2.pos.x / 2, v1.pos.y / 2 + v2.pos.y / 2};
+    glm::vec2 v_v3 = {v3.pos.x / 2 + v2.pos.x / 2, v3.pos.y / 2 + v2.pos.y / 2};
+    glm::vec3 color = {0.0f, 0.0f, 0.0f};
+    Vertex vv1 = {v_v1, color};
+    Vertex vv2 = {v_v2, color};
+    Vertex vv3 = {v_v3, color};
+
+    mVertices.push_back(vv1);
+    mVertices.push_back(vv2);
+    mVertices.push_back(vv3);
+
+    DrawTriangle(v3, vv1, vv3, depth - 1);
+    DrawTriangle(vv1, v1, vv2, depth - 1);
+    DrawTriangle(vv3, vv2, v2, depth - 1);
 }
 
 } // namespace tlr
