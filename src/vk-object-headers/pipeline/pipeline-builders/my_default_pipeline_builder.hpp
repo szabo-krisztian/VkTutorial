@@ -2,6 +2,7 @@
 
 #include "ipipeline_builder.h"
 #include "idevice.h"
+#include "vertex.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -41,39 +42,41 @@ public:
     ) override;
 
 private:
-    const IDevice&                         mDevice;
-    std::vector<char>                      mVertexCode;
-    std::vector<char>                      mFragmentCode;
-    VkShaderModule                         mVertexModule;
-    VkShaderModule                         mFragmentModule;
-    const std::vector<VkDynamicState>      mDynamicStates =
+    const IDevice&                                   mDevice;
+    std::vector<char>                                mVertexCode;
+    std::vector<char>                                mFragmentCode;
+    VkShaderModule                                   mVertexModule;
+    VkShaderModule                                   mFragmentModule;
+    VkVertexInputBindingDescription                  mBindingDescription;
+    std::array<VkVertexInputAttributeDescription, 2> mAttributeDescription;
+    const std::vector<VkDynamicState>                mDynamicStates =
     {
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR
     };
-    VkRect2D                               mScissor;
-    VkPipelineColorBlendAttachmentState    mColorBlendAttachment;
-    VkPipelineLayout                       mPipelineLayout;
-    VkAttachmentDescription*               mColorAttachments;
-    VkAttachmentReference*                 mReferences;
-    VkSubpassDescription*                  mSubpasses;
-    VkSubpassDependency*                   mDependencies;
-    VkRenderPass                           mRenderPass;
+    VkRect2D                                         mScissor;
+    VkPipelineColorBlendAttachmentState              mColorBlendAttachment;
+    VkPipelineLayout                                 mPipelineLayout;
+    VkAttachmentDescription*                         mColorAttachments;
+    VkAttachmentReference*                           mReferences;
+    VkSubpassDescription*                            mSubpasses;
+    VkSubpassDependency*                             mDependencies;
+    VkRenderPass                                     mRenderPass;
 
-    VkShaderModuleCreateInfo               mVertexShaderModuleInfo;
-    VkShaderModuleCreateInfo               mFragmentShaderModuleInfo;
-    VkPipelineShaderStageCreateInfo        mVertexShaderStageInfo;
-    VkPipelineShaderStageCreateInfo        mFragmentShaderStageInfo;
-    VkPipelineDynamicStateCreateInfo       mDynamicStateInfo;
-    VkPipelineVertexInputStateCreateInfo   mVertexInputStateInfo;
-    VkPipelineInputAssemblyStateCreateInfo mInputAssembly;
-    VkPipelineViewportStateCreateInfo      mViewportState;
-    VkPipelineRasterizationStateCreateInfo mRasterizer;
-    VkPipelineMultisampleStateCreateInfo   mMultisampling;
-    VkPipelineColorBlendStateCreateInfo    mColorBlending;
-    VkPipelineLayoutCreateInfo             mPipelineLayoutInfo;
-    VkRenderPassCreateInfo                 mRenderPassInfo;
-    VkGraphicsPipelineCreateInfo           mGraphicsPipeline;
+    VkShaderModuleCreateInfo                         mVertexShaderModuleInfo;
+    VkShaderModuleCreateInfo                         mFragmentShaderModuleInfo;
+    VkPipelineShaderStageCreateInfo                  mVertexShaderStageInfo;
+    VkPipelineShaderStageCreateInfo                  mFragmentShaderStageInfo;
+    VkPipelineDynamicStateCreateInfo                 mDynamicStateInfo;
+    VkPipelineVertexInputStateCreateInfo             mVertexInputStateInfo;
+    VkPipelineInputAssemblyStateCreateInfo           mInputAssembly;
+    VkPipelineViewportStateCreateInfo                mViewportState;
+    VkPipelineRasterizationStateCreateInfo           mRasterizer;
+    VkPipelineMultisampleStateCreateInfo             mMultisampling;
+    VkPipelineColorBlendStateCreateInfo              mColorBlending;
+    VkPipelineLayoutCreateInfo                       mPipelineLayoutInfo;
+    VkRenderPassCreateInfo                           mRenderPassInfo;
+    VkGraphicsPipelineCreateInfo                     mGraphicsPipeline;
 
     static std::vector<char> GetSpvBinary(const std::string& fileName);
 };

@@ -9,14 +9,19 @@ App::App()
     InitSyncObjects();
     InitFrameBuffers();
     InitCommandPool();
-    InitCommandBuffer();
+    InitCommandBuffers();
+    CreateVertexBuffer();
+    mCurrentFrame = 0;
 }
 
 App::~App()
 {
-    vkDestroySemaphore(mDevice.GetLogical(), mImageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(mDevice.GetLogical(), mRenderFinishedSemaphore, nullptr);
-    vkDestroyFence(mDevice.GetLogical(), mInFlightFence, nullptr);
+    for (int i = 0; i < M_MAX_FRAMES_IN_FLIGHT; ++i)
+    {
+        vkDestroySemaphore(mDevice.GetLogical(), mImageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(mDevice.GetLogical(), mRenderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(mDevice.GetLogical(), mInFlightFences[i], nullptr);
+    }
 
     vkDestroyCommandPool(mDevice.GetLogical(), mCommandPool, nullptr);
 
@@ -25,6 +30,8 @@ App::~App()
         vkDestroyFramebuffer(mDevice.GetLogical(), framebuffer, nullptr);
     }
     
+    vkDestroyBuffer(mDevice.GetLogical(), mVertexBuffer, nullptr);
+    vkFreeMemory(mDevice.GetLogical(), mVertexBufferMemory, nullptr);
     glfwTerminate();
 }
 
@@ -33,13 +40,19 @@ void App::Run()
     while (mWindow.IsWindowActive())
     {
         glfwPollEvents();
-        Draw();
+        Update();
     }
     vkDeviceWaitIdle(mDevice.GetLogical());
 }
 
+
+
 void App::InitSyncObjects()
 {
+    mImageAvailableSemaphores.resize(M_MAX_FRAMES_IN_FLIGHT);
+    mRenderFinishedSemaphores.resize(M_MAX_FRAMES_IN_FLIGHT);
+    mInFlightFences.resize(M_MAX_FRAMES_IN_FLIGHT);
+
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     
@@ -47,11 +60,14 @@ void App::InitSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateSemaphore(mDevice.GetLogical(), &semaphoreInfo, nullptr, &mImageAvailableSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(mDevice.GetLogical(), &semaphoreInfo, nullptr, &mRenderFinishedSemaphore) != VK_SUCCESS ||
-        vkCreateFence(mDevice.GetLogical(), &fenceInfo, nullptr, &mInFlightFence) != VK_SUCCESS)
+    for (int i = 0; i < M_MAX_FRAMES_IN_FLIGHT; ++i)
     {
-        throw std::runtime_error("failed to create semaphores!");
+        if (vkCreateSemaphore(mDevice.GetLogical(), &semaphoreInfo, nullptr, &mImageAvailableSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(mDevice.GetLogical(), &semaphoreInfo, nullptr, &mRenderFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(mDevice.GetLogical(), &fenceInfo, nullptr, &mInFlightFences[i]) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create semaphores!");
+        }
     }
 }
 
@@ -59,8 +75,10 @@ void App::InitFrameBuffers()
 {
     mSwapchainFramebuffers.resize(mSwapchain.GetImageViews().size());
 
-    for (size_t i = 0; i < mSwapchain.GetImageViews().size(); i++) {
-        VkImageView attachments[] = {
+    for (size_t i = 0; i < mSwapchain.GetImageViews().size(); i++)
+    {
+        VkImageView attachments[] =
+        {
             mSwapchain.GetImageViews()[i]
         };
 
@@ -95,15 +113,17 @@ void App::InitCommandPool()
     }
 }
 
-void App::InitCommandBuffer()
+void App::InitCommandBuffers()
 {
+    mCommandBuffers.resize(M_MAX_FRAMES_IN_FLIGHT);
+
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = mCommandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
+    allocInfo.commandBufferCount = (uint32_t) mCommandBuffers.size();
 
-    if (vkAllocateCommandBuffers(mDevice.GetLogical(), &allocInfo, &mCommandBuffer) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(mDevice.GetLogical(), &allocInfo, mCommandBuffers.data()) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers!");
     }
@@ -118,7 +138,7 @@ void App::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
 
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
     {
-        throw std::runtime_error("failed to begin recording command buffer!");
+        throw std::runtime_error("failed to begin recording command buffers!");
     }
 
     VkRenderPassBeginInfo renderPassInfo = {};
@@ -134,6 +154,10 @@ void App::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline.Get());
     
+    VkBuffer vertexBuffers[] = {mVertexBuffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -148,7 +172,7 @@ void App::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
     scissor.extent = mSwapchain.GetExtent();
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdDraw(commandBuffer, static_cast<uint32_t>(mVertices.size()), 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
@@ -157,32 +181,85 @@ void App::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex
     }
 }
 
+void App::CreateVertexBuffer()
+{
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = sizeof(mVertices[0]) * mVertices.size();
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(mDevice.GetLogical(), &bufferInfo, nullptr, &mVertexBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create vertex buffer!");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(mDevice.GetLogical(), mVertexBuffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    if (vkAllocateMemory(mDevice.GetLogical(), &allocInfo, nullptr, &mVertexBufferMemory) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate vertex buffer memory!");
+    }
+
+    vkBindBufferMemory(mDevice.GetLogical(), mVertexBuffer, mVertexBufferMemory, 0);
+
+    void* data;
+    vkMapMemory(mDevice.GetLogical(), mVertexBufferMemory, 0, bufferInfo.size, 0, &data);
+    memcpy(data, mVertices.data(), (size_t) bufferInfo.size);
+    vkUnmapMemory(mDevice.GetLogical(), mVertexBufferMemory);
+}
+
+uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(mDevice.GetPhysical(), &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+
+bool a = false;
+
+void App::Update()
+{
+    Draw();
+}
+
 void App::Draw()
 {
-    vkWaitForFences(mDevice.GetLogical(), 1, &mInFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(mDevice.GetLogical(), 1, &mInFlightFence);
+    vkWaitForFences(mDevice.GetLogical(), 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+    vkResetFences(mDevice.GetLogical(), 1, &mInFlightFences[mCurrentFrame]);
     
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(mDevice.GetLogical(), mSwapchain.Get(), UINT64_MAX, mImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-    vkResetCommandBuffer(mCommandBuffer, 0);
-    RecordCommandBuffer(mCommandBuffer, imageIndex);
+    vkAcquireNextImageKHR(mDevice.GetLogical(), mSwapchain.Get(), UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
+    vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+    RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 
-    VkSubmitInfo submitInfo{};
+    VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = {mImageAvailableSemaphore};
+    VkSemaphore waitSemaphores[] = {mImageAvailableSemaphores[mCurrentFrame]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &mCommandBuffer;
+    submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
 
-    VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphore};
+    VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphores[mCurrentFrame]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(mDevice.GetGraphicsQueue(), 1, &submitInfo, mInFlightFence) != VK_SUCCESS)
+    if (vkQueueSubmit(mDevice.GetGraphicsQueue(), 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to submit draw command buffer!"); 
     }
@@ -198,6 +275,8 @@ void App::Draw()
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr; // Optional
     vkQueuePresentKHR(mDevice.GetGraphicsQueue(), &presentInfo);
+
+    mCurrentFrame = (mCurrentFrame + 1) % M_MAX_FRAMES_IN_FLIGHT;
 }
 
 } // namespace tlr

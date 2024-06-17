@@ -2,6 +2,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include "vertex.hpp"
 
 #include "debug_instance_builder.hpp"
 #include "my_instance.hpp"
@@ -36,19 +37,38 @@ private:
     DefaultPipelineBuilder mPipelineBuilder{mDevice};
     MyPipeline mPipeline{mPipelineBuilder.Build("spvs/vert.spv", "spvs/frag.spv", mSwapchain), mDevice};
 
-    VkSemaphore mImageAvailableSemaphore;
-    VkSemaphore mRenderFinishedSemaphore;
-    VkFence mInFlightFence;
+    const int  M_MAX_FRAMES_IN_FLIGHT = 2;
+    std::vector<VkSemaphore> mImageAvailableSemaphores;
+    std::vector<VkSemaphore> mRenderFinishedSemaphores;
+    std::vector<VkFence> mInFlightFences;
+
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
     VkCommandPool mCommandPool;
-    VkCommandBuffer mCommandBuffer;
+    std::vector<VkCommandBuffer> mCommandBuffers;
+    uint32_t mCurrentFrame;
 
-    void InitSyncObjects();
-    void InitFrameBuffers();
-    void InitCommandPool();
-    void InitCommandBuffer();
-    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-    void Draw();
+    std::vector<Vertex> mVertices =
+    {
+        { { -1.0f,  -1.0f }, { 0.0f, 0.0f, 1.0f } },
+        { { 1.0f,  -1.0f }, { 0.0f, 1.0f, 1.0f } },
+        { { 1.0f,  1.0f }, { 0.5f, 0.0f, 1.0f } },
+        { { -1.0f,  -1.0f }, { 0.0f, 0.0f, 1.0f } },
+        { { 1.0f,  1.0f }, { 0.5f, 0.0f, 1.0f } },
+        { { -1.0f,  1.0f }, { 0.0f, 0.0f, 1.0f } }
+        
+    };
+    VkBuffer mVertexBuffer;
+    VkDeviceMemory mVertexBufferMemory;
+
+    void     InitSyncObjects();
+    void     InitFrameBuffers();
+    void     InitCommandPool();
+    void     InitCommandBuffers();
+    void     RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+    void     CreateVertexBuffer();
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void     Update();
+    void     Draw();
 };
 
 } // namespace tlr

@@ -98,13 +98,16 @@ void DefaultPipelineBuilder::SetVkPipelineDynamicStateCreateInfo()
 
 void DefaultPipelineBuilder::SetVkPipelineVertexInputStateCreateInfo()
 {
+    mBindingDescription = Vertex::GetBindingDescription();
+    mAttributeDescription = Vertex::GetAttributeDescriptions();
+
     VkPipelineVertexInputStateCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     createInfo.pNext = nullptr;
-    createInfo.vertexBindingDescriptionCount = 0;
-    createInfo.pVertexBindingDescriptions = nullptr;
-    createInfo.vertexAttributeDescriptionCount = 0;
-    createInfo.pVertexAttributeDescriptions = nullptr;
+    createInfo.vertexBindingDescriptionCount = 1;
+    createInfo.pVertexBindingDescriptions = &mBindingDescription;
+    createInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(mAttributeDescription.size());
+    createInfo.pVertexAttributeDescriptions = mAttributeDescription.data();
     mVertexInputStateInfo = createInfo;
 }
 

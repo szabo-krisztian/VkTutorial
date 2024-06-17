@@ -26,6 +26,7 @@ cmake_install.cmake
 Makefile
 compile_commands.json
 objs/
+spvs/
 
 # Visual Studio Code settings
 .vscode/
