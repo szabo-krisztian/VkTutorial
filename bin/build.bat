@@ -1,15 +1,39 @@
-call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Auxiliary/Build/vcvars64.bat"
+@echo off
+setlocal enabledelayedexpansion
 
-SET extIncludes=/I"%VULKAN_SDK%/Include"^
-                /I"C:/CppLibraries/glfw-3.4/Include"^
-                /I"C:/CppLibraries"^
-                /I"../src"
+set baseDir=../src
 
-SET    extLinks=/link^
-                /LIBPATH:"C:/CppLibraries/glfw-3.4/build/src/Release" glfw3.lib gdi32.lib user32.lib shell32.lib^
-                /LIBPATH:"%VULKAN_SDK%/Lib" vulkan-1.lib
+REM ---------- Include ----------
 
-SET locSrc=../src/my_instance.cpp ../src/my_device.cpp ../src/my_window.cpp ../src/my_swap_chain.cpp
+SET vulkanInclude=/I"%VULKAN_SDK%/Include"
+SET glfwInclude=/I"C:/CppLibraries/glfw-3.4/Include"
+SET glmInclude=/I"C:/CppLibraries"
+
+set srcIncludes=
+for /R "%baseDir%" %%d in (.) do (
+    if exist "%%d\*" (
+        set "dirPath=%%d"
+        set "dirPath=!dirPath:~0,-2!"
+        set srcIncludes=!srcIncludes! /I"!dirPath!"
+    )
+)
+
+SET includes=%vulkanInclude% %glfwInclude% %glmInclude% %srcIncludes%
+
+REM ---------- Linking ----------
+
+SET vulkanLink=/LIBPATH:"%VULKAN_SDK%/Lib" vulkan-1.lib
+SET glfwLink=/LIBPATH:"C:/CppLibraries/glfw-3.4/build/src/Release" glfw3.lib gdi32.lib user32.lib shell32.lib
+
+SET externalLinks=/link %vulkanLink% %glfwLink%
+
+set srcLinks=
+for /R "%baseDir%\vk-object-implementations" %%d in (*.cpp) do (
+    set "srcLinks=!srcLinks! "%%d""
+)
+
+REM ---------- Compile ----------
+
 SET mainSrc=../src/main.cpp
 SET objDir=objs
 
@@ -21,4 +45,7 @@ echo.
 echo.
 
 REM Compile with /MD (use DLL version of CRT)
-cl /std:c++17 /MD /EHsc /Fo%objDir%\ %mainSrc% %locSrc% %defines% %extIncludes% %extLinks%
+call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Auxiliary/Build/vcvars64.bat"
+cl /std:c++17 /MD /EHsc /Fo%objDir%\ %mainSrc% %srcLinks% %defines% %includes% %externalLinks%
+
+endlocal

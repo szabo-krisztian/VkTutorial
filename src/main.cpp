@@ -1,32 +1,21 @@
-#include "my_instance.hpp"
-#include "my_device.hpp"
-#include "my_window.hpp"
-#include "my_swap_chain.hpp"
-
 #include <iostream>
-#include <vector>
-#include <stdexcept>
-#include <optional>
+
+#include "app.hpp"
 
 int main()
 {
+    glfwInit();
+
     try
     {
-        tlr::MyVulkanInstance instance;
-        tlr::MyVulkanWindow window(instance);
-        tlr::MyVulkanDevice device(instance, window);
-        tlr::MyVulkanSwapChain swapChain(window, device);
-
-        while (window.IsWindowActive())
-        {
-            glfwPollEvents();
-        }
-        
+        tlr::App app;
+        app.Run();
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
-        std::cout << e.what() << std::endl;
+        std::cerr << e.what() << '\n';
     }
 
+    glfwTerminate();
     return EXIT_SUCCESS;
 }

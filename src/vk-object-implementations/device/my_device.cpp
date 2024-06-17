@@ -3,7 +3,7 @@
 namespace tlr
 {
 
-MyVulkanDevice::MyVulkanDevice(MyVulkanInstance& instance, MyVulkanWindow& window) : mInstance(instance), mWindow(window)
+MyDevice::MyDevice(MyInstance& instance, MyWindow& window) : mInstance(instance), mWindow(window)
 {
     mPhysicalDevice = GetPhysicalDevice();
     
@@ -12,7 +12,7 @@ MyVulkanDevice::MyVulkanDevice(MyVulkanInstance& instance, MyVulkanWindow& windo
         throw std::runtime_error("failed to find a suitable GPU!");
     }
     mFamilyIndices = GetQueueFamilyIndices(mPhysicalDevice);
-    mSwapChainSupportDetails = GetSwapChainSupport(mPhysicalDevice);
+    mSwapchainSupportDetails = GetSwapchainSupport(mPhysicalDevice);
 
     if (InitLogicalDevice() != VK_SUCCESS)
     {
@@ -23,32 +23,42 @@ MyVulkanDevice::MyVulkanDevice(MyVulkanInstance& instance, MyVulkanWindow& windo
     vkGetDeviceQueue(mLogicalDevice, mFamilyIndices.presentFamily.value(), 0, &mPresentQueue);
 }
 
-MyVulkanDevice::~MyVulkanDevice()
+MyDevice::~MyDevice()
 {
     vkDestroyDevice(mLogicalDevice, nullptr);
 }
 
-const VkPhysicalDevice& MyVulkanDevice::GetPhysical() const
+const VkPhysicalDevice& MyDevice::GetPhysical() const
 {
     return mPhysicalDevice;
 }
 
-const VkDevice& MyVulkanDevice::GetLogical() const
+const VkDevice& MyDevice::GetLogical() const
 {
     return mLogicalDevice;
 }
 
-const QueueFamilyIndices& MyVulkanDevice::GetQueueFamilyIndices() const
+const VkQueue& MyDevice::GetGraphicsQueue() const
+{
+    return mGraphicsQueue;
+}
+
+const VkQueue& MyDevice::GetPresentQueue() const
+{
+    return mPresentQueue;
+}
+
+const QueueFamilyIndices& MyDevice::GetQueueFamilyIndices() const
 {
     return mFamilyIndices;
 }
 
-const SwapChainSupportDetails& MyVulkanDevice::GetSwapChainSupport() const
+const SwapchainSupportDetails& MyDevice::GetSwapchainSupport() const
 {
-    return mSwapChainSupportDetails;
+    return mSwapchainSupportDetails;
 }
 
-VkPhysicalDevice MyVulkanDevice::GetPhysicalDevice()
+VkPhysicalDevice MyDevice::GetPhysicalDevice()
 {
     std::vector<VkPhysicalDevice> physicalDevices = GetPhysicalDevices();
     for (const auto& device : physicalDevices)
@@ -62,7 +72,7 @@ VkPhysicalDevice MyVulkanDevice::GetPhysicalDevice()
     return VK_NULL_HANDLE;
 }
 
-std::vector<VkPhysicalDevice> MyVulkanDevice::GetPhysicalDevices()
+std::vector<VkPhysicalDevice> MyDevice::GetPhysicalDevices()
 {
     uint32_t physicalDeviceCount = 0;
     vkEnumeratePhysicalDevices(mInstance.Get(), &physicalDeviceCount, nullptr);
@@ -76,7 +86,7 @@ std::vector<VkPhysicalDevice> MyVulkanDevice::GetPhysicalDevices()
     return physicalDevices;
 }
 
-bool MyVulkanDevice::IsPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDevice)
+bool MyDevice::IsPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDevice)
 {
     QueueFamilyIndices indices = GetQueueFamilyIndices(physicalDevice);
     
@@ -86,15 +96,15 @@ bool MyVulkanDevice::IsPhysicalDeviceSuitable(const VkPhysicalDevice& physicalDe
     }
 
     bool isSwapChainAdequate = false;
-    SwapChainSupportDetails swapChainSupport = GetSwapChainSupport(physicalDevice);
+    SwapchainSupportDetails swapChainSupport = GetSwapchainSupport(physicalDevice);
     isSwapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 
     return indices.IsComplete() && isSwapChainAdequate;
 }
 
-SwapChainSupportDetails MyVulkanDevice::GetSwapChainSupport(const VkPhysicalDevice& physicalDevice)
+SwapchainSupportDetails MyDevice::GetSwapchainSupport(const VkPhysicalDevice& physicalDevice)
 {
-    SwapChainSupportDetails details = {};
+    SwapchainSupportDetails details = {};
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, mWindow.GetSurface(), &details.capabilities);
 
     uint32_t formatCount = 0;
@@ -115,7 +125,7 @@ SwapChainSupportDetails MyVulkanDevice::GetSwapChainSupport(const VkPhysicalDevi
     return details;
 }
 
-bool MyVulkanDevice::IsDeviceExtensionsSupported(const VkPhysicalDevice& physicalDevice)
+bool MyDevice::IsDeviceExtensionsSupported(const VkPhysicalDevice& physicalDevice)
 {
     uint32_t extensionCount = 0;
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
@@ -133,7 +143,7 @@ bool MyVulkanDevice::IsDeviceExtensionsSupported(const VkPhysicalDevice& physica
 
 }
 
-QueueFamilyIndices MyVulkanDevice::GetQueueFamilyIndices(const VkPhysicalDevice& physicalDevice)
+QueueFamilyIndices MyDevice::GetQueueFamilyIndices(const VkPhysicalDevice& physicalDevice)
 {
     QueueFamilyIndices indices;
     std::vector<VkQueueFamilyProperties> queueFamilies = GetQueueFamilies(physicalDevice);
@@ -162,7 +172,7 @@ QueueFamilyIndices MyVulkanDevice::GetQueueFamilyIndices(const VkPhysicalDevice&
     return indices;
 }
 
-std::vector<VkQueueFamilyProperties> MyVulkanDevice::GetQueueFamilies(const VkPhysicalDevice& physicalDevice)
+std::vector<VkQueueFamilyProperties> MyDevice::GetQueueFamilies(const VkPhysicalDevice& physicalDevice)
 {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
@@ -171,7 +181,7 @@ std::vector<VkQueueFamilyProperties> MyVulkanDevice::GetQueueFamilies(const VkPh
     return queueFamilies;
 }
 
-VkResult MyVulkanDevice::InitLogicalDevice()
+VkResult MyDevice::InitLogicalDevice()
 {
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = { mFamilyIndices.graphicsFamily.value(), mFamilyIndices.presentFamily.value() };

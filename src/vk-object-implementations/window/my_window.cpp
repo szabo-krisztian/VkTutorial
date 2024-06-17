@@ -3,7 +3,7 @@
 namespace tlr
 {
 
-MyVulkanWindow::MyVulkanWindow(MyVulkanInstance& instance) : mInstance(instance), mWindow(nullptr)
+MyWindow::MyWindow(MyInstance& instance) : mInstance(instance), mWindow(nullptr)
 {
     InitWindow();
 
@@ -18,14 +18,13 @@ MyVulkanWindow::MyVulkanWindow(MyVulkanInstance& instance) : mInstance(instance)
     }
 }
 
-
-MyVulkanWindow::~MyVulkanWindow()
+MyWindow::~MyWindow()
 {
     vkDestroySurfaceKHR(mInstance.Get(), mSurface, nullptr);
     glfwDestroyWindow(mWindow);
 }
 
-void MyVulkanWindow::InitWindow()
+void MyWindow::InitWindow()
 {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -33,17 +32,17 @@ void MyVulkanWindow::InitWindow()
     mWindow = glfwCreateWindow(M_WIDTH, M_HEIGHT, "Vulkan", nullptr, nullptr);
 }
 
-const VkSurfaceKHR& MyVulkanWindow::GetSurface() const
+const VkSurfaceKHR& MyWindow::GetSurface() const
 {
     return mSurface;
 }
 
-GLFWwindow* MyVulkanWindow::GetWindow()
+GLFWwindow* MyWindow::GetWindow()
 {
     return mWindow;
 }
 
-bool MyVulkanWindow::IsWindowActive()
+bool MyWindow::IsWindowActive()
 {
     return !glfwWindowShouldClose(mWindow);
 }

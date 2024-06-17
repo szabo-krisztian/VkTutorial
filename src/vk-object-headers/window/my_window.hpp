@@ -1,18 +1,21 @@
 #pragma once
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include "my_instance.hpp"
 
 namespace tlr
 {
 
-class MyVulkanWindow
+class MyWindow
 {
 public:
-    MyVulkanWindow(MyVulkanInstance& instance);
-    ~MyVulkanWindow();
+    MyWindow(MyInstance& instance);
+    ~MyWindow();
 
-    MyVulkanWindow(const MyVulkanWindow&) = delete;
-    MyVulkanWindow operator=(const MyVulkanWindow&) = delete;
+    MyWindow(const MyWindow&) = delete;
+    MyWindow operator=(const MyWindow&) = delete;
 
     const VkSurfaceKHR& GetSurface() const;
     GLFWwindow*         GetWindow();
@@ -21,7 +24,7 @@ private:
     const uint32_t M_WIDTH = 800;
     const uint32_t M_HEIGHT = 600;
 
-    MyVulkanInstance& mInstance;
+    MyInstance& mInstance;
     VkSurfaceKHR      mSurface;
     GLFWwindow*       mWindow;
 
