@@ -7,4 +7,6 @@ IInstance* StateBoard::instance = nullptr;
 
 IWindow* StateBoard::window = nullptr;
 
+IDevice* StateBoard::device = nullptr;
+
 } // namespace tlr

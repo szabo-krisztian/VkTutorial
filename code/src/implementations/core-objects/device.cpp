@@ -6,7 +6,6 @@ namespace tlr
 Device::Device()
 {
     mPhysicalDevice = GetPhysicalDevice();
-    
     if (mPhysicalDevice == VK_NULL_HANDLE)
     {
         throw std::runtime_error("failed to find a suitable GPU!");
@@ -18,14 +17,16 @@ Device::Device()
     {
         throw std::runtime_error("failed to create logical device!");
     }
-    
     vkGetDeviceQueue(mLogicalDevice, mFamilyIndices.graphicsFamily.value(), 0, &mGraphicsQueue);
     vkGetDeviceQueue(mLogicalDevice, mFamilyIndices.presentFamily.value(), 0, &mPresentQueue);
+
+    StateBoard::device = this;
 }
 
 Device::~Device()
 {
     vkDestroyDevice(mLogicalDevice, nullptr);
+    StateBoard::device = nullptr;
 }
 
 const VkPhysicalDevice& Device::GetPhysical() const
