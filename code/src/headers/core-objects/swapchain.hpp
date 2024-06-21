@@ -20,10 +20,10 @@ public:
     Swapchain(const Swapchain&) = delete;
     Swapchain operator=(const Swapchain&) = delete;
 
-    const VkSwapchainKHR&           Get()           const override;
-    const VkFormat&                 GetFormat()     const override;
-    const VkExtent2D&               GetExtent()     const override;
-    const std::vector<VkImageView>& GetImageViews() const override;
+    const VkSwapchainKHR&             Get()             const override;
+    const VkFormat&                   GetFormat()       const override;
+    const VkExtent2D&                 GetExtent()       const override;
+    const std::vector<VkImageView>&   GetImageViews()   const override;
 
 private:
     VkSwapchainKHR                  mSwapchain;
@@ -38,6 +38,7 @@ private:
     VkExtent2D                      GetSwapExtend(const VkSurfaceCapabilitiesKHR& capabilities);
     void                            InitSwapchainImages();
     void                            InitSwapchainImageViews();
+    void                            InitSwapchainFramebuffers();
 };
 
 } // namespace tlr
