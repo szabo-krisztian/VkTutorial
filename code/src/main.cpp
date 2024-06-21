@@ -4,6 +4,7 @@
 #include "debug_messenger.hpp"
 #include "window.hpp"
 #include "device.hpp"
+#include "swapchain.hpp"
 
 int main()
 {
@@ -15,6 +16,7 @@ int main()
         tlr::DebugMessenger debugMessenger;
         tlr::Window window;
         tlr::Device device;
+        tlr::Swapchain swapchain;
 
         while (window.IsWindowActive())
         {

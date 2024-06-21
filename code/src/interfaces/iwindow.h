@@ -12,7 +12,7 @@ public:
     virtual ~IWindow() = default;
 
     virtual const VkSurfaceKHR& GetSurface()     const = 0;
-    virtual const GLFWwindow*   GetWindow()      const = 0;
+    virtual       GLFWwindow*   GetWindow()      const = 0;
     virtual       bool          IsWindowActive() const = 0; 
 };
 

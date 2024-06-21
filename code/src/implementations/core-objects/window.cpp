@@ -40,7 +40,7 @@ const VkSurfaceKHR& Window::GetSurface() const
     return mSurface;
 }
 
-const GLFWwindow* Window::GetWindow() const
+GLFWwindow* Window::GetWindow() const
 {
     return mWindow;
 }

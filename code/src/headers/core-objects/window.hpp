@@ -18,7 +18,7 @@ public:
     Window operator=(const Window&) = delete;
 
     const VkSurfaceKHR& GetSurface()     const override;
-    const GLFWwindow*   GetWindow()      const override;
+          GLFWwindow*   GetWindow()      const override;
           bool          IsWindowActive() const override;
 
 private:

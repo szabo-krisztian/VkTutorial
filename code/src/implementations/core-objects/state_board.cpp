@@ -9,4 +9,6 @@ IWindow* StateBoard::window = nullptr;
 
 IDevice* StateBoard::device = nullptr;
 
+ISwapchain* StateBoard::swapchain = nullptr;
+
 } // namespace tlr
