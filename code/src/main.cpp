@@ -2,6 +2,8 @@
 
 #include "instance.hpp"
 #include "debug_messenger.hpp"
+#include "window.hpp"
+#include "device.hpp"
 
 int main()
 {
@@ -11,6 +13,13 @@ int main()
     {
         tlr::Instance instance;
         tlr::DebugMessenger debugMessenger;
+        tlr::Window window;
+        tlr::Device device;
+
+        while (window.IsWindowActive())
+        {
+            glfwPollEvents();
+        }
     }
     catch (const std::exception &e)
     {
