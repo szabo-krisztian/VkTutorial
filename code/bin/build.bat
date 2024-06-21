@@ -28,7 +28,7 @@ SET glfwLink=/LIBPATH:"C:/CppLibraries/glfw-3.4/build/src/Release" glfw3.lib gdi
 SET externalLinks=/link %vulkanLink% %glfwLink%
 
 set srcLinks=
-for /R "%baseDir%\vk-object-implementations" %%d in (*.cpp) do (
+for /R "%baseDir%\implementations" %%d in (*.cpp) do (
     set "srcLinks=!srcLinks! "%%d""
 )
 

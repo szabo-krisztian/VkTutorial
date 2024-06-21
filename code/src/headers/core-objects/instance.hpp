@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include "state_board.hpp"
 #include "iinstance.h"
 
 #include <iostream>

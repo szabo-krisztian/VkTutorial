@@ -27,15 +27,17 @@ Instance::Instance() : M_VALIDATION_LAYERS({"VK_LAYER_KHRONOS_validation"}), M_E
     SetVkDebugUtilsMessengerCreateInfoEXT();
     SetVkInstanceCreateInfo();
 
-     if (vkCreateInstance(&mInstanceCreateInfo, nullptr, &mInstance))
+    if (vkCreateInstance(&mInstanceCreateInfo, nullptr, &mInstance))
     {
         throw std::runtime_error("instance creation failure!");
     }
+    StateBoard::instance = this;
 }
 
 Instance::~Instance()
 {
     vkDestroyInstance(mInstance, nullptr);
+    StateBoard::instance = nullptr;
 }
 
 const VkInstance& Instance::Get() const
@@ -114,13 +116,13 @@ void Instance::SetVkInstanceCreateInfo()
 {
     mInstanceCreateInfo = {};
     mInstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    mInstanceCreateInfo.pNext = nullptr;
+    mInstanceCreateInfo.pNext = &mDebugMessengerCreateInfo;
     mInstanceCreateInfo.flags = 0;
     mInstanceCreateInfo.pApplicationInfo = &mAppCreateInfo;
-    mInstanceCreateInfo.enabledLayerCount = 0;
-    mInstanceCreateInfo.ppEnabledLayerNames = nullptr;
-    mInstanceCreateInfo.enabledExtensionCount = 0;
-    mInstanceCreateInfo.ppEnabledExtensionNames = nullptr;
+    mInstanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(M_VALIDATION_LAYERS.size());
+    mInstanceCreateInfo.ppEnabledLayerNames = M_VALIDATION_LAYERS.data();
+    mInstanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(M_EXTENSIONS.size());
+    mInstanceCreateInfo.ppEnabledExtensionNames = M_EXTENSIONS.data();
 }
 
 } // namespace tlr

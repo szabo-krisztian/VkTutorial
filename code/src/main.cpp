@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "app.hpp"
+#include "instance.hpp"
+#include "debug_messenger.hpp"
 
 int main()
 {
@@ -8,8 +9,8 @@ int main()
 
     try
     {
-        tlr::App app;
-        app.Run();
+        tlr::Instance instance;
+        tlr::DebugMessenger debugMessenger;
     }
     catch (const std::exception &e)
     {
