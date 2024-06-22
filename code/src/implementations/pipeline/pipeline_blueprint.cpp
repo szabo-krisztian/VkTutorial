@@ -19,7 +19,9 @@ PipelineBlueprint::~PipelineBlueprint()
     vkDestroyPipeline(StateBoard::device->GetLogical(), mPipeline, nullptr);
     vkDestroyRenderPass(StateBoard::device->GetLogical(), mRenderPass, nullptr);
     vkDestroyPipelineLayout(StateBoard::device->GetLogical(), mPipelineLayout, nullptr);
-    vkDestroyDescriptorSetLayout(StateBoard::device->GetLogical(), mDescriptorSetLayout, nullptr);
+    
+    //vkDestroyDescriptorSetLayout(StateBoard::device->GetLogical(), mDescriptorSetLayout, nullptr); TODO
+
     vkDestroyShaderModule(StateBoard::device->GetLogical(), mVertexModule, nullptr);
     vkDestroyShaderModule(StateBoard::device->GetLogical(), mFragmentModule, nullptr);
 }
@@ -102,8 +104,9 @@ void PipelineBlueprint::SetVertexInputState(uint32_t bindingCount, const VkVerte
     mVertexInputStateInfo.pVertexAttributeDescriptions = attributeDescriptions;
 }
 
-void PipelineBlueprint::SetLayout(const std::vector<VkDescriptorSetLayoutBinding>& descriptorBindings)
+void PipelineBlueprint::SetLayout() // TODO
 {
+    /*
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = descriptorBindings.size();
@@ -113,11 +116,12 @@ void PipelineBlueprint::SetLayout(const std::vector<VkDescriptorSetLayoutBinding
     {
         throw std::runtime_error("failed to create descriptor set layout!");
     }
+    */
 
     mPipelineLayoutInfo = {};
     mPipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    mPipelineLayoutInfo.setLayoutCount = 1;
-    mPipelineLayoutInfo.pSetLayouts = &mDescriptorSetLayout;
+    mPipelineLayoutInfo.setLayoutCount = 0; // TODO
+    mPipelineLayoutInfo.pSetLayouts = 0; // TODO
     mPipelineLayoutInfo.pushConstantRangeCount = 0;
     mPipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -129,6 +133,7 @@ void PipelineBlueprint::SetLayout(const std::vector<VkDescriptorSetLayoutBinding
 
 void PipelineBlueprint::BuildGraphicsPipeline()
 {
+    BuildPipelineCreateInfo();
     if (vkCreateGraphicsPipelines(StateBoard::device->GetLogical(), VK_NULL_HANDLE, 1, &mGraphicsPipelineInfo, nullptr, &mPipeline) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create graphics pipeline!");
@@ -137,12 +142,11 @@ void PipelineBlueprint::BuildGraphicsPipeline()
 
 void PipelineBlueprint::InitDynamicStateInfo()
 {
-    std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     mDynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     mDynamicStateInfo.pNext = nullptr;
     mDynamicStateInfo.flags = 0;
-    mDynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-    mDynamicStateInfo.pDynamicStates = dynamicStates.data();
+    mDynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(M_DYNAMIC_STATES.size());
+    mDynamicStateInfo.pDynamicStates = M_DYNAMIC_STATES.data();
 }
 
 void PipelineBlueprint::InitInputAssemblyStateInfo()

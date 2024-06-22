@@ -5,6 +5,7 @@
 #include "window.hpp"
 #include "device.hpp"
 #include "swapchain.hpp"
+#include "app.hpp"
 
 int main()
 {
@@ -17,7 +18,8 @@ int main()
         tlr::Window window;
         tlr::Device device;
         tlr::Swapchain swapchain;
-
+        tlr::App app;
+        
         while (window.IsWindowActive())
         {
             glfwPollEvents();

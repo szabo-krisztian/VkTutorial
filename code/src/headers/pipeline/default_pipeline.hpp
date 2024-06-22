@@ -10,9 +10,6 @@ class DefaultPipeline : public PipelineBlueprint
 {
 public: 
     DefaultPipeline();
-
-
-    
 };
 
 } // namespace tlr

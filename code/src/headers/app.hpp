@@ -1,7 +1,7 @@
 #pragma once
 
 #include "state_board.hpp"
-#include "pipeline_core.hpp"
+#include "default_pipeline.hpp"
 
 namespace tlr
 {
@@ -13,10 +13,9 @@ public:
     
 
 private:
-    VkPipeline mPipeline;
+    DefaultPipeline pipeline;
 
     std::vector<VkFramebuffer> mFramebuffers;
-
     void InitFramebuffers();
 };
 

@@ -23,7 +23,7 @@ protected:
     void                                   SetVertexShaderSpvPath(const std::string& vertexSpvPath);
     void                                   SetFragmentShaderSpvPath(const std::string& fragmentSpvPath);
     void                                   SetVertexInputState(uint32_t bindingCount, const VkVertexInputBindingDescription* bindingDesciptions, uint32_t attributeCount, const VkVertexInputAttributeDescription* attributeDescriptions);
-    void                                   SetLayout(const std::vector<VkDescriptorSetLayoutBinding>& descriptorBindings);
+    void                                   SetLayout(); // TODO
     void                                   BuildGraphicsPipeline();
 
 private:
@@ -37,10 +37,10 @@ private:
     VkPipelineMultisampleStateCreateInfo   mMultisamplingInfo;
     VkPipelineColorBlendStateCreateInfo    mColorBlendingInfo;
     VkPipelineLayoutCreateInfo             mPipelineLayoutInfo;
-    VkPipelineLayoutCreateInfo             mPipelineLayoutInfo;
     VkRenderPassCreateInfo                 mRenderPassInfo;
     VkGraphicsPipelineCreateInfo           mGraphicsPipelineInfo;
 
+    const std::vector<VkDynamicState>      M_DYNAMIC_STATES = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     VkShaderModule                         mVertexModule;
     VkShaderModule                         mFragmentModule;
     VkRect2D                               mScissor;

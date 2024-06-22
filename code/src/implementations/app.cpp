@@ -3,6 +3,11 @@
 namespace tlr
 {
 
+App::App()
+{
+
+}
+
 void App::InitFramebuffers()
 {
     

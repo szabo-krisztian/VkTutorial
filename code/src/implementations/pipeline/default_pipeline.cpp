@@ -10,8 +10,8 @@ DefaultPipeline::DefaultPipeline()
 
     auto bindingDescriptions = Vertex::GetBindingDescription();
     auto attributeDescriptions = Vertex::GetAttributeDescriptions();
-    SetVertexInputState(1, &bindingDescriptions, 2, attributeDescriptions.data());
-    // descriptor
+    SetVertexInputState(0, nullptr, 0, nullptr);
+    SetLayout();
     BuildGraphicsPipeline();
 }
 
