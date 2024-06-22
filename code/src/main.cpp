@@ -23,6 +23,7 @@ int main()
         while (window.IsWindowActive())
         {
             glfwPollEvents();
+            app.DrawFrame();
         }
     }
     catch (const std::exception& e)

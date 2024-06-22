@@ -93,16 +93,17 @@ void PipelineBlueprint::SetFragmentShaderSpvPath(const std::string& fragmentSpvP
     mFragmentShaderStageInfo.pName = "main";
     mFragmentShaderStageInfo.pSpecializationInfo = nullptr;
 }
-
+// TODO
 void PipelineBlueprint::SetVertexInputState(uint32_t bindingCount, const VkVertexInputBindingDescription* bindingDesciptions, uint32_t attributeCount, const VkVertexInputAttributeDescription* attributeDescriptions)
 {
     mVertexInputStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     mVertexInputStateInfo.pNext = nullptr;
-    mVertexInputStateInfo.vertexBindingDescriptionCount = bindingCount;
-    mVertexInputStateInfo.pVertexBindingDescriptions = bindingDesciptions;
-    mVertexInputStateInfo.vertexAttributeDescriptionCount = attributeCount;
-    mVertexInputStateInfo.pVertexAttributeDescriptions = attributeDescriptions;
-}
+    mVertexInputStateInfo.flags = 0;
+    mVertexInputStateInfo.vertexBindingDescriptionCount = 0;
+    mVertexInputStateInfo.pVertexBindingDescriptions = nullptr;
+    mVertexInputStateInfo.vertexAttributeDescriptionCount = 0;
+    mVertexInputStateInfo.pVertexAttributeDescriptions = nullptr;
+} 
 
 void PipelineBlueprint::SetLayout() // TODO
 {
@@ -133,6 +134,7 @@ void PipelineBlueprint::SetLayout() // TODO
 
 void PipelineBlueprint::BuildGraphicsPipeline()
 {
+    std::cout << mVertexInputStateInfo.flags << std::endl;
     BuildPipelineCreateInfo();
     if (vkCreateGraphicsPipelines(StateBoard::device->GetLogical(), VK_NULL_HANDLE, 1, &mGraphicsPipelineInfo, nullptr, &mPipeline) != VK_SUCCESS)
     {
@@ -183,7 +185,7 @@ void PipelineBlueprint::InitRasterizerInfo()
     mRasterizerInfo.polygonMode = VK_POLYGON_MODE_FILL;
     mRasterizerInfo.lineWidth = 1.0f;
     mRasterizerInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-    mRasterizerInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    mRasterizerInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
     mRasterizerInfo.depthBiasEnable = VK_FALSE;
     mRasterizerInfo.depthBiasConstantFactor = 0.0f;
     mRasterizerInfo.depthBiasClamp = 0.0f;
@@ -237,7 +239,7 @@ void PipelineBlueprint::InitRenderPassInfo()
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
-    VkSubpassDependency dependency = {};
+    VkSubpassDependency dependency{};
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
     dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;

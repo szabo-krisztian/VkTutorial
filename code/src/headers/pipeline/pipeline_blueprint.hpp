@@ -28,7 +28,7 @@ protected:
 
 private:
     VkPipelineShaderStageCreateInfo        mVertexShaderStageInfo;
-    VkPipelineShaderStageCreateInfo        mFragmentShaderStageInfo;
+    VkPipelineShaderStageCreateInfo        mFragmentShaderStageInfo; // TODO memory allocation trick
     VkPipelineDynamicStateCreateInfo       mDynamicStateInfo;
     VkPipelineVertexInputStateCreateInfo   mVertexInputStateInfo;
     VkPipelineInputAssemblyStateCreateInfo mInputAssemblyInfo;
