@@ -1,4 +1,4 @@
-#include "pipeline_core.hpp"
+#include "pipeline_blueprint.hpp"
 
 namespace tlr
 {
@@ -22,6 +22,26 @@ PipelineBlueprint::~PipelineBlueprint()
     vkDestroyDescriptorSetLayout(StateBoard::device->GetLogical(), mDescriptorSetLayout, nullptr);
     vkDestroyShaderModule(StateBoard::device->GetLogical(), mVertexModule, nullptr);
     vkDestroyShaderModule(StateBoard::device->GetLogical(), mFragmentModule, nullptr);
+}
+
+const VkPipeline& PipelineBlueprint::Get() const
+{
+    return mPipeline;
+}
+
+const VkPipelineLayout& PipelineBlueprint::GetLayout() const
+{
+    return mPipelineLayout;
+}
+
+const VkRenderPass& PipelineBlueprint::GetRenderPass() const
+{
+    return mRenderPass;
+}
+
+const VkDescriptorSetLayout& PipelineBlueprint::GetDescriptorLayout() const
+{
+    return mDescriptorSetLayout;
 }
 
 void PipelineBlueprint::SetVertexShaderSpvPath(const std::string& vertexSpvPath)
@@ -72,14 +92,14 @@ void PipelineBlueprint::SetFragmentShaderSpvPath(const std::string& fragmentSpvP
     mFragmentShaderStageInfo.pSpecializationInfo = nullptr;
 }
 
-void PipelineBlueprint::SetVertexInputState(const std::vector<VkVertexInputBindingDescription>& bindingDesciptions, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
+void PipelineBlueprint::SetVertexInputState(uint32_t bindingCount, const VkVertexInputBindingDescription* bindingDesciptions, uint32_t attributeCount, const VkVertexInputAttributeDescription* attributeDescriptions)
 {
     mVertexInputStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     mVertexInputStateInfo.pNext = nullptr;
-    mVertexInputStateInfo.vertexBindingDescriptionCount = 1;
-    mVertexInputStateInfo.pVertexBindingDescriptions = bindingDesciptions.data();
-    mVertexInputStateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-    mVertexInputStateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+    mVertexInputStateInfo.vertexBindingDescriptionCount = bindingCount;
+    mVertexInputStateInfo.pVertexBindingDescriptions = bindingDesciptions;
+    mVertexInputStateInfo.vertexAttributeDescriptionCount = attributeCount;
+    mVertexInputStateInfo.pVertexAttributeDescriptions = attributeDescriptions;
 }
 
 void PipelineBlueprint::SetLayout(const std::vector<VkDescriptorSetLayoutBinding>& descriptorBindings)
@@ -104,6 +124,14 @@ void PipelineBlueprint::SetLayout(const std::vector<VkDescriptorSetLayoutBinding
     if (vkCreatePipelineLayout(StateBoard::device->GetLogical(), &mPipelineLayoutInfo, nullptr, &mPipelineLayout) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create pipeline layout!");
+    }
+}
+
+void PipelineBlueprint::BuildGraphicsPipeline()
+{
+    if (vkCreateGraphicsPipelines(StateBoard::device->GetLogical(), VK_NULL_HANDLE, 1, &mGraphicsPipelineInfo, nullptr, &mPipeline) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to create graphics pipeline!");
     }
 }
 

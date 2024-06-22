@@ -14,10 +14,17 @@ public:
     PipelineBlueprint();
     ~PipelineBlueprint();
 
-    void SetVertexShaderSpvPath(const std::string& vertexSpvPath);
-    void SetFragmentShaderSpvPath(const std::string& fragmentSpvPath);
-    void SetVertexInputState(const std::vector<VkVertexInputBindingDescription>& bindingDesciptions, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
-    void SetLayout(const std::vector<VkDescriptorSetLayoutBinding>& descriptorBindings);
+    const VkPipeline&                      Get()                 const;
+    const VkPipelineLayout&                GetLayout()           const;
+    const VkRenderPass&                    GetRenderPass()       const;
+    const VkDescriptorSetLayout&           GetDescriptorLayout() const;
+    
+protected:
+    void                                   SetVertexShaderSpvPath(const std::string& vertexSpvPath);
+    void                                   SetFragmentShaderSpvPath(const std::string& fragmentSpvPath);
+    void                                   SetVertexInputState(uint32_t bindingCount, const VkVertexInputBindingDescription* bindingDesciptions, uint32_t attributeCount, const VkVertexInputAttributeDescription* attributeDescriptions);
+    void                                   SetLayout(const std::vector<VkDescriptorSetLayoutBinding>& descriptorBindings);
+    void                                   BuildGraphicsPipeline();
 
 private:
     VkPipelineShaderStageCreateInfo        mVertexShaderStageInfo;
