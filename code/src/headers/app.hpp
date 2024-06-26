@@ -20,6 +20,8 @@ public:
     void DrawFrame();
     
 private:
+
+    // TODO: remove apptols from headers
     DefaultPipeline            mPipeline;
     std::vector<VkFramebuffer> mFramebuffers;
     
