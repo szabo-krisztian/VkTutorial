@@ -203,23 +203,4 @@ void App::DrawFrame()
     mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void App::CreateVertexBuffer()
-{
-    std::vector<Vertex> vertexBuffer
-    {
-			{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-			{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-			{ {  0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
-    };
-    uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size());
-
-    std::vector<uint32_t> indexBuffer{ 0, 1, 2 };
-    indices.count = static_cast<uint32_t>(indexBuffer.size());
-    uint32_t indexBufferSize = indices.count * sizeof(uint32_t);
-
-    VkMemoryAllocateInfo memAlloc{};
-    memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    VkMemoryRequirements memReqs;
-}
-
 } // namespace tlr
