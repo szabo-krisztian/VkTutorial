@@ -38,7 +38,6 @@ private:
     VkExtent2D                      GetSwapExtend(const VkSurfaceCapabilitiesKHR& capabilities);
     void                            InitSwapchainImages();
     void                            InitSwapchainImageViews();
-    void                            InitSwapchainFramebuffers();
 };
 
 } // namespace tlr
