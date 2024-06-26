@@ -7,20 +7,25 @@ App::App()
 {
     InitFramebuffers();
     InitCommandPool();
-    InitCommandBuffer();
+    InitCommandBuffers();
     InitSyncObjects();
 }
 
 App::~App()
 {
+    vkDeviceWaitIdle(StateBoard::device->GetLogical());
+
     for (auto framebuffer : mFramebuffers)
     {
         vkDestroyFramebuffer(StateBoard::device->GetLogical(), framebuffer, nullptr);
     }
     vkDestroyCommandPool(StateBoard::device->GetLogical(), mCommandPool, nullptr);
-    vkDestroySemaphore(StateBoard::device->GetLogical(), mImageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(StateBoard::device->GetLogical(), mRenderFinishedSemaphore, nullptr);
-    vkDestroyFence(StateBoard::device->GetLogical(), mInFlightFence, nullptr);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+    {
+        vkDestroySemaphore(StateBoard::device->GetLogical(), mSynchronizationPrimitites.imageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(StateBoard::device->GetLogical(), mSynchronizationPrimitites.renderFinishedSemaphores[i], nullptr);
+        vkDestroyFence(StateBoard::device->GetLogical(), mSynchronizationPrimitites.inFlightFences[i], nullptr);
+    }
 }
 
 void App::InitFramebuffers()
@@ -63,7 +68,7 @@ void App::InitCommandPool()
     }
 }
 
-void App::InitCommandBuffer()
+void App::InitCommandBuffers()
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -71,9 +76,12 @@ void App::InitCommandBuffer()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(StateBoard::device->GetLogical(), &allocInfo, &mCommandBuffer) != VK_SUCCESS)
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
     {
-        throw std::runtime_error("failed to allocate command buffers!");
+        if (vkAllocateCommandBuffers(StateBoard::device->GetLogical(), &allocInfo, &mCommandBuffers[i]) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
     }
 }
 
@@ -135,42 +143,46 @@ void App::InitSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateSemaphore(StateBoard::device->GetLogical(), &semaphoreInfo, nullptr, &mImageAvailableSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(StateBoard::device->GetLogical(), &semaphoreInfo, nullptr, &mRenderFinishedSemaphore) != VK_SUCCESS ||
-        vkCreateFence(StateBoard::device->GetLogical(), &fenceInfo, nullptr, &mInFlightFence) != VK_SUCCESS)
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
     {
-        throw std::runtime_error("failed to create semaphores!");
+        if (vkCreateSemaphore(StateBoard::device->GetLogical(), &semaphoreInfo, nullptr, &mSynchronizationPrimitites.imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(StateBoard::device->GetLogical(), &semaphoreInfo, nullptr, &mSynchronizationPrimitites.renderFinishedSemaphores[i]) != VK_SUCCESS ||
+            vkCreateFence(StateBoard::device->GetLogical(), &fenceInfo, nullptr, &mSynchronizationPrimitites.inFlightFences[i]) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create semaphores!");
+        }
     }
 }
 
 void App::DrawFrame()
 {
-    vkWaitForFences(StateBoard::device->GetLogical(), 1, &mInFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(StateBoard::device->GetLogical(), 1, &mInFlightFence);
+    vkWaitForFences(StateBoard::device->GetLogical(), 1, &mSynchronizationPrimitites.inFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+    vkResetFences(StateBoard::device->GetLogical(), 1, &mSynchronizationPrimitites.inFlightFences[mCurrentFrame]);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(StateBoard::device->GetLogical(), StateBoard::swapchain->Get(), UINT64_MAX, mImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(StateBoard::device->GetLogical(), StateBoard::swapchain->Get(), UINT64_MAX, mSynchronizationPrimitites.imageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
 
-    vkResetCommandBuffer(mCommandBuffer, 0);
-    RecordCommandBuffer(mCommandBuffer, imageIndex);
+    vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+    RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = {mImageAvailableSemaphore};
+    VkSemaphore waitSemaphores[] = {mSynchronizationPrimitites.imageAvailableSemaphores[mCurrentFrame]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &mCommandBuffer;
+    submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
 
-    VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphore};
+    VkSemaphore signalSemaphores[] = {mSynchronizationPrimitites.renderFinishedSemaphores[mCurrentFrame]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
-
-    if (vkQueueSubmit(StateBoard::device->GetGraphicsQueue(), 1, &submitInfo, mInFlightFence) != VK_SUCCESS) {
+    
+    if (vkQueueSubmit(StateBoard::device->GetGraphicsQueue(), 1, &submitInfo, mSynchronizationPrimitites.inFlightFences[mCurrentFrame]) != VK_SUCCESS)
+    {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 
@@ -187,6 +199,27 @@ void App::DrawFrame()
     presentInfo.pImageIndices = &imageIndex;
 
     vkQueuePresentKHR(StateBoard::device->GetPresentQueue(), &presentInfo);
+    
+    mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void App::CreateVertexBuffer()
+{
+    std::vector<Vertex> vertexBuffer
+    {
+			{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+			{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+			{ {  0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
+    };
+    uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size());
+
+    std::vector<uint32_t> indexBuffer{ 0, 1, 2 };
+    indices.count = static_cast<uint32_t>(indexBuffer.size());
+    uint32_t indexBufferSize = indices.count * sizeof(uint32_t);
+
+    VkMemoryAllocateInfo memAlloc{};
+    memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    VkMemoryRequirements memReqs;
 }
 
 } // namespace tlr
