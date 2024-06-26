@@ -1,5 +1,5 @@
 #include "app.hpp"
-
+// TODO add structs for better structure
 namespace tlr
 {
 
