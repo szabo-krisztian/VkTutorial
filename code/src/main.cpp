@@ -1,5 +1,10 @@
 #include <iostream>
 
+#include "instance.hpp"
+#include "debug_messenger.hpp"
+#include "window.hpp"
+#include "device.hpp"
+#include "swapchain.hpp"
 #include "app.hpp"
 
 int main()
@@ -8,10 +13,20 @@ int main()
 
     try
     {
+        tlr::Instance instance;
+        tlr::DebugMessenger debugMessenger;
+        tlr::Window window;
+        tlr::Device device;
+        tlr::Swapchain swapchain;
         tlr::App app;
-        app.Run();
+        
+        while (window.IsWindowActive())
+        {
+            glfwPollEvents();
+            app.DrawFrame();
+        }
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
         std::cerr << e.what() << '\n';
     }
