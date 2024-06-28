@@ -2,6 +2,8 @@
 \usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
 \usepackage{tikz}
 \usepackage{listings}
+\usepackage{hyperref}
+\usepackage{xcolor}
 
 \title{\textcolor{purple}{\Huge\textbf{\textsc{Vulkan API Concepts}}}}
 \author{Krisztián Szabó}
@@ -30,6 +32,7 @@
 }
 
 \setlength{\parindent}{0pt}
+\setcounter{section}{-1}
 
 
 \begin{document}
@@ -38,6 +41,16 @@
 	\tableofcontents
 	\newpage
 	
+	\section{References}
+	This documentation was written with the help of the following sources:
+	\begin{itemize}
+		\item \href{https://docs.vulkan.org/spec/latest/index.html}{Vulkan Specification}
+		\item \href{https://vkguide.dev}{Vulkan Guide}
+	\end{itemize}
+	
+	
+
+	\newpage
 	\section{Swapchain}
 	
 	A swapchain object (a.k.a. swapchain) provides the ability to present rendering results to a surface. Swapchain objects are represented by \texttt{VkSwapchainKHR} handles. A swapchain is an abstraction for an array of presentable images that are associated with a surface. The presentable images are represented by \texttt{VkImage} objects created by the platform. One image (which can be an array image for multiview/stereoscopic-3D surfaces) is displayed at a time, but multiple images can be queued for presentation. An application renders to the image, and then queues the image for presentation to the surface.\newline
@@ -62,4 +75,102 @@
 		
 	\end{enumerate}
 	
+	\newpage
+	\section{Making abstractions}
+	\subsection{Object creations}
+	Vulkan utilizes object creations and deletions to make our engine work. We have to be very explicit when it comes to creating an object. In most of the cases, we do it by specifying an object creation struct and pass it to some functions. This way Vulkan can determine the state of an object creation. There is an example below:
+	\begin{lstlisting}[style=customcpp]
+void App::CreateInstanceObject()
+{
+	VkApplicationInfo appCI{};
+    appCI.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appCI.pNext = nullptr;
+    appCI.pApplicationName = "Vulkan Application";
+    appCI.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appCI.pEngineName = "No Engine";
+    appCI.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appCI.apiVersion = VK_MAKE_VERSION(1, 1, 0);
+
+	VkInstanceCreateInfo instanceCI{};
+	instanceCI.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	instanceCI.pNext = &mDebugMessengerCreateInfo;
+    instanceCI.flags = 0;
+    instanceCI.pApplicationInfo = &mAppCreateInfo;
+    instanceCI.enabledLayerCount = 0;
+    instanceCI.ppEnabledLayerNames = nullptr;
+    instanceCI.enabledExtensionCount = 0;
+    instanceCI.ppEnabledExtensionNames = nullptr;
+
+	VkInstance instance;
+	if (vkCreateInstance(&instanceCI, nullptr, &instance))
+    {
+        throw std::runtime_error("instance creation failure!");
+    }
+}
+	\end{lstlisting}
+	
+	In most of the cases, we only want to specify just a few options. This can be simplified in a variaty of ways, for instance using pre-written functions returning pre-filled structs.
+	\begin{lstlisting}[style=customcpp]
+inline VkMemoryBarrier memoryBarrier()
+{
+	VkMemoryBarrier memoryBarrier {};
+	memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+	return memoryBarrier;
+}
+	\end{lstlisting}
+
+	Another approach is to use the builder design pattern for such object creations.
+
+	\begin{lstlisting}[style=customcpp]
+class InstanceBuilder
+{
+public:
+	InstanceBuilder& EnableDebugger();
+	InstanceBuilder& SetAppName(const std::string& appName);
+	InstanceBuilder& SetAppVersion(uint32_t verson);
+	InstanceBuilder& SetEngineName(const std::string& appName);
+	InstanceBuilder& SetEngineVersion(uint32_t verson);
+	InstanceBuilder& SetAPIVersion(uint32_t version);
+	InstanceBuilder& EnableLayers(const char** layerNames);
+	InstanceBuilder& EnableExtensions(const char** extensions);
+	InstanceBuilder& Build();
+	VkInstance       GetInstance();
+
+private:
+	VkInstance instance;
+};
+
+InstanceBuilder builder;
+VkInstance instance = builder.EnableDebugger()
+								.SetAppName("Vulkan")
+								.SetAppVersion(VK_MAKE_VERSION(1,0,0))
+								.SetEngineName("No Engine")
+								.SetEngineVersion(VK_MAKE_VERSION(1,0,0))
+								.SetAPIVersion(VK_MAKE_VERSION(1,1,0))
+								.Build()
+								.GetInstance();
+	\end{lstlisting}
+
+	\newpage
+	\section{Descriptors}
+	\subsection{What are descriptors?}
+	Think of a single descriptor as a handle or pointer into a resource. That resource being a Buffer or a Image, and also holds other information, such as the size of the buffer, or the type of sampler if it's for an image. A \texttt{VkDescriptorSet} is a pack of those pointers that are bound together. Vulkan does not allow you to bind individual resources in shaders. They have to be grouped in the sets. If you still insist on being able to bind them individually, then you will need a descriptor set for each resource. This is very inefficient and won't work in many hardware. If you look at this \href{https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxBoundDescriptorSets&platform=windows}{Chart}, you will see that some devices will only allow up to 4 descriptor sets to be bound to a given pipeline, on PC. Due to this, we can really only use up to 4 descriptor sets in our pipelines if we want the engine to run on Intel integrated GPUs. A common and performant way of dealing with that limitation of 4 descriptors, is to group them by binding frequency.
+
+	\subsection{Descriptor allocation}
+	Descriptor sets have to be allocated directly by the engine from a \texttt{VkDescriptorPool}. A descriptor set allocation will typically be allocated in a section of GPU VRAM. Once a descriptor set is allocated, you need to write it to make it point into your buffers/textures. Once you bind a descriptor set and use it in a \texttt{vkCmdDraw()} function, you can no longer modify it unless you specify the \texttt{VK\textunderscore{}DESCRIPTOR\textunderscore{}POOL\textunderscore{}CREATE\textunderscore{}UPDATE\textunderscore{}AFTER\textunderscore{}BIND\textunderscore{}BIT} flag. When a descriptor pool is allocated, you have to tell the driver how many descriptors sets, and what number of resources you will be using.\newline
+
+	Allocating descriptor sets can be very cheap if you explicitly disallow freeing individual sets by not setting the \texttt{VK\textunderscore{}DESCRIPTOR\textunderscore{}POOL\textunderscore{}CREATE\textunderscore{}FREE\textunderscore{}DESCRIPTOR\textunderscore{}SET\textunderscore{}BIT} flag. By using that flag, you are telling the driver that you want descriptors to be able to deallocate individually. If you are allocating descriptor sets per frame, you should not be using that, and then you reset the entire pool instead of individual descriptor sets. For your global descriptor sets, it's fine to allocate them once, and reuse them from frame to frame.
+
+	\subsection{Writing descriptors}
+	A freshly allocated descriptor set is just a bit of GPU memory, you need to make it point to your buffers. For that you use \texttt{vkUpdateDescriptorSets()}, which takes an array of \texttt{VkWriteDescriptorSet} for each of the resources that a descriptor set points to. If you were using the Update After Bind flag, it is possible to use descriptor sets, and bind them in command buffers, and update it right before submitting the command buffer. This is mostly a niche use case, and not commonly used. You can only update a descriptor set before it's bound for the first time, unless you use that flag, in which case you can only update it before you submit the command buffer into a queue. When a descriptor set is being used, it's immutable, and trying to update it will cause errors. The validation layers catch that. To be able to update the descriptor sets again, you need to wait until the command has finished executing.
+
+	\subsection{Binding descriptors}
+	Descriptor sets bind into specific "slots" on a Vulkan pipeline. When creating a pipeline, you have to specify the layouts for each of the descriptor sets that can be bound to the pipeline. This is commonly done automatically, generated from reflection on the shader. We will be doing it manually to show how it's done. Once you bind a pipeline in a command buffer, the pipeline has slots for the different descriptor sets, and then you can bind a set into each of the slots. If the descriptor set doesn't match the slot, there will be errors. If you bind a descriptor set to slot 0, and then you switch pipelines by binding another one, the descriptor set will stay bound, IF the slot is the same on the new pipeline. If the slot isn't exactly the same, then the slot will be "unbound", and you need to bind it again. For example, let's say we have 2 pipelines, one of which has a descriptor set 0 that binds to a buffer, and descriptor set 1 that binds to 4 images. Then the other pipeline has descriptor set 0 that binds to a buffer (same as the same slot in the other pipeline), but in descriptor set 1 it has a descriptor set that binds to 3 images, not 4. If you bind the second pipeline, the descriptor set 0 will stay bound, but the descriptor 1 will be unbound because it no longer matches. This is why we assign a frequency to the descriptor slots, to minimize binding.
+
+	\subsection{Descriptor set layout}
+	Used in both the pipelines and when allocating descriptors, a \texttt{VkDescriptorSetLayout} is the shape of the descriptor. For example, a possible layout will be one where it binds 2 buffers and 1 image. When creating pipelines or allocating the descriptor sets themselves, you have to use the layout. Descriptor set layouts can be compatible if they are the same even if they are created in two different places.
+
+	\subsection{Uniform buffers}
+	Descriptor sets point into buffers, but we didn't explain that. Right now we are creating GPU buffers that hold vertex data, but you can also create buffers that hold arbitrary data for you to use in the shaders. For that type of data, Uniform Buffers are the common thing. They are small size (up to a few kilobytes), but are very fast to read, so they are perfect for shader parameters. By creating a Uniform Buffer and writing to it from the CPU, you can send data to the GPU in a much more efficient way than push constants. We will be using it for the camera information. It is possible to have multiple descriptor sets pointing to one uniform buffer, and it's also possible to have a big uniform buffer, and then each descriptor sets point to a section of the buffer. The shader will not know the difference.
+
 \end{document}

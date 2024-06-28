@@ -203,4 +203,57 @@ void App::DrawFrame()
     mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
+uint32_t App::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags properties, VkPhysicalDeviceMemoryProperties deviceMemoryProperties)
+{
+    for (uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; i++)
+    {
+        if ((typeBits & 1) == 1)
+        {
+            if ((deviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+            {
+                return i;
+            }
+        }
+        typeBits >>= 1;
+    }
+
+    throw "Could not find a suitable memory type!";
+}
+
+void App::CreateVertexBuffer()
+{
+    std::vector<Vertex> vertexBuffer{
+        { {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+        { { -1.0f,  1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+        { {  0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } }
+    };
+    uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(Vertex);
+    
+    VkMemoryAllocateInfo memAlloc{};
+    memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    VkMemoryRequirements memReqs;
+    
+    struct StagingBuffer {
+        VkDeviceMemory memory;
+        VkBuffer buffer;
+    };
+    StagingBuffer vertices;
+    void* data;
+
+    VkBufferCreateInfo vertexBufferCI{};
+    vertexBufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    		vertexBufferCI.size = vertexBufferSize;
+
+		vertexBufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    
+    VK_CHECK_RESULT(vkCreateBuffer(StateBoard::device->GetLogical(), &vertexBufferCI, nullptr, &vertices.buffer), "vertices buffer creation error!");
+    vkGetBufferMemoryRequirements(StateBoard::device->GetLogical(), vertices.buffer, &memReqs);
+	memAlloc.allocationSize = memReqs.size;
+    
+    
+    //memAlloc.memoryTypeIndex = GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    
+		
+}
+
 } // namespace tlr

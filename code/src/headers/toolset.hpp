@@ -2,12 +2,12 @@
 
 #include <assert.h>
 
-#define VK_CHECK_RESULT(f)																				\
+#define VK_CHECK_RESULT(f, err_str)																	    \
 {																										\
 	VkResult res = (f);																					\
 	if (res != VK_SUCCESS)																				\
 	{																									\
-		LOGE("Fatal : VkResult is \" %s \" in %s at line %d", vks::tools::errorString(res).c_str(), __FILE__, __LINE__); \
+		std::cerr << err_str << std::endl;                                                              \
 		assert(res == VK_SUCCESS);																		\
 	}																									\
 }
