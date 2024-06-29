@@ -61,4 +61,14 @@ private:
 
 void DestroyDebugMessenger(const VkInstance& instance, const VkDebugUtilsMessengerEXT& messenger);
 
+struct PhysicalDevice
+{
+    std::string name;
+    VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
+    
+    VkPhysicalDeviceFeatures features{};
+    VkPhysicalDeviceProperties properties{};
+    VkPhysicalDeviceMemoryProperties memoryProperties{};
+};
+
 } // namespace tlr
