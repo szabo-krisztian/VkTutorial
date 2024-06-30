@@ -33,18 +33,15 @@ public:
 private:
     struct InstanceInfo
     {
-        // VkApplicationInfo
         const char* applicationName = nullptr;
         uint32_t applicationVersion = 0;
         const char* engineName = nullptr;
         uint32_t engineVersion = 0;
         uint32_t apiVersion = 0;
 
-        // VkInstanceCreateInfo
         std::vector<const char*> defaultLayers;
         std::vector<const char*> defaultExtensions;
 
-        // Debugger
         uint32_t debugMessageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         uint32_t debugMessageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         bool isDebugMessengerRequested = false;

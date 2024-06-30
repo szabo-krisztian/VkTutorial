@@ -12,33 +12,11 @@
 
 #include "toolset.hpp"
 #include "queue_family_indices.hpp"
+#include "swapchain_support_details.hpp"
+#include "physical_device.hpp"
 
 namespace tlr
 {
-
-struct SwapchainSupportDetails
-{
-    VkSurfaceCapabilitiesKHR        capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR>   presentModes;
-};
-
-
-struct PhysicalDevice
-{
-    std::string name;
-    VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
-    VkSurfaceKHR surface{ VK_NULL_HANDLE };
-
-    VkPhysicalDeviceFeatures features{};
-    VkPhysicalDeviceProperties properties{};
-    VkPhysicalDeviceMemoryProperties memoryProperties{};
-
-    QueueFamilyIndices familyIndices;
-    SwapchainSupportDetails swapchainSupportDetails;
-
-    operator VkPhysicalDevice() const;
-};
 
 class PhysicalDeviceSelector
 {
@@ -55,7 +33,7 @@ private:
         std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
         bool isDedicatedGPU = false;
     } info;
-    
+
     VkInstance   _instance{ VK_NULL_HANDLE };
     VkSurfaceKHR _surface{ VK_NULL_HANDLE };
 

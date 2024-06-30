@@ -3,11 +3,6 @@
 namespace tlr
 {
 
-PhysicalDevice::operator VkPhysicalDevice() const
-{
-    return physicalDevice;
-}
-
 PhysicalDeviceSelector::PhysicalDeviceSelector(VkInstance instance, VkSurfaceKHR surface) : _instance{instance}, _surface{surface} {}
 
 PhysicalDeviceSelector& PhysicalDeviceSelector::EnableDedicatedGPU()
@@ -50,8 +45,9 @@ PhysicalDevice PhysicalDeviceSelector::Select()
     deviceInfo.swapchainSupportDetails = GetSwapchainSupport(deviceInfo.physicalDevice);
     deviceInfo.surface = _surface;
 
+    deviceInfo.extensions = info.extensions;
     vkGetPhysicalDeviceMemoryProperties(deviceInfo.physicalDevice, &deviceInfo.memoryProperties);
-    vkGetPhysicalDeviceFeatures(deviceInfo.physicalDevice, &deviceInfo.features);
+    //vkGetPhysicalDeviceFeatures(deviceInfo.physicalDevice, &deviceInfo.features);
     
     return deviceInfo;
 }
