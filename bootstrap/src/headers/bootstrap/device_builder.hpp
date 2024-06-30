@@ -26,7 +26,7 @@ private:
     {
         std::vector<const char*> layers = { "VK_LAYER_KHRONOS_validation" };
         bool isValidationLayersEnabled = false;
-    } info;
+    } _info;
     PhysicalDevice _physicalDevice;
 };
 

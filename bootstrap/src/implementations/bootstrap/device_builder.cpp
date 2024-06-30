@@ -32,10 +32,10 @@ Device DeviceBuilder::Build()
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     
-    if (info.isValidationLayersEnabled)
+    if (_info.isValidationLayersEnabled)
     {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(info.layers.size());
-        createInfo.ppEnabledLayerNames = info.layers.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(_info.layers.size());
+        createInfo.ppEnabledLayerNames = _info.layers.data();
     }
     else
     {
@@ -45,7 +45,7 @@ Device DeviceBuilder::Build()
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(_physicalDevice.extensions.size());
     createInfo.ppEnabledExtensionNames = _physicalDevice.extensions.data();
-    createInfo.pEnabledFeatures = &_physicalDevice.features;
+    createInfo.pEnabledFeatures = nullptr;
 
     VK_CHECK_RESULT(vkCreateDevice(_physicalDevice, &createInfo, nullptr, &device.device), "device creation failure");
     return device;
@@ -53,7 +53,7 @@ Device DeviceBuilder::Build()
 
 DeviceBuilder& DeviceBuilder::EnableValidationLayers()
 {
-    info.isValidationLayersEnabled = true;
+    _info.isValidationLayersEnabled = true;
     return *this;
 }
 

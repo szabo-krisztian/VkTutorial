@@ -29,7 +29,6 @@ public:
     InstanceBuilder&         RequestDefaultExtensions();
     InstanceBuilder&         UseDebugMessenger();
     
-
 private:
     struct InstanceInfo
     {
@@ -53,7 +52,7 @@ private:
 
     bool AreValidationLayersSupported();
     bool IsValidationLayerSupported(const char *layerName, const std::vector<VkLayerProperties> &availableLayerProperties);
-    std::vector<const char *> GetDefaultExtensions();
+    std::vector<const char*> GetDefaultExtensions();
 };
 
 void DestroyDebugMessenger(const VkInstance& instance, const VkDebugUtilsMessengerEXT& messenger);

@@ -7,13 +7,13 @@ PhysicalDeviceSelector::PhysicalDeviceSelector(VkInstance instance, VkSurfaceKHR
 
 PhysicalDeviceSelector& PhysicalDeviceSelector::EnableDedicatedGPU()
 {
-    info.isDedicatedGPU = true;
+    _info.isDedicatedGPU = true;
     return *this;
 }
 
 PhysicalDeviceSelector& PhysicalDeviceSelector::SetExtensions(const std::vector<const char*>& extensions)
 {
-    info.extensions = extensions;
+    _info.extensions = extensions;
     return *this;
 }
 
@@ -38,37 +38,16 @@ PhysicalDevice PhysicalDeviceSelector::Select()
         throw std::runtime_error("failed to find suitable physical device!");
     }
 
-    vkGetPhysicalDeviceProperties(deviceInfo.physicalDevice, &deviceInfo.properties);
-    
     deviceInfo.name = deviceInfo.properties.deviceName;
-    deviceInfo.familyIndices = GetQueueFamilyIndices(deviceInfo.physicalDevice);
-    deviceInfo.swapchainSupportDetails = GetSwapchainSupport(deviceInfo.physicalDevice);
     deviceInfo.surface = _surface;
 
-    deviceInfo.extensions = info.extensions;
+    deviceInfo.extensions = _info.extensions;
+    vkGetPhysicalDeviceProperties(deviceInfo.physicalDevice, &deviceInfo.properties);
     vkGetPhysicalDeviceMemoryProperties(deviceInfo.physicalDevice, &deviceInfo.memoryProperties);
-    //vkGetPhysicalDeviceFeatures(deviceInfo.physicalDevice, &deviceInfo.features);
+    deviceInfo.familyIndices = GetQueueFamilyIndices(deviceInfo.physicalDevice);
+    deviceInfo.swapchainSupportDetails = GetSwapchainSupport(deviceInfo.physicalDevice);
     
     return deviceInfo;
-}
-
-bool PhysicalDeviceSelector::IsDeviceSuitable(const VkPhysicalDevice& device)
-{
-    QueueFamilyIndices indices = GetQueueFamilyIndices(device);
-    if (!IsDeviceExtensionsSupported(device))
-    {
-        return false;
-    }
-    if (info.isDedicatedGPU && !IsDedicatedDevice(device))
-    {
-        return false;
-    }
-
-    bool isSwapChainAdequate = false;
-    SwapchainSupportDetails swapChainSupport = GetSwapchainSupport(device);
-    isSwapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-    
-    return indices.IsComplete() && isSwapChainAdequate;
 }
 
 std::vector<VkPhysicalDevice> PhysicalDeviceSelector::GetPhysicalDevices()
@@ -78,13 +57,33 @@ std::vector<VkPhysicalDevice> PhysicalDeviceSelector::GetPhysicalDevices()
 
     if (count == 0)
     {
-        throw std::runtime_error("failed to find physical devices, probably invalid _instance value!");
+        throw std::runtime_error("failed to find physical devices, probably invalid instance value!");
     }
 
     std::vector<VkPhysicalDevice> devices;
     devices.resize(count);
     vkEnumeratePhysicalDevices(_instance, &count, devices.data());
     return devices;
+}
+
+bool PhysicalDeviceSelector::IsDeviceSuitable(const VkPhysicalDevice& device)
+{
+    QueueFamilyIndices indices = GetQueueFamilyIndices(device);
+
+    if (!IsDeviceExtensionsSupported(device))
+    {
+        return false;
+    }
+    if (_info.isDedicatedGPU && !IsDedicatedDevice(device))
+    {
+        return false;
+    }
+
+    bool isSwapChainAdequate = false;
+    SwapchainSupportDetails swapChainSupport = GetSwapchainSupport(device);
+    isSwapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    
+    return indices.IsComplete() && isSwapChainAdequate;
 }
 
 QueueFamilyIndices PhysicalDeviceSelector::GetQueueFamilyIndices(const VkPhysicalDevice& physicalDevice)
@@ -128,7 +127,7 @@ bool PhysicalDeviceSelector::IsDeviceExtensionsSupported(const VkPhysicalDevice&
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
-    std::set<std::string> requiredExtensions(info.extensions.begin(), info.extensions.end());
+    std::set<std::string> requiredExtensions(_info.extensions.begin(), _info.extensions.end());
 
     for (const auto& extension : availableExtensions) {
         requiredExtensions.erase(extension.extensionName);

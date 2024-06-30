@@ -11,9 +11,9 @@ namespace tlr
 
 struct Device
 {
-    VkDevice device;
+    VkDevice       device;
     PhysicalDevice physicalDevice;
-    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    VkSurfaceKHR   surface = VK_NULL_HANDLE;
     std::vector<VkQueueFamilyProperties> queueFamilies;
 
     operator VkDevice() const

@@ -31,8 +31,11 @@ private:
     struct PhysicalDeviceInfo
     {
         std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
         bool isDedicatedGPU = false;
-    } info;
+        bool isGraphicsEnabled = false;
+        bool isPresentEnabled = false;
+    } _info;
 
     VkInstance   _instance{ VK_NULL_HANDLE };
     VkSurfaceKHR _surface{ VK_NULL_HANDLE };
@@ -43,8 +46,6 @@ private:
     bool                          IsDeviceExtensionsSupported(const VkPhysicalDevice& physicalDevice);
     bool                          IsDedicatedDevice(const VkPhysicalDevice& device);
     SwapchainSupportDetails       GetSwapchainSupport(const VkPhysicalDevice& physicalDevice);
-
-
 
 };
 
