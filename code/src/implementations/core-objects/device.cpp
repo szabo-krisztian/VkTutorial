@@ -141,7 +141,6 @@ bool Device::IsDeviceExtensionsSupported(const VkPhysicalDevice& physicalDevice)
     }
 
     return requiredExtensions.empty();
-
 }
 
 QueueFamilyIndices Device::GetQueueFamilyIndices(const VkPhysicalDevice& physicalDevice)

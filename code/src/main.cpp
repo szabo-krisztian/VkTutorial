@@ -58,8 +58,28 @@ int main()
         VkInstance instance = builder.GetInstance();
         VkDebugUtilsMessengerEXT debugMessenger = builder.GetMessengerInstance();
 
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        GLFWwindow* window;
+        window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
+
+        VkSurfaceKHR surface;
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create window surface!");
+        }
+        
+        tlr::PhysicalDeviceSelector selector(instance, surface);
+        tlr::PhysicalDevice physicalDevice = selector.EnableDedicatedGPU()
+                                                     .Select();
+        
+        std::cout << physicalDevice.name << std::endl;
+        
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        glfwDestroyWindow(window);
         tlr::DestroyDebugMessenger(instance, debugMessenger);
         vkDestroyInstance(instance, nullptr);
+
     }
     catch (const std::exception& e)
     {
