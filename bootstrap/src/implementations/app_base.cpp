@@ -48,8 +48,6 @@ void AppBase::InitVulkan()
 
     DeviceBuilder deviceBuilder{physicalDevice};
     device = deviceBuilder.EnableValidationLayers().Build();
-
-    
 }
 
 } // namespace tlr
