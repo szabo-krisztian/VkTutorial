@@ -38,12 +38,12 @@ PhysicalDevice PhysicalDeviceSelector::Select()
         throw std::runtime_error("failed to find suitable physical device!");
     }
 
-    deviceInfo.name = deviceInfo.properties.deviceName;
-    deviceInfo.surface = _surface;
-
-    deviceInfo.extensions = _info.extensions;
     vkGetPhysicalDeviceProperties(deviceInfo.physicalDevice, &deviceInfo.properties);
     vkGetPhysicalDeviceMemoryProperties(deviceInfo.physicalDevice, &deviceInfo.memoryProperties);
+
+    deviceInfo.name = deviceInfo.properties.deviceName;
+    deviceInfo.surface = _surface;
+    deviceInfo.extensions = _info.extensions;
     deviceInfo.familyIndices = GetQueueFamilyIndices(deviceInfo.physicalDevice);
     deviceInfo.swapchainSupportDetails = GetSwapchainSupport(deviceInfo.physicalDevice);
     

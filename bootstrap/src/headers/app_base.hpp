@@ -8,10 +8,9 @@ namespace tlr
 class AppBase
 {
 public:
+    AppBase();
     ~AppBase();
 
-    void Init();
-    
 protected:
     const int WINDOW_WIDTH = 800;
     const int WINDOW_HEIGHT = 600;
@@ -23,9 +22,16 @@ protected:
     VkSurfaceKHR             surface;
     GLFWwindow*              window;
 
+    VkSwapchainKHR           swapchain;
+	VkFormat                 swapchainImageFormat;
+	std::vector<VkImage>     swapchainImages;
+	std::vector<VkImageView> swapchainImageViews;
+	VkExtent2D               swapchainExtent;
+
 private:
     bool _isInitizalized = false;
     
+    void Init();
     void InitVulkan();
 };
 

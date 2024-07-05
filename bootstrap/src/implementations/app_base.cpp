@@ -3,6 +3,11 @@
 namespace tlr
 {
 
+AppBase::AppBase()
+{
+    Init();
+}
+
 AppBase::~AppBase()
 {
     vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -21,6 +26,7 @@ void AppBase::Init()
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Vulkan", nullptr, nullptr);
     InitVulkan();
+    InitSwapchain();
 
     _isInitizalized = true;
 }
