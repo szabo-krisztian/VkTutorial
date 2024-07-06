@@ -54,17 +54,7 @@ InstanceBuilder::InstanceBuilder()
     info.defaultExtensions = GetDefaultExtensions();
 }
 
-VkInstance InstanceBuilder::GetInstance()
-{
-    return instance;
-}
-
-VkDebugUtilsMessengerEXT InstanceBuilder::GetMessengerInstance()
-{
-    return debugMessenger;
-}
-
-void InstanceBuilder::Build()
+Instance InstanceBuilder::Build()
 {
     VkApplicationInfo applicationInfo = {};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -105,14 +95,17 @@ void InstanceBuilder::Build()
         instanceCI.enabledExtensionCount = static_cast<uint32_t>(info.defaultExtensions.size());
         instanceCI.ppEnabledExtensionNames = info.defaultExtensions.data();
     }
-    VK_CHECK_RESULT(vkCreateInstance(&instanceCI, nullptr, &instance), "instance creation failure!");
 
-    if (!info.isDebugMessengerRequested)
+    Instance instance = {};
+
+    VK_CHECK_RESULT(vkCreateInstance(&instanceCI, nullptr, &instance.instance), "instance creation failure!");
+
+    if (info.isDebugMessengerRequested)
     {
-        return;
+        VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(instance, &debugMessengerCI, nullptr, &instance.debugMessenger), "debug messenger creation failure!");
     }
-
-    VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(instance, &debugMessengerCI, nullptr, &debugMessenger), "debug messenger creation failure!");
+    
+    return instance;
 }
 
 InstanceBuilder& InstanceBuilder::SetApplicationName(const char* applicationName)

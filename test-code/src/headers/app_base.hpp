@@ -17,22 +17,19 @@ protected:
 
     VkInstance               instance;
     VkDebugUtilsMessengerEXT debugMessenger;
+    GLFWwindow               *window;
+    VkSurfaceKHR             surface;
     PhysicalDevice           physicalDevice;
     Device                   device;
-    VkSurfaceKHR             surface;
-    GLFWwindow*              window;
-
-    VkSwapchainKHR           swapchain;
-	VkFormat                 swapchainImageFormat;
-	std::vector<VkImage>     swapchainImages;
-	std::vector<VkImageView> swapchainImageViews;
-	VkExtent2D               swapchainExtent;
+    Swapchain                swapchain;
 
 private:
     bool _isInitizalized = false;
     
     void Init();
+    void InitGLFW();
     void InitVulkan();
+    void InitSwapchain();
 };
 
 } // namespace tlr

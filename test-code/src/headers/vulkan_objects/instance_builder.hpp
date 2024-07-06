@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "toolset.hpp"
+#include "instance.hpp"
 
 namespace tlr
 {
@@ -17,9 +18,7 @@ class InstanceBuilder
 public:
     InstanceBuilder();
 
-    VkInstance               GetInstance();
-    VkDebugUtilsMessengerEXT GetMessengerInstance();
-    void                     Build();
+    Instance                 Build();
     InstanceBuilder&         SetApplicationName(const char* applicationName);
     InstanceBuilder&         SetApplicationVersion(uint32_t applicationVersion);
     InstanceBuilder&         SetEngineName(const char* engineName);
@@ -47,8 +46,6 @@ private:
         bool isDefaultLayersRequested = false;
         bool isDefaultExtensionsRequested = false;
     } info;
-    VkInstance instance;
-    VkDebugUtilsMessengerEXT debugMessenger;
 
     bool AreValidationLayersSupported();
     bool IsValidationLayerSupported(const char *layerName, const std::vector<VkLayerProperties> &availableLayerProperties);
