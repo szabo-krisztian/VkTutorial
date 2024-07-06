@@ -10,8 +10,12 @@ AppBase::AppBase()
 
 AppBase::~AppBase()
 {
-    vkDestroySwapchainKHR(device, swapchain, nullptr);
+    for (auto imageView : swapchain.imageViews)
+    {
+        vkDestroyImageView(device, imageView, nullptr);
+    }
 
+    vkDestroySwapchainKHR(device, swapchain, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyDevice(device, nullptr);
     DestroyDebugMessenger(instance, debugMessenger);
@@ -74,7 +78,6 @@ void AppBase::InitSwapchain()
                        .SetDesiredArrayLayerCount(1)
                        .SetImageFlags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
                        .Build();
-
 }
 
 } // namespace tlr

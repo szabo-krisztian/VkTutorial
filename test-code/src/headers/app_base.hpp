@@ -12,8 +12,8 @@ public:
     ~AppBase();
 
 protected:
-    const int WINDOW_WIDTH = 800;
-    const int WINDOW_HEIGHT = 600;
+    const int WINDOW_WIDTH = 1000;
+    const int WINDOW_HEIGHT = 800;
 
     VkInstance               instance;
     VkDebugUtilsMessengerEXT debugMessenger;

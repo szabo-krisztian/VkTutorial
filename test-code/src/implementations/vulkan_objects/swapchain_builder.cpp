@@ -3,11 +3,6 @@
 namespace tlr
 {
 
-SwapchainBuilder::SwapchainBuilder()
-{
-    std::cout << "SDFA" << std::endl;
-}
-
 SwapchainBuilder::SwapchainBuilder(GLFWwindow* window, const VkSurfaceKHR& surface, const PhysicalDevice& physicalDevice, const Device& device)
 {
     _info.window = window;
@@ -60,10 +55,50 @@ Swapchain SwapchainBuilder::Build()
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
     Swapchain swapchainInfo;
+
+    swapchainInfo.device = _info.device;
     VK_CHECK_RESULT(vkCreateSwapchainKHR(_info.device, &createInfo, nullptr, &swapchainInfo.swapchain), "swapchain creation failure!");
+    swapchainInfo.imageCount = _info.imageCount;
+    swapchainInfo.imageFormat = _info.desiredFormat;
+    swapchainInfo.colorSpace = surfaceFormat.colorSpace;
+    swapchainInfo.imageUsageFlags = _info.imageUsageFlags;
+    swapchainInfo.extent = extent;
+    swapchainInfo.presentMode = presentMode;
+
+    uint32_t imageCount = 0;
+    vkGetSwapchainImagesKHR(swapchainInfo.device, swapchainInfo.swapchain, &imageCount, nullptr);
+    if (imageCount == 0)
+    {
+        throw std::runtime_error("zero swap chain images count!");
+    }
+    swapchainInfo.images.resize(imageCount);
+    vkGetSwapchainImagesKHR(swapchainInfo.device, swapchainInfo.swapchain, &imageCount, swapchainInfo.images.data());
+    
+    swapchainInfo.imageViews.resize(imageCount);
+    for (int i = 0; i < swapchainInfo.imageViews.size(); ++i)
+    {
+        VkImageViewCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.image = swapchainInfo.images[i];
+        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.format = swapchainInfo.imageFormat;
+        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.layerCount = 1;
+
+        VK_CHECK_RESULT(vkCreateImageView(swapchainInfo.device, &createInfo, nullptr, &swapchainInfo.imageViews[i]), "failed to create image view!");
+    }
 
     return swapchainInfo;
 }
+
+
 
 SwapchainBuilder& SwapchainBuilder::SetDesiredColorSpace(VkColorSpaceKHR colorSpace)
 {

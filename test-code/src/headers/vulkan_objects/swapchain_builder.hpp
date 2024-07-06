@@ -15,8 +15,6 @@ namespace tlr
 class SwapchainBuilder
 {
 public:
-    SwapchainBuilder();
-    
     SwapchainBuilder(GLFWwindow* window, const VkSurfaceKHR& surface, const PhysicalDevice& physicalDevice, const Device& device);
 
     Swapchain         Build();
@@ -39,8 +37,8 @@ private:
         VkFormat desiredFormat = VK_FORMAT_B8G8R8A8_SRGB;
         VkColorSpaceKHR desiredColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
         uint32_t desiredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        uint32_t desiredWidth = 800;
-        uint32_t desiredHeight = 600;
+        uint32_t desiredWidth = 1000;
+        uint32_t desiredHeight = 800;
         uint32_t imageCount = 0;
         VkSwapchainCreateFlagBitsKHR createFlags = static_cast<VkSwapchainCreateFlagBitsKHR>(0);
         uint32_t arrayLayerCount = 1;
