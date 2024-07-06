@@ -21,11 +21,12 @@ public:
 
     Swapchain         Build();
     SwapchainBuilder& SetDesiredFormat(VkFormat format);
+    SwapchainBuilder& SetDesiredColorSpace(VkColorSpaceKHR colorSpace);
     SwapchainBuilder& SetDesiredPresentMode(VkPresentModeKHR presentMode);
     SwapchainBuilder& SetDesiredExtent(uint32_t width, uint32_t height);
-    SwapchainBuilder& SetDesiredColorSpace(VkColorSpaceKHR colorSpace);
+    SwapchainBuilder& SetDesiredImageCount(uint32_t imageCount);
     SwapchainBuilder& SetImageFlags(VkImageUsageFlags usageFlags);
-    SwapchainBuilder& SetImageLayerCount(uint32_t arrayLayerCount);
+    SwapchainBuilder& SetDesiredArrayLayerCount(uint32_t arrayLayerCount);
 
 private:
 
@@ -40,9 +41,9 @@ private:
         uint32_t desiredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
         uint32_t desiredWidth = 800;
         uint32_t desiredHeight = 600;
+        uint32_t imageCount = 0;
         VkSwapchainCreateFlagBitsKHR createFlags = static_cast<VkSwapchainCreateFlagBitsKHR>(0);
         uint32_t arrayLayerCount = 1;
-        uint32_t imageCount = 0;
         VkImageUsageFlags imageUsageFlags{VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT};
         uint32_t graphicsQueueIndex = 0;
         uint32_t presentQueueIndex = 0;

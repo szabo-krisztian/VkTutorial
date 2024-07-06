@@ -10,6 +10,8 @@ AppBase::AppBase()
 
 AppBase::~AppBase()
 {
+    vkDestroySwapchainKHR(device, swapchain, nullptr);
+
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyDevice(device, nullptr);
     DestroyDebugMessenger(instance, debugMessenger);
@@ -63,8 +65,16 @@ void AppBase::InitVulkan()
 
 void AppBase::InitSwapchain()
 {
-    SwapchainBuilder builder;
-    //Swapchain swapchain = builder.Build();
+    SwapchainBuilder builder(window, surface, physicalDevice, device);
+    swapchain = builder.SetDesiredFormat(VK_FORMAT_B8G8R8A8_SRGB)
+                       .SetDesiredColorSpace(VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                       .SetDesiredPresentMode(VK_PRESENT_MODE_MAILBOX_KHR)
+                       .SetDesiredExtent(800, 600)
+                       .SetDesiredImageCount(physicalDevice.swapchainSupportDetails.capabilities.minImageCount + 1)
+                       .SetDesiredArrayLayerCount(1)
+                       .SetImageFlags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+                       .Build();
+
 }
 
 } // namespace tlr

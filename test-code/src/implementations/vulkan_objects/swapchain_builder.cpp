@@ -61,7 +61,7 @@ Swapchain SwapchainBuilder::Build()
 
     Swapchain swapchainInfo;
     VK_CHECK_RESULT(vkCreateSwapchainKHR(_info.device, &createInfo, nullptr, &swapchainInfo.swapchain), "swapchain creation failure!");
-    
+
     return swapchainInfo;
 }
 
@@ -75,6 +75,12 @@ SwapchainBuilder& SwapchainBuilder::SetDesiredExtent(uint32_t width, uint32_t he
 {
     _info.desiredWidth = width;
     _info.desiredHeight = height;
+    return *this;
+}
+
+SwapchainBuilder& SwapchainBuilder::SetDesiredImageCount(uint32_t imageCount)
+{
+    _info.imageCount = imageCount;
     return *this;
 }
 
@@ -96,7 +102,7 @@ SwapchainBuilder& SwapchainBuilder::SetImageFlags(VkImageUsageFlags usageFlags)
     return *this;
 }
 
-SwapchainBuilder& SwapchainBuilder::SetImageLayerCount(uint32_t arrayLayerCount)
+SwapchainBuilder& SwapchainBuilder::SetDesiredArrayLayerCount(uint32_t arrayLayerCount)
 {
     _info.arrayLayerCount = arrayLayerCount;
     return *this;

@@ -48,7 +48,6 @@ const std::vector<VkImageView>& Swapchain::GetImageViews() const
 VkResult Swapchain::InitSwapchain()
 {
     SwapchainSupportDetails SwapchainSupport = StateBoard::device->GetSwapchainSupport();
-
     VkSurfaceFormatKHR surfaceFormat = GetSwapSurfaceFormat(SwapchainSupport.formats);
     VkPresentModeKHR presentMode = GetSwapPresentMode(SwapchainSupport.presentModes);
     VkExtent2D extent = GetSwapExtend(SwapchainSupport.capabilities);
