@@ -1,0 +1,2 @@
+add_subdirectory(bootstrap)
+target_include_directories(MyVulkanProject PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/bootstrap)
