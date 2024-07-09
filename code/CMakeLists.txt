@@ -26,10 +26,10 @@ if (MSVC)
 endif()
 
 include_directories(${VULKAN_INCLUDE_DIR} ${GLFW_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/include)
-add_executable(MyVulkanProject src/main.cpp)
+add_executable(Main src/main.cpp)
 add_subdirectory(src)
 
-target_link_libraries(MyVulkanProject PRIVATE
+target_link_libraries(Main PRIVATE
     ${Vulkan_LIBRARIES}
     ${GLFW_LIBRARY}
     AppBase
