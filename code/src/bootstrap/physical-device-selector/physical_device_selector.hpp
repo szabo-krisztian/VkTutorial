@@ -10,7 +10,6 @@
 #include <set>
 #include <stdexcept>
 
-#include "toolset.hpp"
 #include "queue_family_indices.hpp"
 #include "swapchain_support_details.hpp"
 #include "physical_device.hpp"

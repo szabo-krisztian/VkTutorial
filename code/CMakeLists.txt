@@ -25,9 +25,11 @@ if (MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MD")
 endif()
 
-include_directories(${VULKAN_INCLUDE_DIR} ${GLFW_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/include)
+include_directories(${VULKAN_INCLUDE_DIR} ${GLFW_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/src/bootstrap)
 add_executable(Main src/main.cpp)
 add_subdirectory(src)
+
+target_include_directories(Main PRIVATE src/bootstrap/physical-device-selector)
 
 target_link_libraries(Main PRIVATE
     ${Vulkan_LIBRARIES}

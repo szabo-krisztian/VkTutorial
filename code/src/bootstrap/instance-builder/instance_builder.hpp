@@ -7,7 +7,6 @@
 #include <vector>
 #include <iostream>
 
-#include "toolset.hpp"
 #include "instance.hpp"
 
 namespace tlr
