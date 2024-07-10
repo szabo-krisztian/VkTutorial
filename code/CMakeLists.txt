@@ -30,6 +30,10 @@ include_directories(${CMAKE_SOURCE_DIR}/src/bootstrap)
 add_executable(Main src/main.cpp)
 add_subdirectory(src)
 
-target_link_libraries(Main PRIVATE
-    AppBase
+target_include_directories(Main
+    PRIVATE src/application
+)
+
+target_link_libraries(Main
+    PRIVATE App
 )

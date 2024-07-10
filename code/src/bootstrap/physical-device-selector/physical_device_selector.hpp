@@ -30,10 +30,9 @@ private:
     struct PhysicalDeviceInfo
     {
         std::vector<const char*> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-
-        bool isDedicatedGPU = false;
-        bool isGraphicsEnabled = false;
-        bool isPresentEnabled = false;
+        bool                     isDedicatedGPU = false;
+        bool                     isGraphicsEnabled = false;
+        bool                     isPresentEnabled = false;
     } _info;
 
     VkInstance   _instance{ VK_NULL_HANDLE };

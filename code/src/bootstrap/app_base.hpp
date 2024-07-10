@@ -1,5 +1,8 @@
 #pragma
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include "physical_device.hpp"
 #include "device.hpp"
 #include "swapchain.hpp"
@@ -14,8 +17,8 @@ public:
     ~AppBase();
 
 protected:
-    const int WINDOW_WIDTH = 1000;
-    const int WINDOW_HEIGHT = 800;
+    const int WINDOW_WIDTH = 800;
+    const int WINDOW_HEIGHT = 600;
 
     VkInstance               instance;
     VkDebugUtilsMessengerEXT debugMessenger;

@@ -1,8 +1,8 @@
-#include "app_base.hpp"
+#include "app.hpp"
 
 int main()
 {
-    tlr::AppBase appbase;
+    tlr::App app;
     
     return 0;
 }

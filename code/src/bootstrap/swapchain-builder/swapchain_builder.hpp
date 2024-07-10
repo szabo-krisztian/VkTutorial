@@ -29,21 +29,21 @@ private:
 
     struct SwapchainInfo
     {
-        GLFWwindow* window = nullptr;
-        VkSurfaceKHR surface{VK_NULL_HANDLE};
-        PhysicalDevice physicalDevice;
-        VkDevice device;
-        VkFormat desiredFormat = VK_FORMAT_B8G8R8A8_SRGB;
-        VkColorSpaceKHR desiredColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-        uint32_t desiredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        uint32_t desiredWidth = 1000;
-        uint32_t desiredHeight = 800;
-        uint32_t imageCount = 0;
-        VkSwapchainCreateFlagBitsKHR createFlags = static_cast<VkSwapchainCreateFlagBitsKHR>(0);
-        uint32_t arrayLayerCount = 1;
-        VkImageUsageFlags imageUsageFlags{VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT};
-        uint32_t graphicsQueueIndex = 0;
-        uint32_t presentQueueIndex = 0;
+        GLFWwindow*                   window = nullptr;
+        VkSurfaceKHR                  surface{VK_NULL_HANDLE};
+        PhysicalDevice                physicalDevice;
+        VkDevice                      device;
+        VkFormat                      desiredFormat{VK_FORMAT_B8G8R8A8_SRGB};
+        VkColorSpaceKHR               desiredColorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+        uint32_t                      desiredPresentMode{VK_PRESENT_MODE_MAILBOX_KHR};
+        uint32_t                      desiredWidth = 800;
+        uint32_t                      desiredHeight = 600;
+        uint32_t                      imageCount = 0;
+        VkSwapchainCreateFlagBitsKHR  createFlags = static_cast<VkSwapchainCreateFlagBitsKHR>(0);
+        uint32_t                      arrayLayerCount = 1;
+        VkImageUsageFlags             imageUsageFlags{VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT};
+        uint32_t                      graphicsQueueIndex = 0;
+        uint32_t                      presentQueueIndex = 0;
         VkSurfaceTransformFlagBitsKHR preTransform = static_cast<VkSurfaceTransformFlagBitsKHR>(0);
     } _info;
 
