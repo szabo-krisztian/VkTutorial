@@ -12,21 +12,24 @@ if(NOT Vulkan_FOUND)
 endif()
 
 find_package(GLFW3 REQUIRED)
-get_target_property(GLFW_INCLUDE_DIR glfw INTERFACE_INCLUDE_DIRECTORIES)
+if (NOT GLFW3_FOUND)
+    message(FATAL_ERROR "GLFW3 not found!")
+endif()
+
+get_target_property(GLFW_INCLUDE_DIRS glfw INTERFACE_INCLUDE_DIRECTORIES)
+set(GLFW_LIBRARIES glfw)
 
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MD")
 endif()
 
-include_directories(${Vulkan_INCLUDE_DIRS} ${GLFW_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/src/bootstrap)
+# every module sees these directories for convenience. in the future only subdirectories will see these
+include_directories(${CMAKE_SOURCE_DIR}/src/bootstrap)
+
 add_executable(Main src/main.cpp)
 add_subdirectory(src)
 
-target_include_directories(Main PRIVATE src/bootstrap/physical-device-selector)
-
 target_link_libraries(Main PRIVATE
-    ${Vulkan_LIBRARIES}
-    glfw
     AppBase
 )

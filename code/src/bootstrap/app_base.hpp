@@ -1,9 +1,8 @@
 #pragma
 
-#include "instance_builder.hpp"
-#include "physical_device_selector.hpp"
-#include "device_builder.hpp"
-#include "swapchain_builder.hpp"
+#include "physical_device.hpp"
+#include "device.hpp"
+#include "swapchain.hpp"
 
 namespace tlr
 {

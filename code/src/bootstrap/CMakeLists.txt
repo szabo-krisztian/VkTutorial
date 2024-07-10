@@ -5,13 +5,20 @@ add_subdirectory(physical-device-selector)
 add_subdirectory(device-builder)
 add_subdirectory(swapchain-builder)
 
-target_include_directories(AppBase PUBLIC instance-builder)
-target_include_directories(AppBase PUBLIC swapchain-builder)
+target_include_directories(AppBase
+    PUBLIC instance-builder
+           physical-device-selector
+           device-builder
+           swapchain-builder
+           ${Vulkan_INCLUDE_DIRS}
+           ${GLFW_INCLUDE_DIRS}
+)
 
-# when we link swapchain to AppBase, it will include the directories physical-device-selector, device-builder
-target_link_libraries(AppBase PUBLIC
-    InstanceBuilder
-    PhysicalDeviceSelector
-    DeviceBuilder
-    SwapchainBuilder
+target_link_libraries(AppBase
+    PRIVATE InstanceBuilder
+            PhysicalDeviceSelector
+            DeviceBuilder
+            SwapchainBuilder
+    PUBLIC ${Vulkan_LIBRARIES}
+           ${GLFW_LIBRARIESS}
 )
