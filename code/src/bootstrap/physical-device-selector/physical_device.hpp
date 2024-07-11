@@ -12,17 +12,15 @@ namespace tlr
 
 struct PhysicalDevice
 {
-    std::string name;
-    VkPhysicalDevice physicalDevice{ VK_NULL_HANDLE };
-    VkSurfaceKHR surface{ VK_NULL_HANDLE };
-
-    std::vector<const char*> extensions;
-    VkPhysicalDeviceFeatures features{};
-    VkPhysicalDeviceProperties properties{};
+    std::string                      name;
+    VkPhysicalDevice                 physicalDevice{ VK_NULL_HANDLE };
+    VkSurfaceKHR                     surface{ VK_NULL_HANDLE };
+    std::vector<const char*>         extensions;
+    VkPhysicalDeviceFeatures         features{};
+    VkPhysicalDeviceProperties       properties{};
     VkPhysicalDeviceMemoryProperties memoryProperties{};
-
-    QueueFamilyIndices familyIndices;
-    SwapchainSupportDetails swapchainSupportDetails;
+    QueueFamilyIndices               familyIndices;
+    SwapchainSupportDetails          swapchainSupportDetails;
 
     operator VkPhysicalDevice() const
     {

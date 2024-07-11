@@ -25,7 +25,7 @@ if (MSVC)
 endif()
 
 # every module sees these directories for convenience. in the future only subdirectories will see these
-include_directories(${CMAKE_SOURCE_DIR}/src/bootstrap)
+include_directories(${CMAKE_SOURCE_DIR}/src/toolset)
 
 add_executable(Main src/main.cpp)
 add_subdirectory(src)
