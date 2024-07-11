@@ -1,18 +1,25 @@
 #pragma once
 
+#include <vector>
+
 #include <vulkan/vulkan.h>
 
-namespace init
+namespace tlr
 {
 
-VkCommandPoolCreateInfo CommandPoolCreateInfo(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0);
+    namespace init
+    {
 
-VkCommandBufferAllocateInfo CommandBufferAllocateInfo(VkCommandPool pool, uint32_t count = 1);
+    VkCommandPoolCreateInfo CommandPoolCreateInfo(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0);
 
-VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags = 0);
+    VkCommandBufferAllocateInfo CommandBufferAllocateInfo(VkCommandPool pool, uint32_t count = 1);
 
-VkSemaphoreCreateInfo SemaphoreCreateInfo(VkSemaphoreCreateFlags flags = 0);
+    VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags = 0);
 
-VkCommandBufferBeginInfo CommandBufferBeginInfo(VkCommandBufferUsageFlags flags = 0);
+    VkSemaphoreCreateInfo SemaphoreCreateInfo(VkSemaphoreCreateFlags flags = 0);
 
-} // namespace init
+    VkCommandBufferBeginInfo CommandBufferBeginInfo(VkCommandBufferUsageFlags flags = 0);
+
+    } // namespace init
+
+} // namespace tlr
