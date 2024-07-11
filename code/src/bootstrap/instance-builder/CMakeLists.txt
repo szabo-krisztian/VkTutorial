@@ -8,4 +8,5 @@ target_include_directories(InstanceBuilder
 target_link_libraries(InstanceBuilder
     PUBLIC ${Vulkan_LIBRARIES}
            ${GLFW_LIBRARIES}
+    PRIVATE Toolset
 )

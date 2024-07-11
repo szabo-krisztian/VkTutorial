@@ -51,8 +51,8 @@ void DestroyDebugUtilsMessengerEXT
 
 InstanceBuilder::InstanceBuilder()
 {
-    info.defaultLayers = { "VK_LAYER_KHRONOS_validation" };
-    info.defaultExtensions = GetDefaultExtensions();
+    _info.defaultLayers = { "VK_LAYER_KHRONOS_validation" };
+    _info.defaultExtensions = GetDefaultExtensions();
 }
 
 Instance InstanceBuilder::Build()
@@ -60,18 +60,18 @@ Instance InstanceBuilder::Build()
     VkApplicationInfo applicationInfo = {};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.pNext = nullptr;
-    applicationInfo.pApplicationName = info.applicationName;
-    applicationInfo.applicationVersion = info.applicationVersion;
-    applicationInfo.pEngineName = info.applicationName;
-    applicationInfo.engineVersion = info.engineVersion;
-    applicationInfo.apiVersion = info.apiVersion;
+    applicationInfo.pApplicationName = _info.applicationName;
+    applicationInfo.applicationVersion = _info.applicationVersion;
+    applicationInfo.pEngineName = _info.applicationName;
+    applicationInfo.engineVersion = _info.engineVersion;
+    applicationInfo.apiVersion = _info.apiVersion;
 
     VkDebugUtilsMessengerCreateInfoEXT debugMessengerCI = {};
     debugMessengerCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     debugMessengerCI.pNext = nullptr;
     debugMessengerCI.flags = 0;
-    debugMessengerCI.messageSeverity = info.debugMessageSeverity;
-    debugMessengerCI.messageType = info.debugMessageType;
+    debugMessengerCI.messageSeverity = _info.debugMessageSeverity;
+    debugMessengerCI.messageType = _info.debugMessageType;
     debugMessengerCI.pfnUserCallback = DebugCallback;
     debugMessengerCI.pUserData = nullptr;
 
@@ -83,27 +83,27 @@ Instance InstanceBuilder::Build()
     
     instanceCI.enabledLayerCount = static_cast<uint32_t>(0);
     instanceCI.ppEnabledLayerNames = nullptr;
-    if (info.isDefaultLayersRequested)
+    if (_info.isDefaultLayersRequested)
     {
-        instanceCI.enabledLayerCount = static_cast<uint32_t>(info.defaultLayers.size());
-        instanceCI.ppEnabledLayerNames = info.defaultLayers.data();
+        instanceCI.enabledLayerCount = static_cast<uint32_t>(_info.defaultLayers.size());
+        instanceCI.ppEnabledLayerNames = _info.defaultLayers.data();
     }
 
     instanceCI.enabledExtensionCount = static_cast<uint32_t>(0);
     instanceCI.ppEnabledExtensionNames = nullptr;
-    if (info.isDefaultExtensionsRequested)
+    if (_info.isDefaultExtensionsRequested)
     {
-        instanceCI.enabledExtensionCount = static_cast<uint32_t>(info.defaultExtensions.size());
-        instanceCI.ppEnabledExtensionNames = info.defaultExtensions.data();
+        instanceCI.enabledExtensionCount = static_cast<uint32_t>(_info.defaultExtensions.size());
+        instanceCI.ppEnabledExtensionNames = _info.defaultExtensions.data();
     }
 
     Instance instance = {};
 
-    VK_CHECK_RESULT(vkCreateInstance(&instanceCI, nullptr, &instance.instance), "instance creation failure!");
+    VK_CHECK_RESULT(vkCreateInstance(&instanceCI, nullptr, &instance.instance));
 
-    if (info.isDebugMessengerRequested)
+    if (_info.isDebugMessengerRequested)
     {
-        VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(instance, &debugMessengerCI, nullptr, &instance.debugMessenger), "debug messenger creation failure!");
+        VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(instance, &debugMessengerCI, nullptr, &instance.debugMessenger));
     }
     
     return instance;
@@ -111,37 +111,37 @@ Instance InstanceBuilder::Build()
 
 InstanceBuilder& InstanceBuilder::SetApplicationName(const char* applicationName)
 {
-    info.applicationName = applicationName;
+    _info.applicationName = applicationName;
     return *this;
 }
 
 InstanceBuilder& InstanceBuilder::SetApplicationVersion(uint32_t applicationVersion)
 {
-    info.applicationVersion = applicationVersion;
+    _info.applicationVersion = applicationVersion;
     return *this;
 }
 
 InstanceBuilder& InstanceBuilder::SetEngineName(const char* engineName)
 {
-    info.engineName = engineName;
+    _info.engineName = engineName;
     return *this;
 }
 
 InstanceBuilder& InstanceBuilder::SetEngineVersion(uint32_t engineVersion)
 {
-    info.engineVersion = engineVersion;
+    _info.engineVersion = engineVersion;
     return *this;
 }
 
 InstanceBuilder& InstanceBuilder::SetApiVersion(uint32_t apiVersion)
 {
-    info.apiVersion = apiVersion;
+    _info.apiVersion = apiVersion;
     return *this;
 }
 
 InstanceBuilder& InstanceBuilder::RequestDefaultLayers()
 {
-    info.isDefaultLayersRequested = true;
+    _info.isDefaultLayersRequested = true;
     if (!AreValidationLayersSupported())
     {
         throw std::runtime_error("default validation layers are not supported!");
@@ -151,13 +151,13 @@ InstanceBuilder& InstanceBuilder::RequestDefaultLayers()
 
 InstanceBuilder& InstanceBuilder::RequestDefaultExtensions()
 {
-    info.isDefaultExtensionsRequested = true;
+    _info.isDefaultExtensionsRequested = true;
     return *this;
 }
 
 InstanceBuilder& InstanceBuilder::UseDebugMessenger()
 {
-    info.isDebugMessengerRequested = true;
+    _info.isDebugMessengerRequested = true;
     return *this;
 }
 
@@ -168,7 +168,7 @@ bool InstanceBuilder::AreValidationLayersSupported()
     std::vector<VkLayerProperties> availableLayerProperties(layersCount);
     vkEnumerateInstanceLayerProperties(&layersCount, availableLayerProperties.data());
 
-    for (const auto &layerName : info.defaultLayers)
+    for (const auto &layerName : _info.defaultLayers)
     {
         if (!IsValidationLayerSupported(layerName, availableLayerProperties))
         {

@@ -58,7 +58,7 @@ Swapchain SwapchainBuilder::Build()
     Swapchain swapchainInfo;
 
     swapchainInfo.device = _info.device;
-    VK_CHECK_RESULT(vkCreateSwapchainKHR(_info.device, &createInfo, nullptr, &swapchainInfo.swapchain), "swapchain creation failure!");
+    VK_CHECK_RESULT(vkCreateSwapchainKHR(_info.device, &createInfo, nullptr, &swapchainInfo.swapchain));
     swapchainInfo.imageCount = _info.imageCount;
     swapchainInfo.imageFormat = _info.desiredFormat;
     swapchainInfo.colorSpace = surfaceFormat.colorSpace;
@@ -93,7 +93,7 @@ Swapchain SwapchainBuilder::Build()
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
-        VK_CHECK_RESULT(vkCreateImageView(swapchainInfo.device, &createInfo, nullptr, &swapchainInfo.imageViews[i]), "failed to create image view!");
+        VK_CHECK_RESULT(vkCreateImageView(swapchainInfo.device, &createInfo, nullptr, &swapchainInfo.imageViews[i]));
     }
 
     return swapchainInfo;

@@ -7,4 +7,5 @@ target_include_directories(App
 target_link_libraries(App
     PUBLIC AppBase
     PRIVATE Initializers
+            Toolset
 )

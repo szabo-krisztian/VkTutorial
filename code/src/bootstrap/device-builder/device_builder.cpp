@@ -48,7 +48,7 @@ Device DeviceBuilder::Build()
     createInfo.ppEnabledExtensionNames = _physicalDevice.extensions.data();
     createInfo.pEnabledFeatures = nullptr;
 
-    VK_CHECK_RESULT(vkCreateDevice(_physicalDevice, &createInfo, nullptr, &device.device), "device creation failure");
+    VK_CHECK_RESULT(vkCreateDevice(_physicalDevice, &createInfo, nullptr, &device.device));
     return device;
 }
 

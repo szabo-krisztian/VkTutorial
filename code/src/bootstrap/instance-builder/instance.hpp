@@ -8,7 +8,7 @@ namespace tlr
 
 struct Instance
 {
-    VkInstance instance;
+    VkInstance               instance;
     VkDebugUtilsMessengerEXT debugMessenger;
 
     operator VkInstance() const

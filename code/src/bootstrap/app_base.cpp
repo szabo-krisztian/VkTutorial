@@ -61,7 +61,7 @@ void AppBase::InitVulkan()
     instance = instances.instance;
     debugMessenger = instances.debugMessenger;
 
-    VK_CHECK_RESULT(glfwCreateWindowSurface(instance, window, nullptr, &surface), "failed to create window surface!");
+    VK_CHECK_RESULT(glfwCreateWindowSurface(instance, window, nullptr, &surface));
     
     PhysicalDeviceSelector physicalDeviceSelector{instance, surface};
     physicalDevice = physicalDeviceSelector.EnableDedicatedGPU()

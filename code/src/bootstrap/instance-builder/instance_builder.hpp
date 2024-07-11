@@ -42,7 +42,7 @@ private:
         bool                     isDebugMessengerRequested = false;
         bool                     isDefaultLayersRequested = false;
         bool                     isDefaultExtensionsRequested = false;
-    } info;
+    } _info;
 
     bool                     AreValidationLayersSupported();
     bool                     IsValidationLayerSupported(const char *layerName, const std::vector<VkLayerProperties> &availableLayerProperties);

@@ -19,6 +19,7 @@ target_link_libraries(AppBase
             PhysicalDeviceSelector
             DeviceBuilder
             SwapchainBuilder
+            Toolset
     PUBLIC ${Vulkan_LIBRARIES}
            ${GLFW_LIBRARIESS}
 )
