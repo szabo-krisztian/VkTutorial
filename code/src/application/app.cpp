@@ -107,7 +107,7 @@ void App::CreateGraphicsPipeline()
     // Pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutCI = init::PipelineLayoutCreateInfo((uint32_t)0);
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
-    deleteQueue.push_function([&]() {
+    deleteQueue.push_function([=]() {
         vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
     });
 

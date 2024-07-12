@@ -29,8 +29,6 @@ namespace tlr
 
 		std::vector<char> ReadFile(const std::string& filename);
 
-		VkShaderModule CreateShaderModule(const VkDevice& device, const std::vector<char>& code);
-
 	} // namespace tools
 
 } // namespace tlr
