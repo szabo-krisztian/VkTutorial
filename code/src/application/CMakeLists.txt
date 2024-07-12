@@ -1,3 +1,13 @@
+add_library(ShaderModule shader_module.cpp)
+target_include_directories(ShaderModule
+    PUBLIC ${Vulkan_INCLUDE_DIRS}
+)
+
+target_link_libraries(ShaderModule
+    PUBLIC ${Vulkan_LIBRARIES}
+    PRIVATE Toolset
+)
+
 add_library(App app.cpp)
 
 target_include_directories(App
@@ -6,5 +16,5 @@ target_include_directories(App
 
 target_link_libraries(App
     PUBLIC AppBase
-    PRIVATE Toolset
+    PRIVATE Toolset ShaderModule
 )

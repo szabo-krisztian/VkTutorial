@@ -1,6 +1,7 @@
 #include "app.hpp"
 #include "toolset.hpp"
 #include "initializers.hpp"
+#include "shader_module.hpp"
 
 namespace tlr
 {
@@ -72,13 +73,9 @@ void App::InitSyncStructures()
 void App::CreateGraphicsPipeline()
 {
     // Create shaderStages[]
-    std::vector<char> vertShaderCode = tools::ReadFile("./spvs/vert.spv");
-    std::vector<char> fragShaderCode = tools::ReadFile("./spvs/frag.spv");
-    VkShaderModule vertShaderModule = tools::CreateShaderModule(device, vertShaderCode);
-    VkShaderModule fragShaderModule = tools::CreateShaderModule(device, fragShaderCode);
-    VkPipelineShaderStageCreateInfo vertShaderStageInfo = init::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertShaderModule);
-    VkPipelineShaderStageCreateInfo fragShaderStageInfo = init::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragShaderModule);
-    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+    ShaderModule vertModule(device.device, "./spvs/vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+    ShaderModule fragModule(device.device, "./spvs/frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertModule.GetCreateInfo(), fragModule.GetCreateInfo()};
 
     // Dynamic states
     std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
@@ -131,9 +128,6 @@ void App::CreateGraphicsPipeline()
     deleteQueue.push_function([this]() {
         vkDestroyPipeline(device, _graphicsPipeline, nullptr);
     });
-
-    vkDestroyShaderModule(device, vertShaderModule, nullptr);
-    vkDestroyShaderModule(device, fragShaderModule, nullptr);
 }
 
 void App::CreateRenderPass()
