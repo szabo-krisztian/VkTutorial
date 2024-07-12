@@ -8,14 +8,18 @@ namespace tlr
 App::App()
 {
     InitQueues();
+    
     InitCommands();
     InitSyncStructures();
+    CreateRenderPass();
+    CreateGraphicsPipeline();
 }
 
 App::~App()
 {
     deleteQueue.flush();
 }
+
 
 App::FrameData& App::GetCurrentFrameData()
 {
@@ -65,18 +69,104 @@ void App::InitSyncStructures()
     }
 }
 
-void App::Draw()
+void App::CreateGraphicsPipeline()
 {
-    auto currentFrame = GetCurrentFrameData();
-    VK_CHECK_RESULT(vkWaitForFences(device, 1, &currentFrame.renderFence, true, 1000000000));
-    VK_CHECK_RESULT(vkResetFences(device, 1, &currentFrame.renderFence));
-    uint32_t swapchainImageIndex;
-    VK_CHECK_RESULT(vkAcquireNextImageKHR(device, swapchain, 1000000000, currentFrame.swapchainSemaphore, nullptr, &swapchainImageIndex));
-    
-    VkCommandBuffer cmd = currentFrame.mainCommandBuffer;
-    VK_CHECK_RESULT(vkResetCommandBuffer(cmd, 0));
-    VkCommandBufferBeginInfo cmdBeginInfo = init::CommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    VK_CHECK_RESULT(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+    // Create shaderStages[]
+    std::vector<char> vertShaderCode = tools::ReadFile("./spvs/vert.spv");
+    std::vector<char> fragShaderCode = tools::ReadFile("./spvs/frag.spv");
+    VkShaderModule vertShaderModule = tools::CreateShaderModule(device, vertShaderCode);
+    VkShaderModule fragShaderModule = tools::CreateShaderModule(device, fragShaderCode);
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo = init::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, vertShaderModule);
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo = init::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, fragShaderModule);
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+
+    // Dynamic states
+    std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    VkPipelineDynamicStateCreateInfo dynamicStateCI = init::PipelineDynamicStateCreateInfo(dynamicStates);
+
+    // Vertex input
+    VkPipelineVertexInputStateCreateInfo vertexInputCI = init::PipelineVertexInputStateCreateInfo();
+
+    // Input assembly
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI = init::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);    
+
+    // Viewport state
+    VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
+    VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
+    VkPipelineViewportStateCreateInfo viewportStateCI = init::PipelineViewportStateCreateInfo(1, 1, 0);
+    viewportStateCI.pViewports = &viewport;
+    viewportStateCI.pScissors = &scissor;
+
+    // Rasterizer
+    VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, 0);
+
+    // Multisampling
+    VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
+
+    // Color blending
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, VK_FALSE);
+    VkPipelineColorBlendStateCreateInfo colorBlending = init::PipelineColorBlendStateCreateInfo(1, &colorBlendAttachment);
+
+    // Pipeline layout
+    VkPipelineLayoutCreateInfo pipelineLayoutCI = init::PipelineLayoutCreateInfo((uint32_t)0);
+    VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
+    deleteQueue.push_function([&]() {
+        vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
+    });
+
+    // Pipeline
+    VkGraphicsPipelineCreateInfo pipelineCI = init::PipelineCreateInfo(_pipelineLayout, _renderPass);
+    pipelineCI.stageCount = 2;
+    pipelineCI.pStages = shaderStages;
+    pipelineCI.pVertexInputState = &vertexInputCI;
+    pipelineCI.pInputAssemblyState = &inputAssemblyCI;
+    pipelineCI.pViewportState = &viewportStateCI;
+    pipelineCI.pRasterizationState = &rasterizer;
+    pipelineCI.pMultisampleState = &multisampling;
+    pipelineCI.pDepthStencilState = nullptr;
+    pipelineCI.pColorBlendState = &colorBlending;
+    pipelineCI.pDynamicState = &dynamicStateCI;
+    pipelineCI.subpass = 0;
+    VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
+    deleteQueue.push_function([this]() {
+        vkDestroyPipeline(device, _graphicsPipeline, nullptr);
+    });
+
+    vkDestroyShaderModule(device, vertShaderModule, nullptr);
+    vkDestroyShaderModule(device, fragShaderModule, nullptr);
+}
+
+void App::CreateRenderPass()
+{
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = swapchain.imageFormat;
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+
+    VkRenderPassCreateInfo renderPassCI{};
+    renderPassCI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassCI.attachmentCount = 1;
+    renderPassCI.pAttachments = &colorAttachment;
+    renderPassCI.subpassCount = 1;
+    renderPassCI.pSubpasses = &subpass;
+    VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassCI, nullptr, &_renderPass));
+    deleteQueue.push_function([this]() {
+        vkDestroyRenderPass(device, _renderPass, nullptr);
+    });
 }
 
 } // namespace tlr

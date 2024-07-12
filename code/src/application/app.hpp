@@ -23,8 +23,8 @@ private:
     {
         VkCommandPool   commandPool;
         VkCommandBuffer mainCommandBuffer;
-        VkSemaphore swapchainSemaphore, renderSemaphore;
-        VkFence renderFence;
+        VkSemaphore     swapchainSemaphore, renderSemaphore;
+        VkFence         renderFence;
     };
     FrameData _frames[FRAME_OVERLAP];
 
@@ -36,11 +36,16 @@ private:
         VkQueue  presentationQueue;
     } _queues;
 
+    VkPipelineLayout _pipelineLayout;
+    VkRenderPass     _renderPass;
+    VkPipeline       _graphicsPipeline;
+
     FrameData& GetCurrentFrameData();
     void       InitQueues();
     void       InitCommands();
     void       InitSyncStructures();
-    void       Draw();
+    void       CreateGraphicsPipeline();
+    void       CreateRenderPass();
 };
 
 } // namespace tlr

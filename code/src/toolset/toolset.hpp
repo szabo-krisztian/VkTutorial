@@ -2,14 +2,19 @@
 
 #include <assert.h>
 #include <string>
+#include <fstream>
+#include <vector>
+#include <iostream>
+
 #include <vulkan/vulkan.h>
+
 
 #define VK_CHECK_RESULT(f)																									   	   \
 {																															   	   \
 	VkResult res = (f);																										   	   \
 	if (res != VK_SUCCESS)																									   	   \
 	{																														   	   \
-		std::cerr << "Fatal : VkResult is \"" << tlr::ErrorString(res) << "\" in " << __FILE__ << " at line " << __LINE__ << "\n"; \
+		std::cerr << "Fatal : VkResult is \"" << tlr::tools::ErrorString(res) << "\" in " << __FILE__ << " at line " << __LINE__ << "\n";     \
 		assert(res == VK_SUCCESS);																							   	   \
 	}																														   	   \
 }
@@ -18,6 +23,14 @@
 namespace tlr
 {
 
-std::string ErrorString(VkResult errorCode);
+	namespace tools
+	{
+		std::string ErrorString(VkResult errorCode);
+
+		std::vector<char> ReadFile(const std::string& filename);
+
+		VkShaderModule CreateShaderModule(const VkDevice& device, const std::vector<char>& code);
+
+	} // namespace tools
 
 } // namespace tlr

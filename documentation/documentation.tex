@@ -151,6 +151,12 @@ VkInstance instance = builder.EnableDebugger()
 								.GetInstance();
 	\end{lstlisting}
 
+	\section{Command buffers}
+	\subsection{What are command buffers?}
+	The Vulkan documentation describes command buffers the follow way:\newline
+
+	Command buffers are objects used to record commands which can be subsequently submitted to a device queue for execution. There are two levels of command buffers - primary command buffers, which can execute secondary command buffers, and which are submitted to queues, and secondary command buffers, which can be executed by primary command buffers, and which are not directly submitted to queues. Recorded commands include commands to bind pipelines and descriptor sets to the command buffer, commands to modify dynamic state, commands to draw (for graphics rendering), commands to dispatch (for compute), commands to execute secondary command buffers (for primary command buffers only), commands to copy buffers and images, and other commands.
+
 	\newpage
 	\section{Descriptors}
 	\subsection{What are descriptors?}
