@@ -5,6 +5,7 @@ namespace tlr
 
     namespace tools
     {
+        
     std::string ErrorString(VkResult errorCode)
     {
         switch (errorCode) {

@@ -8,7 +8,6 @@
 
 #include <vulkan/vulkan.h>
 
-
 #define VK_CHECK_RESULT(f)																									   	   \
 {																															   	   \
 	VkResult res = (f);																										   	   \
@@ -19,12 +18,12 @@
 	}																														   	   \
 }
 
-
 namespace tlr
 {
 
 	namespace tools
 	{
+		
 		std::string ErrorString(VkResult errorCode);
 
 		std::vector<char> ReadFile(const std::string& filename);
