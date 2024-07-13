@@ -167,6 +167,23 @@ namespace tlr
         return pipelineViewportStateCreateInfo;
     }
 
+    inline VkPipelineViewportStateCreateInfo PipelineViewportStateCreateInfo(
+        uint32_t viewportCount,
+        VkViewport* viewports,
+        uint32_t scissorCount,
+        VkRect2D* scissors,
+        VkPipelineViewportStateCreateFlags flags = 0)
+    {
+        VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{};
+        pipelineViewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        pipelineViewportStateCreateInfo.viewportCount = viewportCount;
+        pipelineViewportStateCreateInfo.pViewports = viewports;
+        pipelineViewportStateCreateInfo.scissorCount = scissorCount;
+        pipelineViewportStateCreateInfo.pScissors = scissors;
+        pipelineViewportStateCreateInfo.flags = flags;
+        return pipelineViewportStateCreateInfo;
+    }
+
     inline VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo(
         VkSampleCountFlagBits rasterizationSamples,
         VkPipelineMultisampleStateCreateFlags flags = 0)
@@ -294,7 +311,13 @@ namespace tlr
         return framebufferCreateInfo;
     }
 
-    inline VkFramebufferCreateInfo FramebufferCreateInfo(const VkRenderPass& renderPass, uint32_t attachmentCount, VkImageView* attachments, uint32_t width, uint32_t height, uint32_t layers)
+    inline VkFramebufferCreateInfo FramebufferCreateInfo(
+        const VkRenderPass& renderPass,
+        uint32_t attachmentCount,
+        VkImageView* attachments,
+        uint32_t width,
+        uint32_t height,
+        uint32_t layers)
     {
         VkFramebufferCreateInfo framebufferCreateInfo{};
         framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -351,6 +374,21 @@ namespace tlr
         return submitInfo;
     }
     
+    inline VkPresentInfoKHR PresentInfoKHR(
+        uint32_t waitSemaphoresCount,
+        VkSemaphore* waitSemaphores,
+        VkSwapchainKHR* swapchain,
+        uint32_t* imageIndices)
+    {
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = waitSemaphoresCount;
+        presentInfo.pWaitSemaphores = waitSemaphores;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapchain;
+        presentInfo.pImageIndices = imageIndices;
+        return presentInfo;
+    }
 
     } // namespace init
 

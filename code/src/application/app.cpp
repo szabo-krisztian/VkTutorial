@@ -9,9 +9,9 @@ namespace tlr
 App::App()
 {
     InitQueues();
-    
     InitCommands();
     InitSyncStructures();
+
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
@@ -22,7 +22,6 @@ App::~App()
     vkDeviceWaitIdle(device);
     deleteQueue.flush();
 }
-
 
 App::FrameData& App::GetCurrentFrameData()
 {
@@ -81,20 +80,18 @@ void App::CreateGraphicsPipeline()
 
     // Dynamic states
     std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-    VkPipelineDynamicStateCreateInfo dynamicStateCI = init::PipelineDynamicStateCreateInfo(dynamicStates);
+    VkPipelineDynamicStateCreateInfo dynamicStateCI = init::PipelineDynamicStateCreateInfo(dynamicStates, 0);
 
-    // Vertex input
+    // Vertex input, we do not use any descriptors yet
     VkPipelineVertexInputStateCreateInfo vertexInputCI = init::PipelineVertexInputStateCreateInfo();
 
     // Input assembly
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI = init::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);    
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI = init::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);
 
     // Viewport state
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
-    VkPipelineViewportStateCreateInfo viewportStateCI = init::PipelineViewportStateCreateInfo(1, 1, 0);
-    viewportStateCI.pViewports = &viewport;
-    viewportStateCI.pScissors = &scissor;
+    VkPipelineViewportStateCreateInfo viewportStateCI = init::PipelineViewportStateCreateInfo(1, &viewport, 1, &scissor, 0);
 
     // Rasterizer
     VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, 0);
@@ -103,18 +100,18 @@ void App::CreateGraphicsPipeline()
     VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 
     // Color blending
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, VK_FALSE);
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, VK_TRUE);
     VkPipelineColorBlendStateCreateInfo colorBlending = init::PipelineColorBlendStateCreateInfo(1, &colorBlendAttachment);
 
     // Pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutCI = init::PipelineLayoutCreateInfo((uint32_t)0);
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
-    deleteQueue.push_function([=]() {
+    deleteQueue.push_function([&]() {
         vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
     });
 
     // Pipeline
-    VkGraphicsPipelineCreateInfo pipelineCI = init::PipelineCreateInfo(_pipelineLayout, _renderPass);
+    VkGraphicsPipelineCreateInfo pipelineCI = init::PipelineCreateInfo();
     pipelineCI.stageCount = 2;
     pipelineCI.pStages = shaderStages;
     pipelineCI.pVertexInputState = &vertexInputCI;
@@ -125,9 +122,11 @@ void App::CreateGraphicsPipeline()
     pipelineCI.pDepthStencilState = nullptr;
     pipelineCI.pColorBlendState = &colorBlending;
     pipelineCI.pDynamicState = &dynamicStateCI;
+    pipelineCI.renderPass = _renderPass;
+    pipelineCI.layout = _pipelineLayout;
     pipelineCI.subpass = 0;
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
-    deleteQueue.push_function([this]() {
+    deleteQueue.push_function([&]() {
         vkDestroyPipeline(device, _graphicsPipeline, nullptr);
     });
 }
@@ -218,6 +217,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 
     // Drawing command
     vkCmdDraw(cmd, 3, 1, 0, 0);
+
     vkCmdEndRenderPass(cmd);
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
 }
@@ -249,16 +249,8 @@ void App::DrawFrame()
     VkSubmitInfo submitInfo = init::SubmitInfo(1, waitSemaphores, waitStages, 1, &frameData.mainCommandBuffer, 1, signalSemaphores);
     VK_CHECK_RESULT(vkQueueSubmit(_queues.graphicsQueue, 1, &submitInfo, frameData.renderFence));
 
-    VkPresentInfoKHR presentInfo{};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-    VkSwapchainKHR swapchains[] = {swapchain};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = &swapchain.swapchain;
-    presentInfo.pImageIndices = &imageIndex;
+    VkPresentInfoKHR presentInfo = init::PresentInfoKHR(1, signalSemaphores, &swapchain.swapchain, &imageIndex);
     vkQueuePresentKHR(_queues.presentationQueue, &presentInfo);
-
     ++_frameNumber;
 }
 
