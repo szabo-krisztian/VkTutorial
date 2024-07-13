@@ -14,10 +14,12 @@ App::App()
     InitSyncStructures();
     CreateRenderPass();
     CreateGraphicsPipeline();
+    CreateFramebuffers();
 }
 
 App::~App()
 {
+    vkDeviceWaitIdle(device);
     deleteQueue.flush();
 }
 
@@ -151,16 +153,113 @@ void App::CreateRenderPass()
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo renderPassCI{};
     renderPassCI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassCI.attachmentCount = 1;
     renderPassCI.pAttachments = &colorAttachment;
     renderPassCI.subpassCount = 1;
     renderPassCI.pSubpasses = &subpass;
+    renderPassCI.dependencyCount = 1;
+    renderPassCI.pDependencies = &dependency;
     VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassCI, nullptr, &_renderPass));
     deleteQueue.push_function([this]() {
         vkDestroyRenderPass(device, _renderPass, nullptr);
     });
+}
+
+void App::CreateFramebuffers()
+{
+    _framebuffers.resize(swapchain.imageCount);
+    for (int i = 0; i < _framebuffers.size(); ++i)
+    {
+        VkImageView attachments[] = {swapchain.imageViews[i]};
+        VkFramebufferCreateInfo framebufferCI = init::FramebufferCreateInfo(_renderPass, 1, attachments, swapchain.extent.width, swapchain.extent.height, 1);
+        VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferCI, nullptr, &_framebuffers[i]));
+        deleteQueue.push_function([this, i](){
+            vkDestroyFramebuffer(device, _framebuffers[i], nullptr);
+        });
+    }
+}
+
+void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
+{
+    VkCommandBufferBeginInfo beginInfo = init::CommandBufferBeginInfo();
+    VK_CHECK_RESULT(vkBeginCommandBuffer(cmd, &beginInfo));
+
+    VkRenderPassBeginInfo renderPassInfo = init::RenderPassBeginInfo(_renderPass, _framebuffers[imageIndex]);
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapchain.extent;
+    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+    
+    // Drawing command
+    vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    // Drawing command
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
+
+    VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
+    VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
+
+    // Drawing command
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    // Drawing command
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+    // Drawing command
+    vkCmdDraw(cmd, 3, 1, 0, 0);
+    vkCmdEndRenderPass(cmd);
+    VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
+}
+
+void App::Run()
+{
+    while (!glfwWindowShouldClose(window))
+    {
+        glfwPollEvents();
+        DrawFrame();
+    }
+}
+
+void App::DrawFrame()
+{
+    auto frameData = GetCurrentFrameData();
+    vkWaitForFences(device, 1, &frameData.renderFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(device, 1, &frameData.renderFence);
+
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, frameData.swapchainSemaphore, VK_NULL_HANDLE, &imageIndex);
+    
+    vkResetCommandBuffer(frameData.mainCommandBuffer, 0);
+    RecordCommandBuffer(frameData.mainCommandBuffer, imageIndex);
+
+    VkSemaphore waitSemaphores[] = {frameData.swapchainSemaphore};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    VkSemaphore signalSemaphores[] = {frameData.renderSemaphore};
+    VkSubmitInfo submitInfo = init::SubmitInfo(1, waitSemaphores, waitStages, 1, &frameData.mainCommandBuffer, 1, signalSemaphores);
+    VK_CHECK_RESULT(vkQueueSubmit(_queues.graphicsQueue, 1, &submitInfo, frameData.renderFence));
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+    VkSwapchainKHR swapchains[] = {swapchain};
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &swapchain.swapchain;
+    presentInfo.pImageIndices = &imageIndex;
+    vkQueuePresentKHR(_queues.presentationQueue, &presentInfo);
+
+    ++_frameNumber;
 }
 
 } // namespace tlr

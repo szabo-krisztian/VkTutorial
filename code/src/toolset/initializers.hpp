@@ -11,7 +11,7 @@ namespace tlr
 
     inline VkCommandPoolCreateInfo CommandPoolCreateInfo(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags = 0)
     {
-        VkCommandPoolCreateInfo info = {};
+        VkCommandPoolCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         info.pNext = nullptr;
         info.queueFamilyIndex = queueFamilyIndex;
@@ -21,7 +21,7 @@ namespace tlr
 
     inline VkCommandBufferAllocateInfo CommandBufferAllocateInfo(VkCommandPool pool, uint32_t count = 1)
     {
-        VkCommandBufferAllocateInfo info = {};
+        VkCommandBufferAllocateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         info.pNext = nullptr;
         info.commandPool = pool;
@@ -32,7 +32,7 @@ namespace tlr
 
     inline VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags = 0)
     {
-        VkFenceCreateInfo info = {};
+        VkFenceCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         info.pNext = nullptr;
         info.flags = flags;
@@ -41,7 +41,7 @@ namespace tlr
 
     inline VkSemaphoreCreateInfo SemaphoreCreateInfo(VkSemaphoreCreateFlags flags = 0)
     {
-        VkSemaphoreCreateInfo info = {};
+        VkSemaphoreCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         info.pNext = nullptr;
         info.flags = flags;
@@ -50,7 +50,7 @@ namespace tlr
 
     inline VkCommandBufferBeginInfo CommandBufferBeginInfo(VkCommandBufferUsageFlags flags = 0)
     {
-        VkCommandBufferBeginInfo info = {};
+        VkCommandBufferBeginInfo info{};
         info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         info.pNext = nullptr;
         info.pInheritanceInfo = nullptr;
@@ -70,7 +70,7 @@ namespace tlr
 
     inline VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateCreateInfo()
     {
-        VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo {};
+        VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo{};
         pipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         return pipelineVertexInputStateCreateInfo;
     }
@@ -94,7 +94,7 @@ namespace tlr
         VkPipelineInputAssemblyStateCreateFlags flags,
         VkBool32 primitiveRestartEnable)
     {
-        VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo {};
+        VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{};
         pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         pipelineInputAssemblyStateCreateInfo.topology = topology;
         pipelineInputAssemblyStateCreateInfo.flags = flags;
@@ -108,7 +108,7 @@ namespace tlr
         VkFrontFace frontFace,
         VkPipelineRasterizationStateCreateFlags flags = 0)
     {
-        VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo {};
+        VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo{};
         pipelineRasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         pipelineRasterizationStateCreateInfo.polygonMode = polygonMode;
         pipelineRasterizationStateCreateInfo.cullMode = cullMode;
@@ -123,7 +123,7 @@ namespace tlr
         VkColorComponentFlags colorWriteMask,
         VkBool32 blendEnable)
     {
-        VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState {};
+        VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState{};
         pipelineColorBlendAttachmentState.colorWriteMask = colorWriteMask;
         pipelineColorBlendAttachmentState.blendEnable = blendEnable;
         return pipelineColorBlendAttachmentState;
@@ -133,7 +133,7 @@ namespace tlr
         uint32_t attachmentCount,
         const VkPipelineColorBlendAttachmentState* pAttachments)
     {
-        VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo {};
+        VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo{};
         pipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         pipelineColorBlendStateCreateInfo.attachmentCount = attachmentCount;
         pipelineColorBlendStateCreateInfo.pAttachments = pAttachments;
@@ -145,7 +145,7 @@ namespace tlr
         VkBool32 depthWriteEnable,
         VkCompareOp depthCompareOp)
     {
-        VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo {};
+        VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo{};
         pipelineDepthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         pipelineDepthStencilStateCreateInfo.depthTestEnable = depthTestEnable;
         pipelineDepthStencilStateCreateInfo.depthWriteEnable = depthWriteEnable;
@@ -159,7 +159,7 @@ namespace tlr
         uint32_t scissorCount,
         VkPipelineViewportStateCreateFlags flags = 0)
     {
-        VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo {};
+        VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{};
         pipelineViewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         pipelineViewportStateCreateInfo.viewportCount = viewportCount;
         pipelineViewportStateCreateInfo.scissorCount = scissorCount;
@@ -171,7 +171,7 @@ namespace tlr
         VkSampleCountFlagBits rasterizationSamples,
         VkPipelineMultisampleStateCreateFlags flags = 0)
     {
-        VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo {};
+        VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{};
         pipelineMultisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         pipelineMultisampleStateCreateInfo.rasterizationSamples = rasterizationSamples;
         pipelineMultisampleStateCreateInfo.flags = flags;
@@ -183,7 +183,7 @@ namespace tlr
         uint32_t dynamicStateCount,
         VkPipelineDynamicStateCreateFlags flags = 0)
     {
-        VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo {};
+        VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
         pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         pipelineDynamicStateCreateInfo.pDynamicStates = pDynamicStates;
         pipelineDynamicStateCreateInfo.dynamicStateCount = dynamicStateCount;
@@ -205,7 +205,7 @@ namespace tlr
 
     inline VkPipelineTessellationStateCreateInfo PipelineTessellationStateCreateInfo(uint32_t patchControlPoints)
     {
-        VkPipelineTessellationStateCreateInfo pipelineTessellationStateCreateInfo {};
+        VkPipelineTessellationStateCreateInfo pipelineTessellationStateCreateInfo{};
         pipelineTessellationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
         pipelineTessellationStateCreateInfo.patchControlPoints = patchControlPoints;
         return pipelineTessellationStateCreateInfo;
@@ -216,7 +216,7 @@ namespace tlr
         VkRenderPass renderPass,
         VkPipelineCreateFlags flags = 0)
     {
-        VkGraphicsPipelineCreateInfo pipelineCreateInfo {};
+        VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
         pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineCreateInfo.layout = layout;
         pipelineCreateInfo.renderPass = renderPass;
@@ -247,7 +247,7 @@ namespace tlr
 
     inline VkRect2D Rect2D(int32_t width, int32_t height, int32_t offsetX, int32_t offsetY)
     {
-        VkRect2D rect2D {};
+        VkRect2D rect2D{};
         rect2D.extent.width = width;
         rect2D.extent.height = height;
         rect2D.offset.x = offsetX;
@@ -257,7 +257,7 @@ namespace tlr
 
     inline VkRect2D Rect2D(VkOffset2D offset, VkExtent2D extent)
     {
-        VkRect2D rect2D {};
+        VkRect2D rect2D{};
         rect2D.offset = offset;
         rect2D.extent = extent;
         return rect2D;
@@ -265,7 +265,7 @@ namespace tlr
 
     inline VkPipelineLayoutCreateInfo PipelineLayoutCreateInfo(const VkDescriptorSetLayout* pSetLayouts, uint32_t setLayoutCount = 1)
     {
-        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {};
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutCreateInfo.setLayoutCount = setLayoutCount;
         pipelineLayoutCreateInfo.pSetLayouts = pSetLayouts;
@@ -282,10 +282,75 @@ namespace tlr
 
     inline VkRenderPassCreateInfo RenderPassCreateInfo()
     {
-        VkRenderPassCreateInfo renderPassCreateInfo {};
+        VkRenderPassCreateInfo renderPassCreateInfo{};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         return renderPassCreateInfo;
     }
+
+    inline VkFramebufferCreateInfo FramebufferCreateInfo()
+    {
+        VkFramebufferCreateInfo framebufferCreateInfo{};
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        return framebufferCreateInfo;
+    }
+
+    inline VkFramebufferCreateInfo FramebufferCreateInfo(const VkRenderPass& renderPass, uint32_t attachmentCount, VkImageView* attachments, uint32_t width, uint32_t height, uint32_t layers)
+    {
+        VkFramebufferCreateInfo framebufferCreateInfo{};
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferCreateInfo.renderPass = renderPass;
+        framebufferCreateInfo.attachmentCount = attachmentCount;
+        framebufferCreateInfo.pAttachments = attachments;
+        framebufferCreateInfo.width = width;
+        framebufferCreateInfo.height = height;
+        framebufferCreateInfo.layers = layers;
+        return framebufferCreateInfo;
+    }
+
+    inline VkRenderPassBeginInfo RenderPassBeginInfo()
+    {
+        VkRenderPassBeginInfo renderPassBeginInfo{};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        return renderPassBeginInfo;
+    }
+
+    inline VkRenderPassBeginInfo RenderPassBeginInfo(const VkRenderPass& renderPass, const VkFramebuffer& framebuffer)
+    {
+        VkRenderPassBeginInfo renderPassBeginInfo{};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.renderPass = renderPass;
+        renderPassBeginInfo.framebuffer = framebuffer;
+        return renderPassBeginInfo;
+    }
+
+    inline VkSubmitInfo SubmitInfo()
+    {
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        return submitInfo;
+    }
+
+    inline VkSubmitInfo SubmitInfo(
+        uint32_t waitSemaphoresCount, 
+        VkSemaphore* waitSemaphores, 
+        VkPipelineStageFlags* waitStages, 
+        uint32_t commandBufferCount, 
+        VkCommandBuffer* commandBuffers,
+        uint32_t signalSemaphoresCount,
+        VkSemaphore* signalSemaphores)
+    {
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.waitSemaphoreCount = waitSemaphoresCount;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.commandBufferCount = commandBufferCount;
+        submitInfo.pCommandBuffers = commandBuffers;
+        submitInfo.signalSemaphoreCount = signalSemaphoresCount;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+        return submitInfo;
+    }
+    
 
     } // namespace init
 

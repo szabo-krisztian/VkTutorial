@@ -14,6 +14,8 @@ class App : public AppBase
 public:
     App();
     ~App();
+    
+    void Run();
 
 private:
     DeletionQueue deleteQueue;
@@ -27,6 +29,7 @@ private:
         VkFence         renderFence;
     };
     FrameData _frames[FRAME_OVERLAP];
+    std::vector<VkFramebuffer> _framebuffers;
 
     struct Queues
     {
@@ -46,6 +49,9 @@ private:
     void       InitSyncStructures();
     void       CreateGraphicsPipeline();
     void       CreateRenderPass();
+    void       CreateFramebuffers();
+    void       RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
+    void       DrawFrame();
 };
 
 } // namespace tlr
