@@ -20,7 +20,7 @@ App::App()
 App::~App()
 {
     vkDeviceWaitIdle(device);
-    deleteQueue.flush();
+    _deleteQueue.flush();
 }
 
 App::FrameData& App::GetCurrentFrameData()
@@ -43,7 +43,7 @@ void App::InitCommands()
     {
         VK_CHECK_RESULT(vkCreateCommandPool(device, &commandPoolCI, nullptr, &_frames[i].commandPool));
         
-        deleteQueue.push_function([this, i]() {
+        _deleteQueue.push_function([this, i]() {
             vkDestroyCommandPool(device, _frames[i].commandPool, nullptr);
         });
 
@@ -63,7 +63,7 @@ void App::InitSyncStructures()
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].swapchainSemaphore));
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].renderSemaphore));
 
-        deleteQueue.push_function([this, i]() {
+        _deleteQueue.push_function([this, i]() {
             vkDestroySemaphore(device, _frames[i].renderSemaphore, nullptr);
             vkDestroySemaphore(device, _frames[i].swapchainSemaphore, nullptr);
             vkDestroyFence(device, _frames[i].renderFence, nullptr);
@@ -100,13 +100,13 @@ void App::CreateGraphicsPipeline()
     VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 
     // Color blending
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, VK_TRUE);
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, VK_FALSE);
     VkPipelineColorBlendStateCreateInfo colorBlending = init::PipelineColorBlendStateCreateInfo(1, &colorBlendAttachment);
 
     // Pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutCI = init::PipelineLayoutCreateInfo((uint32_t)0);
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
-    deleteQueue.push_function([&]() {
+    _deleteQueue.push_function([&]() {
         vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
     });
 
@@ -126,7 +126,7 @@ void App::CreateGraphicsPipeline()
     pipelineCI.layout = _pipelineLayout;
     pipelineCI.subpass = 0;
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
-    deleteQueue.push_function([&]() {
+    _deleteQueue.push_function([&]() {
         vkDestroyPipeline(device, _graphicsPipeline, nullptr);
     });
 }
@@ -169,7 +169,7 @@ void App::CreateRenderPass()
     renderPassCI.dependencyCount = 1;
     renderPassCI.pDependencies = &dependency;
     VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassCI, nullptr, &_renderPass));
-    deleteQueue.push_function([this]() {
+    _deleteQueue.push_function([this]() {
         vkDestroyRenderPass(device, _renderPass, nullptr);
     });
 }
@@ -182,7 +182,7 @@ void App::CreateFramebuffers()
         VkImageView attachments[] = {swapchain.imageViews[i]};
         VkFramebufferCreateInfo framebufferCI = init::FramebufferCreateInfo(_renderPass, 1, attachments, swapchain.extent.width, swapchain.extent.height, 1);
         VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferCI, nullptr, &_framebuffers[i]));
-        deleteQueue.push_function([this, i](){
+        _deleteQueue.push_function([this, i](){
             vkDestroyFramebuffer(device, _framebuffers[i], nullptr);
         });
     }

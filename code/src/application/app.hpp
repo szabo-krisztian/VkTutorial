@@ -18,7 +18,7 @@ public:
     void Run();
 
 private:
-    DeletionQueue deleteQueue;
+    DeletionQueue _deleteQueue;
 
     int _frameNumber = 0;
     struct FrameData
