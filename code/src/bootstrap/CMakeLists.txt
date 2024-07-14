@@ -10,8 +10,6 @@ target_include_directories(AppBase
            physical-device-selector
            device-builder
            swapchain-builder
-           ${Vulkan_INCLUDE_DIRS}
-           ${GLFW_INCLUDE_DIRS}
 )
 
 target_link_libraries(AppBase
@@ -20,6 +18,5 @@ target_link_libraries(AppBase
             DeviceBuilder
             SwapchainBuilder
             Toolset
-    PUBLIC ${Vulkan_LIBRARIES}
-           ${GLFW_LIBRARIESS}
+    PUBLIC GLFW_VULKAN_GLM
 )

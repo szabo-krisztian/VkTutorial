@@ -6,16 +6,17 @@ project(MyVulkanProject)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Search for Vulkan dependencies
 find_package(Vulkan REQUIRED)
 if(NOT Vulkan_FOUND)
     message(FATAL_ERROR "Vulkan not found!")
 endif()
 
+# Search for GLFW3 dependencies
 find_package(GLFW3 REQUIRED)
 if (NOT GLFW3_FOUND)
     message(FATAL_ERROR "GLFW3 not found!")
 endif()
-
 get_target_property(GLFW_INCLUDE_DIRS glfw INTERFACE_INCLUDE_DIRECTORIES)
 set(GLFW_LIBRARIES glfw)
 
@@ -24,10 +25,26 @@ if (MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MD")
 endif()
 
+# Search for GLM dependencies (it is header-only)
+set(GLM_PATH "C:/glm")
+add_subdirectory(${GLM_PATH} ${CMAKE_BINARY_DIR}/glm)
+
+add_library(GLFW_VULKAN_GLM INTERFACE)
+target_include_directories(GLFW_VULKAN_GLM
+    INTERFACE ${GLFW_INCLUDE_DIRS}
+              ${Vulkan_INCLUDE_DIRS}
+)
+target_link_libraries(GLFW_VULKAN_GLM
+    INTERFACE glfw
+              ${Vulkan_LIBRARIES}
+              glm-header-only
+)
+
 # every module sees these directories for convenience. in the future only subdirectories will see these
 include_directories(${CMAKE_SOURCE_DIR}/src/toolset)
 
 add_executable(Main src/main.cpp)
+
 add_subdirectory(src)
 
 target_include_directories(Main
