@@ -6,3 +6,9 @@ target_include_directories(Toolset
 target_link_libraries(Toolset
     PUBLIC ${Vulkan_LIBRARIES}
 )
+
+add_library(ShaderModule shader_module.cpp)
+target_link_libraries(ShaderModule
+    PUBLIC GLFW_VULKAN_GLM
+    PRIVATE Toolset
+)

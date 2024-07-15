@@ -1,3 +1,0 @@
-add_subdirectory(toolset)
-add_subdirectory(bootstrap)
-add_subdirectory(application)
