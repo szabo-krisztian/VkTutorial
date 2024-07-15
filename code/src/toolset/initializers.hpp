@@ -390,6 +390,50 @@ namespace tlr
         return presentInfo;
     }
 
+    inline VkVertexInputBindingDescription VertexInputBindingDescription(
+        uint32_t binding,
+        uint32_t stride,
+        VkVertexInputRate inputRate)
+    {
+        VkVertexInputBindingDescription vInputBindDescription{};
+        vInputBindDescription.binding = binding;
+        vInputBindDescription.stride = stride;
+        vInputBindDescription.inputRate = inputRate;
+        return vInputBindDescription;
+    }
+
+    inline VkVertexInputAttributeDescription VertexInputAttributeDescription(
+        uint32_t binding,
+        uint32_t location,
+        VkFormat format,
+        uint32_t offset)
+    {
+        VkVertexInputAttributeDescription vInputAttribDescription {};
+        vInputAttribDescription.location = location;
+        vInputAttribDescription.binding = binding;
+        vInputAttribDescription.format = format;
+        vInputAttribDescription.offset = offset;
+        return vInputAttribDescription;
+    }
+
+    inline VkBufferCreateInfo BufferCreateInfo()
+    {
+        VkBufferCreateInfo bufCreateInfo {};
+        bufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        return bufCreateInfo;
+    }
+
+    inline VkBufferCreateInfo BufferCreateInfo(
+        VkBufferUsageFlags usage,
+        VkDeviceSize size)
+    {
+        VkBufferCreateInfo bufCreateInfo {};
+        bufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufCreateInfo.usage = usage;
+        bufCreateInfo.size = size;
+        return bufCreateInfo;
+    }
+
     } // namespace init
 
 } // namespace tlr

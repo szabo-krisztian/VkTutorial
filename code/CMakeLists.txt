@@ -1,3 +1,4 @@
+# If the find_package functions do not work, try including paths explicit with
 # cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3"
 
 cmake_minimum_required(VERSION 3.10)
@@ -29,6 +30,8 @@ endif()
 set(GLM_PATH "C:/glm")
 add_subdirectory(${GLM_PATH} ${CMAKE_BINARY_DIR}/glm)
 
+# Each library in the application that uses any of these extenernal dependencies are
+# going to be linked against GLFW_VULKAN_GLM
 add_library(GLFW_VULKAN_GLM INTERFACE)
 target_include_directories(GLFW_VULKAN_GLM
     INTERFACE ${GLFW_INCLUDE_DIRS}
@@ -40,17 +43,15 @@ target_link_libraries(GLFW_VULKAN_GLM
               glm-header-only
 )
 
-# every module sees these directories for convenience. in the future only subdirectories will see these
+# Every module sees these directories for convenience.
 include_directories(${CMAKE_SOURCE_DIR}/src/toolset)
 
 add_executable(Main src/main.cpp)
 
 add_subdirectory(src)
-
 target_include_directories(Main
     PRIVATE src/application
 )
-
 target_link_libraries(Main
     PRIVATE App
 )

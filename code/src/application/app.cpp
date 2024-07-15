@@ -2,16 +2,20 @@
 #include "toolset.hpp"
 #include "initializers.hpp"
 #include "shader_module.hpp"
+#include "glm/glm.hpp"
 
 namespace tlr
 {
 
 App::App()
 {
+    PopulateSierpinskiTriangles(vertices[0], vertices[1], vertices[2], 5);
+
     InitQueues();
     InitCommands();
     InitSyncStructures();
 
+    CreateVertexBuffer();
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
@@ -71,6 +75,50 @@ void App::InitSyncStructures()
     }
 }
 
+void App::CreateVertexBuffer()
+{
+    VkBufferCreateInfo bufferCI = init::BufferCreateInfo();
+    bufferCI.size = vertices.size() * sizeof(vertices[0]);
+    bufferCI.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VK_CHECK_RESULT(vkCreateBuffer(device, &bufferCI, nullptr, &_vertexBuffer));
+    _deleteQueue.push_function([&]() {
+        vkDestroyBuffer(device, _vertexBuffer, nullptr);
+    });
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, _vertexBuffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &_vertexBufferMemory));
+    vkBindBufferMemory(device, _vertexBuffer, _vertexBufferMemory, 0);
+    _deleteQueue.push_function([&]() {
+        vkFreeMemory(device, _vertexBufferMemory, nullptr);
+    });
+    void* data;
+    vkMapMemory(device, _vertexBufferMemory, 0, bufferCI.size, 0, &data);
+    memcpy(data, vertices.data(), (size_t) bufferCI.size);
+    vkUnmapMemory(device, _vertexBufferMemory);
+}
+
+uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);   
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+    {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+
 void App::CreateGraphicsPipeline()
 {
     // Create shaderStages[]
@@ -83,7 +131,13 @@ void App::CreateGraphicsPipeline()
     VkPipelineDynamicStateCreateInfo dynamicStateCI = init::PipelineDynamicStateCreateInfo(dynamicStates, 0);
 
     // Vertex input, we do not use any descriptors yet
+    auto bindingDescription = Vertex::GetBindingDescription();
+    auto attributeDescriptions = Vertex::GetAttributeDescriptions();
     VkPipelineVertexInputStateCreateInfo vertexInputCI = init::PipelineVertexInputStateCreateInfo();
+    vertexInputCI.vertexBindingDescriptionCount = 1;
+    vertexInputCI.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputCI.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputCI.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     // Input assembly
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI = init::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);
@@ -188,6 +242,30 @@ void App::CreateFramebuffers()
     }
 }
 
+void App::PopulateSierpinskiTriangles(Vertex v1, Vertex v2, Vertex v3, int depth)
+{
+    if (depth <= 0)
+    {
+        return;
+    }
+    
+    glm::vec3 midpoint1 = {v3.pos.x / 2 + v1.pos.x / 2, v3.pos.y / 2 + v1.pos.y / 2, 0.0f};
+    glm::vec3 midpoint2 = {v1.pos.x / 2 + v2.pos.x / 2, v1.pos.y / 2 + v2.pos.y / 2, 0.0f};
+    glm::vec3 midpoint3 = {v3.pos.x / 2 + v2.pos.x / 2, v3.pos.y / 2 + v2.pos.y / 2, 0.0f};
+    
+    Vertex vertex1 = {midpoint1, {0.0f, 0.0f, 0.0f}};
+    Vertex vertex2 = {midpoint2, {0.0f, 0.0f, 0.0f}};
+    Vertex vertex3 = {midpoint3, {0.0f, 0.0f, 0.0f}};
+
+    vertices.push_back(vertex1);
+    vertices.push_back(vertex2);
+    vertices.push_back(vertex3);
+
+    PopulateSierpinskiTriangles(v3, vertex1, vertex3, depth - 1);
+    PopulateSierpinskiTriangles(vertex1, v1, vertex2, depth - 1);
+    PopulateSierpinskiTriangles(vertex3, vertex2, v2, depth - 1);
+}
+
 void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo = init::CommandBufferBeginInfo();
@@ -206,6 +284,11 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     // Drawing command
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
+    // Drawing command
+    VkBuffer vertexBuffers[] = {_vertexBuffer};
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
+
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
 
@@ -216,7 +299,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     // Drawing command
-    vkCmdDraw(cmd, 3, 1, 0, 0);
+    vkCmdDraw(cmd, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
     vkCmdEndRenderPass(cmd);
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));

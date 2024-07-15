@@ -1,9 +1,9 @@
 #pragma once
 
 #include <iostream>
-
 #include "app_base.hpp"
 #include "deletion_queue.hpp"
+#include "shader_vertex.hpp"
 #define FRAME_OVERLAP 2
 
 namespace tlr
@@ -41,17 +41,28 @@ private:
 
     VkPipelineLayout _pipelineLayout;
     VkRenderPass     _renderPass;
+    VkBuffer         _vertexBuffer;
+    VkDeviceMemory   _vertexBufferMemory;
     VkPipeline       _graphicsPipeline;
 
     FrameData& GetCurrentFrameData();
     void       InitQueues();
     void       InitCommands();
     void       InitSyncStructures();
+    void       CreateVertexBuffer();
+    uint32_t   FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     void       CreateGraphicsPipeline();
     void       CreateRenderPass();
     void       CreateFramebuffers();
+    void       PopulateSierpinskiTriangles(Vertex v1, Vertex v2, Vertex v3, int depth);
     void       RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
     void       DrawFrame();
+
+    std::vector<Vertex> vertices = {
+        {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+    };
 };
 
 } // namespace tlr
