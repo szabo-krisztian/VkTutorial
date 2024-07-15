@@ -12,7 +12,7 @@ namespace tlr
 class App : public AppBase
 {
 public:
-    App();
+    App(int fractalDepth);
     ~App();
     
     void Run();
@@ -59,9 +59,9 @@ private:
     void       DrawFrame();
 
     std::vector<Vertex> vertices = {
-        {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+        {{0.0f, -0.9f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+        {{0.9f, 0.9f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.9f, 0.9f, 0.0f}, {0.0f, 0.0f, 1.0f}}
     };
 };
 

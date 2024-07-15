@@ -7,9 +7,13 @@
 namespace tlr
 {
 
-App::App()
+App::App(int fractalDepth)
 {
-    PopulateSierpinskiTriangles(vertices[0], vertices[1], vertices[2], 5);
+    if (fractalDepth < 0)
+    {
+        throw std::runtime_error("fractal depth must be non-negative!");
+    }
+    PopulateSierpinskiTriangles(vertices[0], vertices[1], vertices[2], fractalDepth);
 
     InitQueues();
     InitCommands();

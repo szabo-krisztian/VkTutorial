@@ -4,7 +4,8 @@ int main()
 {
     try
     {
-        tlr::App app;
+        int fractalDepth = 7;
+        tlr::App app(fractalDepth);
         app.Run();    
     }
     catch(const std::exception& e)
