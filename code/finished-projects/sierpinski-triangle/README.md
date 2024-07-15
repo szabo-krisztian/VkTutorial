@@ -18,17 +18,20 @@ The current implementation uses Host-visible memory for storing vertex data. Thi
 - Vulkan SDK installed
 - GLFW3 installed
 - glm installed
-- C++ compiler
+- C++17-compatible compiler
 
 ## Building
 ```bat
 git clone https://github.com/szabo-krisztian/VkTutorial.git
+
 cd VkTutorial/code/finished-projects/sierpinski-triangle
 
 REM Open the ./CMakeLists.txt file and change the line "set(GLM_PATH "C:/glm")" to your glm location "set(GLM_PATH "my-path-to-glm")"
 
 mkdir build
+
 cd build
+
 cmake .. -DCMAKE_PREFIX_PATH="location-of-glfw3;location-of-vulkan"
 
 REM mine is: cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake;C:\VulkanAPI\Lib\cmake"
@@ -40,7 +43,12 @@ This would be it, however you need to compile the shaders. If you have Vulkan do
 
 ```bat
 mkdir spvs
-location-of-glslc/glslc.exe ../application/shaders/shader.vert -o ./spvs/vert.spv
-location-of-glslc/glslc.exe ../application/shaders/shader.frag -o ./spvs/frag.spv
-./Debug/Main.exe
+
+location-of-glslc/glslc.exe ../application/shaders/shader.vert -o spvs/vert.spv
+
+location-of-glslc/glslc.exe ../application/shaders/shader.frag -o spvs/frag.spv
+
+cd Debug
+
+Main.exe
 ```
