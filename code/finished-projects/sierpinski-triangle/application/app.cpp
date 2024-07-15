@@ -119,11 +119,27 @@ uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properti
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
+std::string GetAbsolutePath(const std::string& relativePath) {
+    // __FILE__ gives the full path of the current source file
+    std::string fullPath(__FILE__);
+
+    // Remove the filename (app.cpp) to get the directory path
+    std::string directory = fullPath.substr(0, fullPath.find_last_of("\\/") + 1);
+
+    // Combine the directory path with the relative path you want to reference
+    std::string absolutePath = directory + relativePath;
+
+    return absolutePath;
+}
+
 void App::CreateGraphicsPipeline()
 {
     // Create shaderStages[]
-    ShaderModule vertModule(device.device, "./spvs/vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-    ShaderModule fragModule(device.device, "./spvs/frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+    std::string fragSpvPath = GetAbsolutePath("../build/spvs/frag.spv");
+    std::string vertSpvPath = GetAbsolutePath("../build/spvs/vert.spv");
+
+    ShaderModule vertModule(device.device, vertSpvPath, VK_SHADER_STAGE_VERTEX_BIT);
+    ShaderModule fragModule(device.device, fragSpvPath, VK_SHADER_STAGE_FRAGMENT_BIT);
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertModule.GetCreateInfo(), fragModule.GetCreateInfo()};
 
     // Dynamic states
