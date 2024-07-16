@@ -12,15 +12,18 @@ if(NOT Vulkan_FOUND)
     message(FATAL_ERROR "Vulkan not found!")
 endif()
 
-find_package(GLFW3 REQUIRED)
-if (NOT GLFW3_FOUND)
+find_package(glfw3 REQUIRED)
+if (NOT glfw3_FOUND)
     message(FATAL_ERROR "GLFW3 not found!")
 endif()
 get_target_property(GLFW_INCLUDE_DIRS glfw INTERFACE_INCLUDE_DIRECTORIES)
 set(GLFW_LIBRARIES glfw)
 
-set(GLM_PATH "C:/glm")
-add_subdirectory(${GLM_PATH} ${CMAKE_BINARY_DIR}/glm)
+if (DEFINED GLM_PATH)
+    add_subdirectory(${GLM_PATH} ${CMAKE_BINARY_DIR}/glm)    
+else()
+    message(FATAL_ERROR "GLM_PATH not defined!")
+endif()
 
 add_library(GLFW_VULKAN_GLM INTERFACE)
 target_include_directories(GLFW_VULKAN_GLM
