@@ -15,7 +15,7 @@ App::App(int fractalDepth)
     {
         throw std::runtime_error("fractal depth must be non-negative!");
     }
-    BUG_PopulateSierpinskiTriangles(vertices[0], vertices[1], vertices[2], fractalDepth);
+    PopulateSierpinskiTriangles(vertices[0], vertices[1], vertices[2], fractalDepth);
 
     InitQueues();
     InitCommands();
