@@ -48,7 +48,7 @@ jobs:
     - name: Build app
       run: |
         cd ${{ github.workspace }}
-        cd finished-projects/sierpinski-triangle
+        cd code/finished-projects/sierpinski-triangle
         mkdir build
         cd build
         cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm
