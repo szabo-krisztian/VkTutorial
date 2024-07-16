@@ -1,4 +1,4 @@
-name: Build and Test GLFW
+name: Build the sierpinski-triangle project 
 
 on:
   push:

@@ -26,18 +26,18 @@ git clone https://github.com/szabo-krisztian/VkTutorial.git
 
 cd VkTutorial/code/finished-projects/sierpinski-triangle
 
-REM Open the ./CMakeLists.txt file and change the line "set(GLM_PATH "C:/glm")" to your glm location "set(GLM_PATH "my-path-to-glm")"
-
 mkdir build
 
 cd build
 
-cmake .. -DCMAKE_PREFIX_PATH="location-of-glfw3;location-of-vulkan"
+cmake .. -DCMAKE_PREFIX_PATH="location-of-glfw3;location-of-vulkan" -DGLM_PATH="location-of-glm"
 
-REM mine is: cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake;C:\VulkanAPI\Lib\cmake"
+REM mine is: cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake;C:/VulkanAPI/Lib/cmake" -DGLM_PATH="C:/glm"
 
 cmake --build .
 ```
+
+## Running
 
 This would be it, however you need to compile the shaders. If you have Vulkan downloaded, you should have a ```glslc.exe``` at ```path-to-vulkan/bin/glslc.exe``` (.exe if you are using Windows). Assuming you are still in the ```build``` folder:
 
