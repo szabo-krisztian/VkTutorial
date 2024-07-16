@@ -1,5 +1,5 @@
-# If the find_package functions do not work, try including paths explicit with
-# cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3"
+# My build command:
+# cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3" -DGLM_PATH="C:/glm"
 
 cmake_minimum_required(VERSION 3.10)
 project(MyVulkanProject)
@@ -17,10 +17,9 @@ if (NOT glfw3_FOUND)
     message(FATAL_ERROR "GLFW3 not found!")
 endif()
 get_target_property(GLFW_INCLUDE_DIRS glfw INTERFACE_INCLUDE_DIRECTORIES)
-set(GLFW_LIBRARIES glfw)
 
 if (DEFINED GLM_PATH)
-    add_subdirectory(${GLM_PATH} ${CMAKE_BINARY_DIR}/glm)    
+    add_subdirectory(${GLM_PATH} ${CMAKE_BINARY_DIR}/glm)
 else()
     message(FATAL_ERROR "GLM_PATH not defined!")
 endif()

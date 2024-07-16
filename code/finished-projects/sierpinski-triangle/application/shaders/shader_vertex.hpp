@@ -1,10 +1,13 @@
 #pragma once
 
-#include "vulkan/vulkan.h"
-#include "initializers.hpp"
-#include "glm/glm.hpp"
 #include <array>
 #include <vector>
+
+#include <vulkan/vulkan.h>
+#include <glm/glm.hpp>
+
+#include "initializers.hpp"
+
 
 namespace tlr
 {

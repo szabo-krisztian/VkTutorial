@@ -1,14 +1,14 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include <string>
 #include <vector>
 #include <iostream>
 #include <optional>
 #include <set>
 #include <stdexcept>
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
 #include "queue_family_indices.hpp"
 #include "swapchain_support_details.hpp"

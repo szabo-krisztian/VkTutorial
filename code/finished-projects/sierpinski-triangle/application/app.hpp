@@ -1,9 +1,14 @@
 #pragma once
 
 #include <iostream>
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include "app_base.hpp"
 #include "deletion_queue.hpp"
 #include "shader_vertex.hpp"
+
 #define FRAME_OVERLAP 2
 
 namespace tlr

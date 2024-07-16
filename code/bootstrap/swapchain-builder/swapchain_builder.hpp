@@ -1,12 +1,12 @@
 #pragma once
 
-#include "swapchain.hpp"
-#include "device.hpp"
-#include "physical_device.hpp"
-
 #include <iostream>
 #include <limits>
 #include <algorithm>
+
+#include "swapchain.hpp"
+#include "device.hpp"
+#include "physical_device.hpp"
 
 namespace tlr
 {

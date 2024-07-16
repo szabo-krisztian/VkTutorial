@@ -1,8 +1,9 @@
 #pragma once
 
+#include <string>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <string>
 
 #include "queue_family_indices.hpp"
 #include "swapchain_support_details.hpp"
