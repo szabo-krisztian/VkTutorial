@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "app.hpp"
 #include "toolset.hpp"
 #include "initializers.hpp"

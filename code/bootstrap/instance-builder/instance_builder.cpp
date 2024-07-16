@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "instance_builder.hpp"
 #include "toolset.hpp"
 
