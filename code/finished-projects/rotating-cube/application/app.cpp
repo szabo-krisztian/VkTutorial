@@ -22,24 +22,39 @@ App::App()
     CreateGraphicsPipeline();
     CreateFramebuffers();
 
-    int viewportWidth = 800;
-    int viewportHeight = 600;
-    float fovDegrees = 45.0f;
+    float width = 800.0f;
+    float height = 600.0f;
 
-    glm::vec3 cameraPos = glm::vec3(2.0f, 2.0f, -10.0f);
+    // Field of View (FOV) in degrees
+    float fov = 45.0f;
+
+    // Near and far planes
+    float nearPlane = 0.1f;
+    float farPlane = 100.0f;
+
+    // Camera position, target, and up direction
+    glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, -3.0f);
     glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::mat4 viewMatrix = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+    glm::vec3 cameraUp = glm::vec3(0.0f, -1.0f, 0.0f);
 
-    float aspectRatio = static_cast<float>(viewportWidth) / static_cast<float>(viewportHeight);
-    float fovRadians = glm::radians(fovDegrees);
-    glm::mat4 projectionMatrix = glm::perspective(fovRadians, aspectRatio, 0.1f, 100.0f);
+    // Calculate view matrix
+    glm::mat4 view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
-    glm::mat4 modelViewProjection = projectionMatrix * viewMatrix;
-    std::cout << "Model-View-Projection Matrix:" << std::endl;
-    for (int col = 0; col < 4; ++col) {
-        for (int row = 0; row < 4; ++row) {
-            std::cout << modelViewProjection[col][row] << " ";
+    // Calculate aspect ratio
+    float aspectRatio = width / height;
+
+    // Create perspective projection matrix
+    glm::mat4 projection = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
+
+    // Combine view and projection matrices (note the order: projection * view)
+    glm::mat4 viewProjection = projection * view;
+
+    // Print out the combined view projection matrix (optional)
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            std::cout << viewProjection[i][j] << " ";
         }
         std::cout << std::endl;
     }
@@ -102,9 +117,9 @@ void App::PopulateVertices()
 {
     glm::vec3 verticesPositions[] =
     {
-        { -1.0f, 1.0f, -1.0f},
-        { 1.0f, 1.0f, 4.0f},
-        { 5.0f,  -4.0f, -2.0f}
+        {-1.,-1.,1.},
+        {-1.,1.,1.},
+        {1.,1.,1.}
     };
 
     glm::vec3 colors[] =
@@ -263,6 +278,7 @@ void App::CreateGraphicsPipeline()
 
     // Rasterizer
     VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, 0);
+    //VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
 
     // Multisampling
     VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
