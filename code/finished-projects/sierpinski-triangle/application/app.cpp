@@ -33,7 +33,7 @@ App::App(int fractalDepth)
 App::~App()
 {
     vkDeviceWaitIdle(device);
-    _deleteQueue.flush();
+    _deleteQueue.Flush();
 }
 
 App::FrameData& App::GetCurrentFrameData()
@@ -56,7 +56,7 @@ void App::InitCommands()
     {
         VK_CHECK_RESULT(vkCreateCommandPool(device, &commandPoolCI, nullptr, &_frames[i].commandPool));
         
-        _deleteQueue.push_function([this, i]() {
+        _deleteQueue.PushFunction([this, i]() {
             vkDestroyCommandPool(device, _frames[i].commandPool, nullptr);
         });
 
@@ -76,7 +76,7 @@ void App::InitSyncStructures()
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].swapchainSemaphore));
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].renderSemaphore));
 
-        _deleteQueue.push_function([this, i]() {
+        _deleteQueue.PushFunction([this, i]() {
             vkDestroySemaphore(device, _frames[i].renderSemaphore, nullptr);
             vkDestroySemaphore(device, _frames[i].swapchainSemaphore, nullptr);
             vkDestroyFence(device, _frames[i].renderFence, nullptr);
@@ -91,7 +91,7 @@ void App::CreateVertexBuffer()
     bufferCI.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     bufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     VK_CHECK_RESULT(vkCreateBuffer(device, &bufferCI, nullptr, &_vertexBuffer));
-    _deleteQueue.push_function([&]() {
+    _deleteQueue.PushFunction([&]() {
         vkDestroyBuffer(device, _vertexBuffer, nullptr);
     });
 
@@ -104,7 +104,7 @@ void App::CreateVertexBuffer()
     allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &_vertexBufferMemory));
     vkBindBufferMemory(device, _vertexBuffer, _vertexBufferMemory, 0);
-    _deleteQueue.push_function([&]() {
+    _deleteQueue.PushFunction([&]() {
         vkFreeMemory(device, _vertexBufferMemory, nullptr);
     });
     void* data;
@@ -185,7 +185,7 @@ void App::CreateGraphicsPipeline()
     // Pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutCI = init::PipelineLayoutCreateInfo((uint32_t)0);
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
-    _deleteQueue.push_function([&]() {
+    _deleteQueue.PushFunction([&]() {
         vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
     });
 
@@ -205,7 +205,7 @@ void App::CreateGraphicsPipeline()
     pipelineCI.layout = _pipelineLayout;
     pipelineCI.subpass = 0;
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
-    _deleteQueue.push_function([&]() {
+    _deleteQueue.PushFunction([&]() {
         vkDestroyPipeline(device, _graphicsPipeline, nullptr);
     });
 }
@@ -248,7 +248,7 @@ void App::CreateRenderPass()
     renderPassCI.dependencyCount = 1;
     renderPassCI.pDependencies = &dependency;
     VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassCI, nullptr, &_renderPass));
-    _deleteQueue.push_function([this]() {
+    _deleteQueue.PushFunction([this]() {
         vkDestroyRenderPass(device, _renderPass, nullptr);
     });
 }
@@ -261,7 +261,7 @@ void App::CreateFramebuffers()
         VkImageView attachments[] = {swapchain.imageViews[i]};
         VkFramebufferCreateInfo framebufferCI = init::FramebufferCreateInfo(_renderPass, 1, attachments, swapchain.extent.width, swapchain.extent.height, 1);
         VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferCI, nullptr, &_framebuffers[i]));
-        _deleteQueue.push_function([this, i](){
+        _deleteQueue.PushFunction([this, i](){
             vkDestroyFramebuffer(device, _framebuffers[i], nullptr);
         });
     }

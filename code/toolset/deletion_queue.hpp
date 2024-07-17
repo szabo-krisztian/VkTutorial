@@ -10,12 +10,12 @@ struct DeletionQueue
 {
 	std::deque<std::function<void()>> deletors;
 
-	void push_function(std::function<void()>&& function)
+	void PushFunction(std::function<void()>&& function)
     {
 		deletors.push_back(function);
 	}
 
-	void flush()
+	void Flush()
     {
 		for (auto it = deletors.rbegin(); it != deletors.rend(); it++)
 		{

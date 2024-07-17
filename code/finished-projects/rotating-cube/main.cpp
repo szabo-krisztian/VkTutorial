@@ -6,7 +6,8 @@ int main()
 {
     try
     {
-        tlr::App app;        
+        tlr::App app;
+        app.Run();  
     }
     catch(const std::exception& e)
     {

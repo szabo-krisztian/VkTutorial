@@ -4,6 +4,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include "app_base.hpp"
 #include "deletion_queue.hpp"
