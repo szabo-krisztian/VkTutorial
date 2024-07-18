@@ -21,43 +21,6 @@ App::App()
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
-
-    float width = 800.0f;
-    float height = 600.0f;
-
-    // Field of View (FOV) in degrees
-    float fov = 45.0f;
-
-    // Near and far planes
-    float nearPlane = 0.1f;
-    float farPlane = 100.0f;
-
-    // Camera position, target, and up direction
-    glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, -3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraUp = glm::vec3(0.0f, -1.0f, 0.0f);
-
-    // Calculate view matrix
-    glm::mat4 view = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
-
-    // Calculate aspect ratio
-    float aspectRatio = width / height;
-
-    // Create perspective projection matrix
-    glm::mat4 projection = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
-
-    // Combine view and projection matrices (note the order: projection * view)
-    glm::mat4 viewProjection = projection * view;
-
-    // Print out the combined view projection matrix (optional)
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            std::cout << viewProjection[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
 }
 
 App::~App()
@@ -81,6 +44,13 @@ void App::InitQueues()
 
 void App::InitCommands()
 {
+    VkCommandPoolCreateInfo transferCommandPoolCI = init::CommandPoolCreateInfo(_queues.graphicsQueueFamily, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+    VK_CHECK_RESULT(vkCreateCommandPool(device, &transferCommandPoolCI, nullptr, &_transferPool));
+    _deletionQueue.PushFunction([this] {
+        vkDestroyCommandPool(device, _transferPool, nullptr);
+    });
+
+
     VkCommandPoolCreateInfo commandPoolCI = init::CommandPoolCreateInfo(_queues.graphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     for (int i = 0; i < FRAME_OVERLAP; ++i)
     {
@@ -117,9 +87,9 @@ void App::PopulateVertices()
 {
     glm::vec3 verticesPositions[] =
     {
-        {-1.,-1.,1.},
-        {-1.,1.,1.},
-        {1.,1.,1.}
+        {-2.,2.,3.},
+        {2.,3.,-1.},
+        {-2.,-3.,2.}
     };
 
     glm::vec3 colors[] =
@@ -138,31 +108,67 @@ void App::PopulateVertices()
 
 void App::CreateVertexBuffer()
 {
-    VkBufferCreateInfo bufferCI = init::BufferCreateInfo();
-    bufferCI.size = _vertices.size() * sizeof(_vertices[0]);
-    bufferCI.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    VK_CHECK_RESULT(vkCreateBuffer(device, &bufferCI, nullptr, &_vertexBuffer));
-    _deletionQueue.PushFunction([&]() {
+    VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertices.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, _vertices.data(), (size_t) bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _vertexBuffer, _vertexBufferMemory);
+    _deletionQueue.PushFunction([this]() {
         vkDestroyBuffer(device, _vertexBuffer, nullptr);
-    });
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, _vertexBuffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &_vertexBufferMemory));
-    vkBindBufferMemory(device, _vertexBuffer, _vertexBufferMemory, 0);
-    _deletionQueue.PushFunction([&]() {
         vkFreeMemory(device, _vertexBufferMemory, nullptr);
     });
-    void* data;
-    vkMapMemory(device, _vertexBufferMemory, 0, bufferCI.size, 0, &data);
-    memcpy(data, _vertices.data(), (size_t) bufferCI.size);
-    vkUnmapMemory(device, _vertexBufferMemory);
+    CopyBuffer(stagingBuffer, _vertexBuffer, bufferSize);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    VkCommandBufferAllocateInfo allocInfo = init::CommandBufferAllocateInfo(_transferPool, 1);
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo = init::CommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo = init::SubmitInfo();
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+    vkQueueSubmit(_queues.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(_queues.graphicsQueue);
+
+    vkFreeCommandBuffers(device, _transferPool, 1, &commandBuffer);
+}
+
+void App::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+{
+    VkBufferCreateInfo bufferInfo = init::BufferCreateInfo(usage, size);
+
+    VK_CHECK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+    VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory));
+    vkBindBufferMemory(device, buffer, bufferMemory, 0);
 }
 
 uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

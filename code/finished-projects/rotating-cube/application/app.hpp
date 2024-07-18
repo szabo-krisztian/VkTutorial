@@ -33,6 +33,7 @@ private:
     };
     int        _frameNumber = 0;
     FrameData  _frames[FRAME_OVERLAP];
+    VkCommandPool _transferPool;
 
     struct Queues
     {
@@ -61,6 +62,8 @@ private:
     FrameData& GetCurrentFrameData();
     void       PopulateVertices();
     void       CreateVertexBuffer();
+    void       CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    void       CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     uint32_t   FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     void       CreateRenderPass();
     void       CreateFramebuffers();
