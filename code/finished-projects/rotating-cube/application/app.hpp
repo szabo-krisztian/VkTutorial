@@ -43,10 +43,13 @@ private:
         VkQueue  presentationQueue;
     } _queues;
 
-    std::vector<Vertex> _vertices;
+    std::vector<Vertex>   _vertices;
+    std::vector<uint16_t> _indices;
 
     VkBuffer       _vertexBuffer;
     VkDeviceMemory _vertexBufferMemory;
+    VkBuffer       _indicesBuffer;
+    VkDeviceMemory _indicesBufferMemory;
 
     VkRenderPass               _renderPass;
     std::vector<VkFramebuffer> _framebuffers;
@@ -62,6 +65,7 @@ private:
     FrameData& GetCurrentFrameData();
     void       PopulateVertices();
     void       CreateVertexBuffer();
+    void       CreateIndexBuffer();
     void       CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void       CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     uint32_t   FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

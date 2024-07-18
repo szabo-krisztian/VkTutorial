@@ -1,5 +1,7 @@
 #include "app.hpp"
 
+#include <cstring>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -18,6 +20,7 @@ App::App()
     InitSyncStructures();
     PopulateVertices();
     CreateVertexBuffer();
+    CreateIndexBuffer();
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
@@ -89,14 +92,16 @@ void App::PopulateVertices()
     {
         {-2.,2.,3.},
         {2.,3.,-1.},
-        {-2.,-3.,2.}
+        {-2.,-3.,2.},
+        {2.,-2.,4.}
     };
 
     glm::vec3 colors[] =
     {
         {1.0f, 0.0f, 0.0f}, // Red
         {0.0f, 1.0f, 0.0f}, // Green
-        {0.0f, 0.0f, 1.0f} // Blue
+        {0.0f, 0.0f, 1.0f}, // Blue
+        {0.0f, 0.0f, 1.0f}  // Blue
     };
 
     for (int i = 0; i < 8; ++i)
@@ -104,6 +109,8 @@ void App::PopulateVertices()
         Vertex v = {verticesPositions[i], colors[i]};
         _vertices.push_back(v);
     }
+
+    _indices = { 0,1,2, 2,1,3 };
 }
 
 void App::CreateVertexBuffer()
@@ -125,6 +132,30 @@ void App::CreateVertexBuffer()
         vkFreeMemory(device, _vertexBufferMemory, nullptr);
     });
     CopyBuffer(stagingBuffer, _vertexBuffer, bufferSize);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+void App::CreateIndexBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(_indices[0]) * _indices.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, _indices.data(), (size_t) bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _indicesBuffer, _indicesBufferMemory);
+    _deletionQueue.PushFunction([this]() {
+        vkDestroyBuffer(device, _indicesBuffer, nullptr);
+        vkFreeMemory(device, _indicesBufferMemory, nullptr);
+    });
+    CopyBuffer(stagingBuffer, _indicesBuffer, bufferSize);
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -344,6 +375,9 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
+    // Drawing command
+    vkCmdBindIndexBuffer(cmd, _indicesBuffer, 0, VK_INDEX_TYPE_UINT16);
+
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
 
@@ -354,7 +388,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     // Drawing command
-    vkCmdDraw(cmd, static_cast<uint32_t>(_vertices.size()), 1, 0, 0);
+    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_indices.size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(cmd);
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
