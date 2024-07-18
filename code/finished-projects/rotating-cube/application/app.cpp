@@ -1,6 +1,8 @@
 #include "app.hpp"
 
 #include <cstring>
+#include <chrono>
+#include <cmath>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -18,9 +20,16 @@ App::App()
     InitQueues();
     InitCommands();
     InitSyncStructures();
-    PopulateVertices();
     CreateVertexBuffer();
     CreateIndexBuffer();
+    
+    
+    CreateUniformBuffers();
+    CreateDescriptorSetLayout();
+
+    CreateDescriptorPool();
+    CreateDescriptorSets();
+    
     CreateRenderPass();
     CreateGraphicsPipeline();
     CreateFramebuffers();
@@ -86,33 +95,6 @@ void App::InitSyncStructures()
     }
 }
 
-void App::PopulateVertices()
-{
-    glm::vec3 verticesPositions[] =
-    {
-        {-2.,2.,3.},
-        {2.,3.,-1.},
-        {-2.,-3.,2.},
-        {2.,-2.,4.}
-    };
-
-    glm::vec3 colors[] =
-    {
-        {1.0f, 0.0f, 0.0f}, // Red
-        {0.0f, 1.0f, 0.0f}, // Green
-        {0.0f, 0.0f, 1.0f}, // Blue
-        {0.0f, 0.0f, 1.0f}  // Blue
-    };
-
-    for (int i = 0; i < 8; ++i)
-    {
-        Vertex v = {verticesPositions[i], colors[i]};
-        _vertices.push_back(v);
-    }
-
-    _indices = { 0,1,2, 2,1,3 };
-}
-
 void App::CreateVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertices.size();
@@ -159,6 +141,45 @@ void App::CreateIndexBuffer()
 
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+void App::CreateUniformBuffers()
+{
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+    _uniformBuffers.resize(FRAME_OVERLAP);
+    _uniformBuffersMemory.resize(FRAME_OVERLAP);
+    _uniformBuffersMapped.resize(FRAME_OVERLAP);
+
+    for (size_t i = 0; i < FRAME_OVERLAP; i++)
+    {
+        CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
+        vkMapMemory(device, _uniformBuffersMemory[i], 0, bufferSize, 0, &_uniformBuffersMapped[i]);
+
+        _deletionQueue.PushFunction([this, i]() {
+            vkDestroyBuffer(device, _uniformBuffers[i], nullptr);
+            vkFreeMemory(device, _uniformBuffersMemory[i], nullptr);
+        });
+    }
+}
+
+ void App::UpdateUniformBuffer(uint32_t currentImage)
+ {
+    static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        UniformBufferObject ubo{};
+        ubo.model = glm::translate(glm::mat4(1.0), glm::vec3(std::cos(time * glm::radians(180.0f)), std::sin(time * glm::radians(180.0f)), 0.0f));
+
+        ubo.model *= glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        ubo.view = glm::lookAt(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        ubo.proj = glm::perspective(glm::radians(45.0f), swapchain.extent.width / (float) swapchain.extent.height, 0.1f, 10.0f);
+        
+
+        memcpy(_uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
 void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -215,6 +236,78 @@ uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properti
     }
 
     throw std::runtime_error("failed to find suitable memory type!");
+}
+
+void App::CreateDescriptorPool()
+{
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = static_cast<uint32_t>(FRAME_OVERLAP);
+
+    VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool));
+    _deletionQueue.PushFunction([this]() {
+        vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
+    });
+}
+
+void App::CreateDescriptorSets()
+{
+    std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _descriptorSetLayout);
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = _descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(FRAME_OVERLAP);
+    allocInfo.pSetLayouts = layouts.data();
+
+    _descriptorSets.resize(FRAME_OVERLAP);
+    if (vkAllocateDescriptorSets(device, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate descriptor sets!");
+    }
+
+    for (size_t i = 0; i < FRAME_OVERLAP; i++)
+    {
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = _uniformBuffers[i];
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(UniformBufferObject);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = _descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    }
+}
+
+void App::CreateDescriptorSetLayout()
+{
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = nullptr;  // Add this line
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_descriptorSetLayout));
+    _deletionQueue.PushFunction([this]() {
+        vkDestroyDescriptorSetLayout(device, _descriptorSetLayout, nullptr);
+    });
 }
 
 void App::CreateRenderPass()
@@ -296,7 +389,7 @@ void App::CreateGraphicsPipeline()
     std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     VkPipelineDynamicStateCreateInfo dynamicStateCI = init::PipelineDynamicStateCreateInfo(dynamicStates, 0);
 
-    // Vertex input, we do not use any descriptors yet
+    // Vertex input
     auto bindingDescription = Vertex::GetBindingDescription();
     auto attributeDescriptions = Vertex::GetAttributeDescriptions();
     VkPipelineVertexInputStateCreateInfo vertexInputCI = init::PipelineVertexInputStateCreateInfo();
@@ -314,8 +407,7 @@ void App::CreateGraphicsPipeline()
     VkPipelineViewportStateCreateInfo viewportStateCI = init::PipelineViewportStateCreateInfo(1, &viewport, 1, &scissor, 0);
 
     // Rasterizer
-    VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, 0);
-    //VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
+    VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
 
     // Multisampling
     VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
@@ -325,7 +417,13 @@ void App::CreateGraphicsPipeline()
     VkPipelineColorBlendStateCreateInfo colorBlending = init::PipelineColorBlendStateCreateInfo(1, &colorBlendAttachment);
 
     // Pipeline layout
-    VkPipelineLayoutCreateInfo pipelineLayoutCI = init::PipelineLayoutCreateInfo((uint32_t)0);
+    VkPipelineLayoutCreateInfo pipelineLayoutCI{};
+    pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    
+    pipelineLayoutCI.setLayoutCount = 1;
+    pipelineLayoutCI.pSetLayouts = &_descriptorSetLayout;
+    
+
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
     _deletionQueue.PushFunction([&]() {
         vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
@@ -387,7 +485,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     // Drawing command
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // Drawing command
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_frameNumber % FRAME_OVERLAP], 0, nullptr);
     vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_indices.size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(cmd);
@@ -405,6 +503,7 @@ void App::Run()
 
 void App::DrawFrame()
 {
+    UpdateUniformBuffer(_frameNumber % FRAME_OVERLAP);
     auto frameData = GetCurrentFrameData();
     vkWaitForFences(device, 1, &frameData.renderFence, VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1, &frameData.renderFence);
@@ -414,7 +513,7 @@ void App::DrawFrame()
     
     vkResetCommandBuffer(frameData.commandBuffer, 0);
     RecordCommandBuffer(frameData.commandBuffer, imageIndex);
-
+    
     VkSemaphore waitSemaphores[] = {frameData.swapchainSemaphore};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     VkSemaphore signalSemaphores[] = {frameData.renderSemaphore};
