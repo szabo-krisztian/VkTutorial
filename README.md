@@ -51,3 +51,7 @@ This repository is a work in progress and not intended for production use yet. I
 ## Contributing
 
 Contributions are welcome! If you have suggestions for improvements or find bugs, please open an issue or submit a pull request. Let's learn and improve together.
+
+## Lincense
+
+This project includes code from the following third-party libraries, which are licensed under the MIT License. All the necessary details can be found in the LICENSE.md file, at t he projects root diretory and also in source files.

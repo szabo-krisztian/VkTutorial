@@ -13,7 +13,6 @@
 #include "toolset.hpp"
 #include "shader_module.hpp"
 
-
 namespace tlr
 {
 

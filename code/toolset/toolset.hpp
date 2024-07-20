@@ -1,3 +1,13 @@
+/*
+ * This file includes code that is licensed under the MIT License.
+ *
+ * - Sascha Willems' Vulkan Buffer Class
+ *   Copyright (c) 2016 Sascha Willems
+ *   Licensed under the MIT License
+ *
+ * For the full text of the MIT License, see the LICENSE.md file in the root of the project.
+ */
+
 #pragma once
 
 #include <assert.h>
