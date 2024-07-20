@@ -8,7 +8,7 @@
  * For the full text of the MIT License, see the LICENSE.md file in the root of the project.
  */
 
-#pragma
+#pragma once
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>

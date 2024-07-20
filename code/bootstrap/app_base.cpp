@@ -8,6 +8,8 @@
  * For the full text of the MIT License, see the LICENSE.md file in the root of the project.
  */
 
+#pragma once
+
 #include "app_base.hpp"
 
 #include "toolset.hpp"

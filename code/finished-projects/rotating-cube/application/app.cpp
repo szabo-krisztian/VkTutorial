@@ -82,7 +82,7 @@ App::App()
     InitQueues();
     InitCommands();
     InitSyncStructures();
-    
+
     CreateVertexBuffer();
     CreateIndexBuffer();
     CreateUniformBuffers();
