@@ -125,6 +125,11 @@ namespace tlr
 	*/
 	void Buffer::Destroy()
 	{
+		if (mapped)
+		{
+			vkUnmapMemory(device, memory);
+			mapped = nullptr;
+		}
 		if (buffer)
 		{
 			vkDestroyBuffer(device, buffer, nullptr);

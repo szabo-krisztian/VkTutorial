@@ -79,8 +79,7 @@ private:
     };
 
     Buffer _vertexBuffer;
-    VkBuffer       _indicesBuffer;
-    VkDeviceMemory _indicesBufferMemory;
+    Buffer _indexBuffer;
 
     std::vector<Buffer> _uniformBuffers;
 

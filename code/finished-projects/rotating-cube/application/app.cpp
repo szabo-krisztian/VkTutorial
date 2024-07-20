@@ -173,25 +173,20 @@ void App::CreateVertexBuffer()
 void App::CreateIndexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_indices[0]) * _indices.size();
+    
+    Buffer stagingBuffer;
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
+    VK_CHECK_RESULT(stagingBuffer.Map());
+    stagingBuffer.CopyTo(_indices.data(), bufferSize);
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_indexBuffer, bufferSize));
 
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, _indices.data(), (size_t) bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _indicesBuffer, _indicesBufferMemory);
     _deletionQueue.PushFunction([this]() {
-        vkDestroyBuffer(device, _indicesBuffer, nullptr);
-        vkFreeMemory(device, _indicesBufferMemory, nullptr);
+        _indexBuffer.Destroy();
     });
-    CopyBuffer(stagingBuffer, _indicesBuffer, bufferSize);
+    CopyBuffer(stagingBuffer.buffer, _indexBuffer.buffer, bufferSize);
 
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    stagingBuffer.Destroy();
 }
 
 void App::CreateUniformBuffers()
@@ -526,7 +521,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
     // Drawing command
-    vkCmdBindIndexBuffer(cmd, _indicesBuffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
 
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
