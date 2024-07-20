@@ -78,14 +78,17 @@ private:
         4, 5, 1, 4, 1, 0
     };
 
-    VkBuffer       _vertexBuffer;
-    VkDeviceMemory _vertexBufferMemory;
+    Buffer _vertexBuffer;
     VkBuffer       _indicesBuffer;
     VkDeviceMemory _indicesBufferMemory;
 
+    std::vector<Buffer> _uniformBuffers;
+
+    /*
     std::vector<VkBuffer> _uniformBuffers;
     std::vector<VkDeviceMemory> _uniformBuffersMemory;
     std::vector<void*> _uniformBuffersMapped;
+    */
 
     VkRenderPass               _renderPass;
     std::vector<VkFramebuffer> _framebuffers;
@@ -106,16 +109,13 @@ private:
 
     DeletionQueue _deletionQueue;
 
-    void       InitQueues();
     void       InitCommands();
     void       InitSyncStructures();
     FrameData& GetCurrentFrameData();
     void       CreateVertexBuffer();
     void       CreateIndexBuffer();
     void       CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void       CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-    uint32_t   FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-    
+    void       CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);    
     
     void       CreateDescriptorSetLayout();
     void       CreateUniformBuffers();

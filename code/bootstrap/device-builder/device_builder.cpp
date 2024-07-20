@@ -20,6 +20,7 @@ DeviceBuilder::DeviceBuilder(PhysicalDevice physicalDevice) : _physicalDevice{ s
 Device DeviceBuilder::Build()
 {
     Device device{};
+    device.physicalDevice = _physicalDevice;
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = { _physicalDevice.familyIndices.graphicsFamily.value(), _physicalDevice.familyIndices.presentFamily.value() };
@@ -58,8 +59,13 @@ Device DeviceBuilder::Build()
     createInfo.enabledExtensionCount = static_cast<uint32_t>(_physicalDevice.extensions.size());
     createInfo.ppEnabledExtensionNames = _physicalDevice.extensions.data();
     createInfo.pEnabledFeatures = nullptr;
-
     VK_CHECK_RESULT(vkCreateDevice(_physicalDevice, &createInfo, nullptr, &device.device));
+
+    device.queues.graphicsFamily = _physicalDevice.familyIndices.graphicsFamily.value();
+    vkGetDeviceQueue(device, _physicalDevice.familyIndices.graphicsFamily.value(), 0, &device.queues.graphics);
+    device.queues.presentFamily = _physicalDevice.familyIndices.presentFamily.value();
+    vkGetDeviceQueue(device, _physicalDevice.familyIndices.presentFamily.value(), 0, &device.queues.present);
+
     return device;
 }
 

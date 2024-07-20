@@ -79,7 +79,6 @@ App::App()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
-    InitQueues();
     InitCommands();
     InitSyncStructures();
 
@@ -93,6 +92,7 @@ App::App()
     CreateDescriptorSets();
     
     CreateRenderPass();
+
     CreateGraphicsPipeline();
     CreateFramebuffers();
 }
@@ -108,24 +108,16 @@ App::FrameData& App::GetCurrentFrameData()
     return _frames[_frameNumber];
 }
 
-void App::InitQueues()
-{
-    _queues.graphicsQueueFamily = physicalDevice.familyIndices.graphicsFamily.value();
-    vkGetDeviceQueue(device, _queues.graphicsQueueFamily, 0, &_queues.graphicsQueue);
-    _queues.presentationQueueFamily = physicalDevice.familyIndices.presentFamily.value();
-    vkGetDeviceQueue(device, _queues.presentationQueueFamily, 0, &_queues.presentationQueue);
-}
-
 void App::InitCommands()
 {
-    VkCommandPoolCreateInfo transferCommandPoolCI = init::CommandPoolCreateInfo(_queues.graphicsQueueFamily, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+    VkCommandPoolCreateInfo transferCommandPoolCI = init::CommandPoolCreateInfo(device.queues.graphicsFamily, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
     VK_CHECK_RESULT(vkCreateCommandPool(device, &transferCommandPoolCI, nullptr, &_transferPool));
     _deletionQueue.PushFunction([this] {
         vkDestroyCommandPool(device, _transferPool, nullptr);
     });
 
 
-    VkCommandPoolCreateInfo commandPoolCI = init::CommandPoolCreateInfo(_queues.graphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    VkCommandPoolCreateInfo commandPoolCI = init::CommandPoolCreateInfo(device.queues.graphicsFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     for (int i = 0; i < FRAME_OVERLAP; ++i)
     {
         VK_CHECK_RESULT(vkCreateCommandPool(device, &commandPoolCI, nullptr, &_frames[i].commandPool));
@@ -160,25 +152,22 @@ void App::InitSyncStructures()
 void App::CreateVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertices.size();
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
     
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, _vertices.data(), (size_t) bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
+    Buffer stagingBuffer;
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
+    VK_CHECK_RESULT(stagingBuffer.Map());
+    stagingBuffer.CopyTo(_vertices.data(), bufferSize);
 
-    CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _vertexBuffer, _vertexBufferMemory);
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_vertexBuffer, bufferSize));
+
     _deletionQueue.PushFunction([this]() {
-        vkDestroyBuffer(device, _vertexBuffer, nullptr);
-        vkFreeMemory(device, _vertexBufferMemory, nullptr);
+        _vertexBuffer.Destroy();
     });
-    CopyBuffer(stagingBuffer, _vertexBuffer, bufferSize);
 
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
+    CopyBuffer(stagingBuffer.buffer, _vertexBuffer.buffer, bufferSize);
+
+    stagingBuffer.Unmap();
+    stagingBuffer.Destroy();
 }
 
 void App::CreateIndexBuffer()
@@ -207,20 +196,15 @@ void App::CreateIndexBuffer()
 
 void App::CreateUniformBuffers()
 {
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
     _uniformBuffers.resize(FRAME_OVERLAP);
-    _uniformBuffersMemory.resize(FRAME_OVERLAP);
-    _uniformBuffersMapped.resize(FRAME_OVERLAP);
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, _uniformBuffers[i], _uniformBuffersMemory[i]);
-        vkMapMemory(device, _uniformBuffersMemory[i], 0, bufferSize, 0, &_uniformBuffersMapped[i]);
-
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_uniformBuffers[i], sizeof(UniformBufferObject)));
+        _uniformBuffers[i].Map();
         _deletionQueue.PushFunction([this, i]() {
-            vkDestroyBuffer(device, _uniformBuffers[i], nullptr);
-            vkFreeMemory(device, _uniformBuffersMemory[i], nullptr);
+            _uniformBuffers[i].Unmap();
+            _uniformBuffers[i].Destroy();
         });
     }
 }
@@ -243,8 +227,8 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     VkSubmitInfo submitInfo = init::SubmitInfo();
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
-    vkQueueSubmit(_queues.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(_queues.graphicsQueue);
+    vkQueueSubmit(device.queues.graphics, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(device.queues.graphics);
 
     vkFreeCommandBuffers(device, _transferPool, 1, &commandBuffer);
 }
@@ -260,24 +244,9 @@ void App::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProp
     VkMemoryAllocateInfo allocInfo {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = device.GetMemoryType(memRequirements.memoryTypeBits, properties);
     VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory));
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
-}
-
-uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);   
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-    {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-        {
-            return i;
-        }
-    }
-
-    throw std::runtime_error("failed to find suitable memory type!");
 }
 
 void App::CreateDescriptorPool()
@@ -314,11 +283,6 @@ void App::CreateDescriptorSets()
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = _uniformBuffers[i];
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(UniformBufferObject);
-
         VkWriteDescriptorSet descriptorWrite{};
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = _descriptorSets[i];
@@ -326,7 +290,7 @@ void App::CreateDescriptorSets()
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.pBufferInfo = &_uniformBuffers[i].descriptor;
 
         vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
     }
@@ -557,7 +521,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
     // Drawing command
-    VkBuffer vertexBuffers[] = {_vertexBuffer};
+    VkBuffer vertexBuffers[] = {_vertexBuffer.buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
@@ -656,7 +620,8 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
     ubo.model = glm::translate(rotation2, glm::vec3(0,0,-0.5));
     
     ubo.proj = glm::perspective(glm::radians(45.0f), swapchain.extent.width / (float) swapchain.extent.height, 0.1f, 10.0f);
-    memcpy(_uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+    
+    memcpy(_uniformBuffers[currentImage].mapped, &ubo, sizeof(ubo));
     
     prevTime = currentTime;
 }
@@ -679,10 +644,10 @@ void App::DrawFrame()
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     VkSemaphore signalSemaphores[] = {frameData.renderSemaphore};
     VkSubmitInfo submitInfo = init::SubmitInfo(1, waitSemaphores, waitStages, 1, &frameData.commandBuffer, 1, signalSemaphores);
-    VK_CHECK_RESULT(vkQueueSubmit(_queues.graphicsQueue, 1, &submitInfo, frameData.renderFence));
+    VK_CHECK_RESULT(vkQueueSubmit(device.queues.graphics, 1, &submitInfo, frameData.renderFence));
 
     VkPresentInfoKHR presentInfo = init::PresentInfoKHR(1, signalSemaphores, &swapchain.swapchain, &imageIndex);
-    vkQueuePresentKHR(_queues.presentationQueue, &presentInfo);
+    vkQueuePresentKHR(device.queues.present, &presentInfo);
     _frameNumber = (_frameNumber + 1)% FRAME_OVERLAP;
 }
 
@@ -755,7 +720,7 @@ void App::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageT
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = device.GetMemoryType(memRequirements.memoryTypeBits, properties);
 
     VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory));
 

@@ -74,7 +74,7 @@ namespace tlr
 	* @param size Size of the data to copy in machine units
 	*
 	*/
-	void Buffer::CopyTo(void* data, VkDeviceSize size)
+	void Buffer::CopyTo(const void* data, VkDeviceSize size)
 	{
 		assert(mapped);
 		memcpy(mapped, data, size);

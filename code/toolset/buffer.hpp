@@ -35,7 +35,7 @@ namespace tlr
 		void Unmap();
 		VkResult Bind(VkDeviceSize offset = 0);
 		void SetupDescriptor(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-		void CopyTo(void* data, VkDeviceSize size);
+		void CopyTo(const void* data, VkDeviceSize size);
 		VkResult Flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 		VkResult Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 		void Destroy();

@@ -433,6 +433,13 @@ namespace tlr
         return bufCreateInfo;
     }
 
+    inline VkMemoryAllocateInfo MemoryAllocateInfo()
+    {
+        VkMemoryAllocateInfo memAllocInfo {};
+        memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        return memAllocInfo;
+    }
+
     inline VkBufferCreateInfo BufferCreateInfo(
         VkBufferUsageFlags usage,
         VkDeviceSize size)
