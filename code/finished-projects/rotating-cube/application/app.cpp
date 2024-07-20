@@ -427,7 +427,7 @@ void App::CreateFramebuffers()
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = swapchain.extent.width;
-        framebufferInfo.height = swapchain.extent.width;
+        framebufferInfo.height = swapchain.extent.height;
         framebufferInfo.layers = 1;
         
         VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &_framebuffers[i]));
@@ -545,7 +545,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     renderPassInfo.renderArea.extent = swapchain.extent;
     
     std::array<VkClearValue, 2> clearValues{};
-    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    clearValues[0].color = {{1.0f, 1.0f, 1.0f, 1.0f}};
     clearValues[1].depthStencil = {1.0f, 0};
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
@@ -648,7 +648,7 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
     ubo.view = glm::lookAt(_camera.position, _camera.GetLookAt(), _camera.up);
     
     std::cout << theta << " " << phi << std::endl;
-    
+
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     
     auto rotation = glm::rotate(modelMatrix, glm::radians(90.0f) * elapsedTime, glm::vec3(1.0f, 0.0f, 0.0f));;
