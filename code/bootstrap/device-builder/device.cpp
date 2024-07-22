@@ -14,6 +14,8 @@
 
 #include "device.hpp"
 
+#include <cstring>
+
 #include "toolset.hpp"
 #include "initializers.hpp"
 
