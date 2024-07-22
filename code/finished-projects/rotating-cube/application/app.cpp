@@ -191,22 +191,6 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     vkFreeCommandBuffers(device, _transferPool, 1, &commandBuffer);
 }
 
-void App::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-{
-    VkBufferCreateInfo bufferInfo = init::BufferCreateInfo(usage, size);
-    VK_CHECK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = device.GetMemoryType(memRequirements.memoryTypeBits, properties);
-    VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory));
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
-}
-
 void App::CreateDescriptorPool()
 {
     VkDescriptorPoolSize poolSize{};
@@ -509,22 +493,6 @@ void App::Run()
         glfwPollEvents();
         DrawFrame();
     }
-}
-
-glm::vec2 LemniscateFunction(float t)
-{
-    // f(t) = (sin(t), sin(t)cos(t))
-    float sin_t = std::sin(t);
-    float cos_t = std::cos(t);
-    return glm::vec2(sin_t, sin_t * cos_t);
-}
-
-glm::vec2 LemniscateDifferentialFunction(float t)
-{
-    // f'(t) = (cos(t), 2cos^2(t) - 1)
-    float sin_t = std::sin(t);
-    float cos_t = std::cos(t);
-    return glm::vec2(cos_t, 2 * cos_t * cos_t - 1);
 }
 
 void App::UpdateUniformBuffer(uint32_t currentImage)
