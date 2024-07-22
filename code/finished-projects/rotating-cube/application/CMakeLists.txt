@@ -8,7 +8,8 @@ target_include_directories(App
 target_link_libraries(App
     PUBLIC GLFW_VULKAN_GLM
            AppBase
-    PUBLIC  Toolset
+    PRIVATE Toolset
             ShaderModule
             Buffer
+            InputManager
 )

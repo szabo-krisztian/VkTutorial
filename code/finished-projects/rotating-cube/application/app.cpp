@@ -16,52 +16,13 @@
 namespace tlr
 {
 
-bool isDPressed = false;
-bool isAPressed = false;
-bool isWPressed = false;
-bool isSPressed = false;
-void KeyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (action == GLFW_PRESS && key == GLFW_KEY_D)
-    {
-        isDPressed = true;
-    }
-    else if (action == GLFW_RELEASE && key == GLFW_KEY_D)
-    {
-        isDPressed = false;
-    }
-    if (action == GLFW_PRESS && key == GLFW_KEY_A)
-    {
-        isAPressed = true;
-    }
-    else if (action == GLFW_RELEASE && key == GLFW_KEY_A)
-    {
-        isAPressed = false;
-    }
-    if (action == GLFW_PRESS && key == GLFW_KEY_W)
-    {
-        isWPressed = true;
-    }
-    else if (action == GLFW_RELEASE && key == GLFW_KEY_W)
-    {
-        isWPressed = false;
-    }
-    if (action == GLFW_PRESS && key == GLFW_KEY_S)
-    {
-        isSPressed = true;
-    }
-    else if (action == GLFW_RELEASE && key == GLFW_KEY_S)
-    {
-        isSPressed = false;
-    }
-}
-
 double xcenter = 400;
 double ycenter = 300;
 double xoffset = 0;
 double yoffset = 0;
 bool first = true;
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {    
+void MousePositionCallback(double xpos, double ypos)
+{
     if (first)
     {
         xcenter = xpos;
@@ -75,9 +36,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 App::App()
 {
-    glfwSetKeyCallback(window, KeyCallBack);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
+
+    InputManager::Init(window);
+    _inputManager = InputManager::GetInstance();
+    _inputManager->AddCursorPositionListener(MousePositionCallback);
 
     InitCommands();
     InitSyncStructures();
@@ -386,7 +349,7 @@ void App::CreateFramebuffers()
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = swapchain.extent.width;
-        framebufferInfo.height = swapchain.extent.width;
+        framebufferInfo.height = swapchain.extent.height;
         framebufferInfo.layers = 1;
         
         VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &_framebuffers[i]));
@@ -587,26 +550,27 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
     _camera.right = glm::normalize(glm::cross(_camera.forward, _camera.up));
     
     ubo.model = glm::mat4(1.0f);
-    if (isAPressed)
+
+    if (_inputManager->IsKeyPressed(GLFW_KEY_A))
     {
         _camera.Move(-_camera.right, deltaTime);
     }
-    if (isDPressed)
+    if (_inputManager->IsKeyPressed(GLFW_KEY_D))
     {
         _camera.Move(_camera.right, deltaTime);
     }
-    if (isWPressed)
+    if (_inputManager->IsKeyPressed(GLFW_KEY_W))
     {
         _camera.Move(_camera.forward, deltaTime);
     }
-    if (isSPressed)
+    if (_inputManager->IsKeyPressed(GLFW_KEY_S))
     {
         _camera.Move(-_camera.forward, deltaTime);
     }
 
     ubo.view = glm::lookAt(_camera.position, _camera.GetLookAt(), _camera.up);
     
-    std::cout << theta << " " << phi << std::endl;
+    //std::cout << theta << " " << phi << std::endl;
     
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     

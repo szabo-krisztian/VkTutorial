@@ -9,6 +9,7 @@
 #include "app_base.hpp"
 #include "deletion_queue.hpp"
 #include "shader_vertex.hpp"
+#include "input_manager.hpp"
 
 #define FRAME_OVERLAP 2
 
@@ -136,6 +137,8 @@ private:
     void       CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
+
+    InputManager* _inputManager;
 
     struct Camera
     {
