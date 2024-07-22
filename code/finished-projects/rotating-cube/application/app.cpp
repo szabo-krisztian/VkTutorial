@@ -16,22 +16,9 @@
 namespace tlr
 {
 
-double xcenter = 400;
-double ycenter = 300;
-double xoffset = 0;
-double yoffset = 0;
-bool first = true;
-void MousePositionCallback(double xpos, double ypos)
+void App::ExitApplication()
 {
-    if (first)
-    {
-        xcenter = xpos;
-        ycenter = ypos;
-        first = false;
-    }
-
-    xoffset = (xpos - xcenter);
-    yoffset = (ycenter - ypos);
+    _isAppRunning = false;
 }
 
 App::App()
@@ -40,7 +27,7 @@ App::App()
 
     InputManager::Init(window);
     _inputManager = InputManager::GetInstance();
-    _inputManager->AddCursorPositionListener(MousePositionCallback);
+    _inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, FunctionWrapper<void()>(std::bind(&App::ExitApplication, this)));
 
     InitCommands();
     InitSyncStructures();
@@ -488,7 +475,9 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 
 void App::Run()
 {
-    while (!glfwWindowShouldClose(window))
+    _isAppRunning = true;
+
+    while (!glfwWindowShouldClose(window) && _isAppRunning)
     {
         glfwPollEvents();
         DrawFrame();
