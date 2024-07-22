@@ -13,6 +13,8 @@
 #include "toolset.hpp"
 #include "shader_module.hpp"
 
+#define ENQUEUE_OBJ_DEL(lambda) (_deletionQueue).PushFunction(lambda) 
+
 namespace tlr
 {
 
@@ -62,19 +64,14 @@ void App::InitCommands()
 {
     VkCommandPoolCreateInfo transferCommandPoolCI = init::CommandPoolCreateInfo(device.queues.graphicsFamily, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
     VK_CHECK_RESULT(vkCreateCommandPool(device, &transferCommandPoolCI, nullptr, &_transferPool));
-    _deletionQueue.PushFunction([this] {
-        vkDestroyCommandPool(device, _transferPool, nullptr);
-    });
-
+    ENQUEUE_OBJ_DEL(( [this] { vkDestroyCommandPool(device, _transferPool, nullptr); } ));
 
     VkCommandPoolCreateInfo commandPoolCI = init::CommandPoolCreateInfo(device.queues.graphicsFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
     for (int i = 0; i < FRAME_OVERLAP; ++i)
     {
         VK_CHECK_RESULT(vkCreateCommandPool(device, &commandPoolCI, nullptr, &_frames[i].commandPool));
-        _deletionQueue.PushFunction([this, i] {
-            vkDestroyCommandPool(device, _frames[i].commandPool, nullptr);
-        });
-
+        ENQUEUE_OBJ_DEL(( [this, i] { vkDestroyCommandPool(device, _frames[i].commandPool, nullptr); } ));
+        
         VkCommandBufferAllocateInfo commandBufferAI = init::CommandBufferAllocateInfo(_frames[i].commandPool, 1);
         VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &commandBufferAI, &_frames[i].commandBuffer));
     }
@@ -91,11 +88,11 @@ void App::InitSyncStructures()
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].swapchainSemaphore));
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].renderSemaphore));
 
-        _deletionQueue.PushFunction([this, i]() {
+        ENQUEUE_OBJ_DEL(( [this, i]() {
             vkDestroySemaphore(device, _frames[i].renderSemaphore, nullptr);
             vkDestroySemaphore(device, _frames[i].swapchainSemaphore, nullptr);
             vkDestroyFence(device, _frames[i].renderFence, nullptr);
-        });
+        } ));
     }
 }
 
@@ -109,14 +106,10 @@ void App::CreateVertexBuffer()
     stagingBuffer.CopyTo(_vertices.data(), bufferSize);
 
     VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_vertexBuffer, bufferSize));
-
-    _deletionQueue.PushFunction([this]() {
-        _vertexBuffer.Destroy();
-    });
+    ENQUEUE_OBJ_DEL(( [this]() { _vertexBuffer.Destroy(); } ));
 
     CopyBuffer(stagingBuffer.buffer, _vertexBuffer.buffer, bufferSize);
 
-    stagingBuffer.Unmap();
     stagingBuffer.Destroy();
 }
 
@@ -130,10 +123,8 @@ void App::CreateIndexBuffer()
     stagingBuffer.CopyTo(_indices.data(), bufferSize);
 
     VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_indexBuffer, bufferSize));
+    ENQUEUE_OBJ_DEL(( [this]() { _indexBuffer.Destroy(); } ));
 
-    _deletionQueue.PushFunction([this]() {
-        _indexBuffer.Destroy();
-    });
     CopyBuffer(stagingBuffer.buffer, _indexBuffer.buffer, bufferSize);
 
     stagingBuffer.Destroy();
@@ -146,11 +137,8 @@ void App::CreateUniformBuffers()
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
         VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_uniformBuffers[i], sizeof(UniformBufferObject)));
-        _uniformBuffers[i].Map();
-        _deletionQueue.PushFunction([this, i]() {
-            _uniformBuffers[i].Unmap();
-            _uniformBuffers[i].Destroy();
-        });
+        ENQUEUE_OBJ_DEL(( [this, i]() { _uniformBuffers[i].Destroy(); } ));
+        _uniformBuffers[i].Map();   
     }
 }
 
@@ -191,9 +179,7 @@ void App::CreateDescriptorPool()
     poolInfo.maxSets = static_cast<uint32_t>(FRAME_OVERLAP);
 
     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool));
-    _deletionQueue.PushFunction([this]() {
-        vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
-    });
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorPool(device, _descriptorPool, nullptr); } ));
 }
 
 void App::CreateDescriptorSets()
@@ -240,9 +226,7 @@ void App::CreateDescriptorSetLayout()
     layoutInfo.pBindings = &uboLayoutBinding;
 
     VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_descriptorSetLayout));
-    _deletionQueue.PushFunction([this]() {
-        vkDestroyDescriptorSetLayout(device, _descriptorSetLayout, nullptr);
-    });
+    ENQUEUE_OBJ_DEL(([this]() { vkDestroyDescriptorSetLayout(device, _descriptorSetLayout, nullptr); } ));
 }
 
 void App::CreateRenderPass()
@@ -299,9 +283,7 @@ void App::CreateRenderPass()
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
     VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &_renderPass));
-    _deletionQueue.PushFunction([this]() {
-        vkDestroyRenderPass(device, _renderPass, nullptr);
-    });
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyRenderPass(device, _renderPass, nullptr); } ));
 }
 
 void App::CreateFramebuffers()
@@ -324,9 +306,7 @@ void App::CreateFramebuffers()
         framebufferInfo.layers = 1;
         
         VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &_framebuffers[i]));
-        _deletionQueue.PushFunction([this, i](){
-            vkDestroyFramebuffer(device, _framebuffers[i], nullptr);
-        });
+        ENQUEUE_OBJ_DEL(( [this, i]() { vkDestroyFramebuffer(device, _framebuffers[i], nullptr); } ));
     }
 }
 
@@ -402,9 +382,7 @@ void App::CreateGraphicsPipeline()
     
 
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
-    _deletionQueue.PushFunction([&]() {
-        vkDestroyPipelineLayout(device, _pipelineLayout, nullptr);
-    });
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipelineLayout(device, _pipelineLayout, nullptr); } ));
 
     // Pipeline
     VkGraphicsPipelineCreateInfo pipelineCI = init::PipelineCreateInfo();
@@ -423,9 +401,7 @@ void App::CreateGraphicsPipeline()
     pipelineCI.layout = _pipelineLayout;
     pipelineCI.subpass = 0;
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
-    _deletionQueue.PushFunction([&]() {
-        vkDestroyPipeline(device, _graphicsPipeline, nullptr);
-    });
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipeline(device, _graphicsPipeline, nullptr); } ));
 }
 
 void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
@@ -538,11 +514,11 @@ void App::CreateDepthResources()
     VkFormat depthFormat = FindDepthFormat();
     CreateImage(swapchain.extent.width, swapchain.extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthBuffer.depthImage, _depthBuffer.depthImageMemory);
     _depthBuffer.depthImageView = CreateImageView(_depthBuffer.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
-    _deletionQueue.PushFunction([this]() {
+    ENQUEUE_OBJ_DEL(( [this]() {
         vkDestroyImage(device, _depthBuffer.depthImage, nullptr);
         vkFreeMemory(device, _depthBuffer.depthImageMemory, nullptr);
         vkDestroyImageView(device, _depthBuffer.depthImageView, nullptr);
-    });
+    } ));
 }
 
 VkFormat App::FindDepthFormat()
