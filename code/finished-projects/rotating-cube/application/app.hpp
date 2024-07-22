@@ -41,17 +41,9 @@ private:
         VkSemaphore     swapchainSemaphore, renderSemaphore;
         VkFence         renderFence;
     };
-    int        _frameNumber = 0;
-    FrameData  _frames[FRAME_OVERLAP];
+    int           _frameNumber = 0;
+    FrameData     _frames[FRAME_OVERLAP];
     VkCommandPool _transferPool;
-
-    struct Queues
-    {
-        uint32_t graphicsQueueFamily;
-        VkQueue  graphicsQueue;
-        uint32_t presentationQueueFamily;
-        VkQueue  presentationQueue;
-    } _queues;
 
     const std::vector<Vertex> _vertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
@@ -82,16 +74,15 @@ private:
     Buffer _vertexBuffer;
     Buffer _indexBuffer;
 
-    std::vector<Buffer> _uniformBuffers;
+    Buffer                _uniformBuffers[FRAME_OVERLAP];
+    VkDescriptorSetLayout _descriptorSetLayout;
+    VkDescriptorPool      _descriptorPool;
+    VkDescriptorSet       _descriptorSets[FRAME_OVERLAP];
 
     VkRenderPass               _renderPass;
     std::vector<VkFramebuffer> _framebuffers;
-    VkDescriptorSetLayout      _descriptorSetLayout;
     VkPipelineLayout           _pipelineLayout;
     VkPipeline                 _graphicsPipeline;
-
-    VkDescriptorPool _descriptorPool;
-    std::vector<VkDescriptorSet>  _descriptorSets;
 
     struct DepthBuffer
     {
@@ -103,31 +94,29 @@ private:
     InputManager* _inputManager;
     DeletionQueue _deletionQueue;
 
-    void       InitCommands();
-    void       InitSyncStructures();
-    FrameData& GetCurrentFrameData();
-    void       CreateVertexBuffer();
-    void       CreateIndexBuffer();
-    void       CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    void        InitCommands();
+    void        InitSyncStructures();
+    FrameData&  GetCurrentFrameData();
+    void        CreateVertexBuffer();
+    void        CreateIndexBuffer();
+    void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     
-    void       CreateDescriptorSetLayout();
-    void       CreateUniformBuffers();
-    void       UpdateUniformBuffer(uint32_t currentImage);
-    void       CreateDescriptorPool();
-    void       CreateDescriptorSets();
+    void        CreateDescriptorSetLayout();
+    void        CreateUniformBuffers();
+    void        UpdateUniformBuffer(uint32_t currentImage);
+    void        CreateDescriptorPool();
+    void        CreateDescriptorSets();
 
-
-    void       CreateRenderPass();
-    void       CreateFramebuffers();
-    void       CreateGraphicsPipeline();
-    void       RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
-    void       DrawFrame();
-
+    void        CreateRenderPass();
+    void        CreateFramebuffers();
+    void        CreateGraphicsPipeline();
+    void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
+    void        DrawFrame();
     
-    void       CreateDepthResources();
-    VkFormat   FindDepthFormat();
-    VkFormat   FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-    void       CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+    void        CreateDepthResources();
+    VkFormat    FindDepthFormat();
+    VkFormat    FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    void        CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
     void ExitApplication();

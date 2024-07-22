@@ -132,13 +132,11 @@ void App::CreateIndexBuffer()
 
 void App::CreateUniformBuffers()
 {
-    _uniformBuffers.resize(FRAME_OVERLAP);
-
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
         VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_uniformBuffers[i], sizeof(UniformBufferObject)));
         ENQUEUE_OBJ_DEL(( [this, i]() { _uniformBuffers[i].Destroy(); } ));
-        _uniformBuffers[i].Map();   
+        VK_CHECK_RESULT(_uniformBuffers[i].Map());   
     }
 }
 
@@ -168,16 +166,8 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 
 void App::CreateDescriptorPool()
 {
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
-
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = static_cast<uint32_t>(FRAME_OVERLAP);
-
+    VkDescriptorPoolSize poolSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(FRAME_OVERLAP));
+    VkDescriptorPoolCreateInfo poolInfo = init::DescriptorPoolCreateInfo(1, &poolSize, static_cast<uint32_t>(FRAME_OVERLAP));
     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool));
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorPool(device, _descriptorPool, nullptr); } ));
 }
@@ -185,48 +175,23 @@ void App::CreateDescriptorPool()
 void App::CreateDescriptorSets()
 {
     std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _descriptorSetLayout);
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = _descriptorPool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(FRAME_OVERLAP);
-    allocInfo.pSetLayouts = layouts.data();
+    VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP));
 
-    _descriptorSets.resize(FRAME_OVERLAP);
-    if (vkAllocateDescriptorSets(device, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
-    }
+    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _descriptorSets));
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = _descriptorSets[i];
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &_uniformBuffers[i].descriptor;
-
+        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_descriptorSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_uniformBuffers[i].descriptor);
         vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
     }
 }
 
 void App::CreateDescriptorSetLayout()
 {
-    VkDescriptorSetLayoutBinding uboLayoutBinding{};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers = nullptr;  // Add this line
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
-
+    VkDescriptorSetLayoutBinding uboLayoutBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0, 1);
+    VkDescriptorSetLayoutCreateInfo layoutInfo = init::DescriptorSetLayoutCreateInfo(1, &uboLayoutBinding);
     VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_descriptorSetLayout));
-    ENQUEUE_OBJ_DEL(([this]() { vkDestroyDescriptorSetLayout(device, _descriptorSetLayout, nullptr); } ));
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _descriptorSetLayout, nullptr); } ));
 }
 
 void App::CreateRenderPass()
@@ -296,8 +261,7 @@ void App::CreateFramebuffers()
             _depthBuffer.depthImageView
         };
 
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        VkFramebufferCreateInfo framebufferInfo = init::FramebufferCreateInfo();
         framebufferInfo.renderPass = _renderPass;
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments = attachments.data();
@@ -506,7 +470,7 @@ void App::DrawFrame()
 
     VkPresentInfoKHR presentInfo = init::PresentInfoKHR(1, signalSemaphores, &swapchain.swapchain, &imageIndex);
     vkQueuePresentKHR(device.queues.present, &presentInfo);
-    _frameNumber = (_frameNumber + 1)% FRAME_OVERLAP;
+    _frameNumber = (_frameNumber + 1) % FRAME_OVERLAP;
 }
 
 void App::CreateDepthResources()
@@ -555,8 +519,7 @@ VkFormat App::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkIma
 
 void App::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 {
-    VkImageCreateInfo imageInfo{};
-    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    VkImageCreateInfo imageInfo = init::ImageCreateInfo();
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
     imageInfo.extent.width = width;
     imageInfo.extent.height = height;
@@ -575,8 +538,7 @@ void App::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageT
     VkMemoryRequirements memRequirements;
     vkGetImageMemoryRequirements(device, image, &memRequirements);
 
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    VkMemoryAllocateInfo allocInfo = init::MemoryAllocateInfo();
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = device.GetMemoryType(memRequirements.memoryTypeBits, properties);
 
@@ -587,8 +549,7 @@ void App::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageT
 
 VkImageView App::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
 {
-    VkImageViewCreateInfo viewInfo{};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    VkImageViewCreateInfo viewInfo = init::ImageViewCreateInfo();
     viewInfo.image = image;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     viewInfo.format = format;
