@@ -21,7 +21,7 @@ class FunctionWrapper<R(Args...)>
 public:
     FunctionWrapper() = default;
 
-    FunctionWrapper(std::function<R(Args...)> func) : _func(std::move(func)) {}
+    FunctionWrapper(std::function<R(Args...)>&& func) : _func(std::move(func)) {}
 
     bool operator==(const FunctionWrapper<R(Args...)>& other) const
     {
@@ -46,14 +46,16 @@ private:
 
 namespace std
 {
-    template<typename R, typename... Args>
-    struct hash<tlr::FunctionWrapper<R(Args...)>>
+
+template<typename R, typename... Args>
+struct hash<tlr::FunctionWrapper<R(Args...)>>
+{
+    std::size_t operator()(const tlr::FunctionWrapper<R(Args...)>& wrapper) const
     {
-        std::size_t operator()(const tlr::FunctionWrapper<R(Args...)>& wrapper) const
-        {
-            return wrapper.hash();
-        }
-    };
+        return wrapper.hash();
+    }
+};
+
 } // namespace std
 
 namespace tlr
