@@ -506,42 +506,9 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
 
     UniformBufferObject ubo{};
 
-    static float theta, phi;
-    phi = glm::radians(90.0f) - xoffset * 0.005;
-    theta = glm::radians(90.0f) - yoffset * 0.005;
-    
-    auto x = std::sin(theta)*std::cos(phi);
-    auto y = std::cos(theta);
-    auto z = std::sin(theta)*std::sin(phi);
-    
-    _camera.forward = glm::vec3(x, y, z);
-    _camera.right = glm::normalize(glm::cross(_camera.forward, _camera.up));
-    
-    ubo.model = glm::mat4(1.0f);
-
-    if (_inputManager->IsKeyPressed(GLFW_KEY_A))
-    {
-        _camera.Move(-_camera.right, deltaTime);
-    }
-    if (_inputManager->IsKeyPressed(GLFW_KEY_D))
-    {
-        _camera.Move(_camera.right, deltaTime);
-    }
-    if (_inputManager->IsKeyPressed(GLFW_KEY_W))
-    {
-        _camera.Move(_camera.forward, deltaTime);
-    }
-    if (_inputManager->IsKeyPressed(GLFW_KEY_S))
-    {
-        _camera.Move(-_camera.forward, deltaTime);
-    }
-
-    ubo.view = glm::lookAt(_camera.position, _camera.GetLookAt(), _camera.up);
-    
-    //std::cout << theta << " " << phi << std::endl;
+    ubo.view = glm::lookAt(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
     
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    
     auto rotation = glm::rotate(modelMatrix, glm::radians(90.0f) * elapsedTime, glm::vec3(1.0f, 0.0f, 0.0f));;
     auto rotation2 = glm::rotate(rotation, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 1.0f));;
     ubo.model = glm::translate(rotation2, glm::vec3(0,0,-0.5));
@@ -549,7 +516,6 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
     ubo.proj = glm::perspective(glm::radians(45.0f), swapchain.extent.width / (float) swapchain.extent.height, 0.1f, 10.0f);
     
     memcpy(_uniformBuffers[currentImage].mapped, &ubo, sizeof(ubo));
-    
     prevTime = currentTime;
 }
 
