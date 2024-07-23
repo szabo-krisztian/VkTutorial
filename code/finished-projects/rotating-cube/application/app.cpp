@@ -13,7 +13,7 @@
 #include "toolset.hpp"
 #include "shader_module.hpp"
 
-#define ENQUEUE_OBJ_DEL(lambda) (_deletionQueue).PushFunction(lambda) 
+#define ENQUEUE_OBJ_DEL(lambda) (_deletionQueue).PushFunction(lambda)
 
 namespace tlr
 {
@@ -29,7 +29,7 @@ App::App()
 
     InputManager::Init(window);
     _inputManager = InputManager::GetInstance();
-    _inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, FunctionWrapper<void()>(std::bind(&App::ExitApplication, this)));
+    _inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, std::bind(&App::ExitApplication, this));
 
     InitCommands();
     InitSyncStructures();
@@ -101,7 +101,9 @@ void App::CreateVertexBuffer()
     VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertices.size();
     
     Buffer stagingBuffer;
+    
     VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
+
     VK_CHECK_RESULT(stagingBuffer.Map());
     stagingBuffer.CopyTo(_vertices.data(), bufferSize);
 

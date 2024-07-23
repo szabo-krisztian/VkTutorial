@@ -34,9 +34,9 @@ namespace tlr
 	namespace tools
 	{
 		
-		std::string ErrorString(VkResult errorCode);
+	std::string ErrorString(VkResult errorCode);
 
-		std::vector<char> ReadFile(const std::string& filename);
+	std::vector<char> ReadFile(const std::string& filename);
 
 	} // namespace tools
 
