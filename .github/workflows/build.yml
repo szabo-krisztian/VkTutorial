@@ -1,12 +1,15 @@
-name: Build the sierpinski-triangle project 
+name: Build project 
 
 on:
   push:
     branches:
       - master
+      - development
+
   pull_request:
     branches:
       - master
+      - development
 
 jobs:
   build:

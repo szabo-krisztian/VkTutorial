@@ -2,7 +2,7 @@
 
 # Vulkan API Tutorial
 
-Welcome to my Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I am self-taught and have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload and improve my code every day.
+Welcome to my Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload, improve my code every day.
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -11,7 +11,6 @@ Welcome to my Vulkan API tutorial repository! This repository represents my pers
   - [Books](#books)
   - [Online Tutorials](#online-tutorials)
   - [Repositories](#repositories)
-- [Current State](#current-state)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -21,7 +20,7 @@ Vulkan is a low-level, low-overhead cross-platform API and open standard for 3D 
 
 ## About the Repository
 
-This repository contains various tutorials, examples, and experiments that I have created while learning the Vulkan API. It is not production-ready and may contain numerous bugs and inefficiencies. However, I have made it public with the hope that others may find useful ideas and learn from my experiences.
+This repository contains tutorials, examples, and experiments that I have created while learning the Vulkan API. It is not production-ready and may contain numerous bugs and inefficiencies. However, I have made it public with the hope that others may find useful ideas and learn from my experiences.
 
 ## Learning Resources
 
@@ -43,10 +42,6 @@ Here is a comprehensive list of resources that have been instrumental in my lear
 ### Repositories
 - **Sascha Willems' Vulkan Examples**: A collection of examples and demos that cover various aspects of Vulkan. [link](https://github.com/SaschaWillems/Vulkan)
 - **Vulkan samples**: Official Vulkan samples from the Khronos Group. [link](https://github.com/KhronosGroup/Vulkan-Samples)
-
-## Current State
-
-This repository is a work in progress and not intended for production use yet. It may contain numerous bugs, incomplete features, and inefficient code. Please use it as a reference and learning tool, and feel free to contribute if you find ways to improve it.
 
 ## Contributing
 

@@ -4,10 +4,6 @@
 
 This project demonstrates a basic Vulkan application where a Sierpiński triangle is rendered to the screen. The main objective of this tutorial is to provide an introduction to Vulkan and its capabilities by drawing a simple fractal shape.
 
-## Overview
-
-The vertices data for the triangle is stored in Host-visible memory, which is accessed by the CPU. This approach, while straightforward, introduces several inefficiencies compared to using Device-visible memory.
-
 ## Known Inefficiencies
 
 The current implementation uses Host-visible memory for storing vertex data. This means the data is accessible by the CPU but not optimized for GPU access. Using Device-visible memory would be more efficient for rendering, as it allows the GPU to access the data directly, reducing latency and improving performance. This is going to be changed in the future!
