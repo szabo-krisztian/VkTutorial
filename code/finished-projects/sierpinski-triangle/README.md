@@ -6,7 +6,7 @@ This project demonstrates a basic Vulkan application where a Sierpiński triangl
 
 ## Known Inefficiencies
 
-The current implementation uses Host-visible memory for storing vertex data. This means the data is accessible by the CPU but not optimized for GPU access. Using Device-visible memory would be more efficient for rendering, as it allows the GPU to access the data directly, reducing latency and improving performance. This is going to be changed in the future!
+The current implementation uses Host-visible memory for storing vertex data. This means the data is accessible by the CPU but not optimized for GPU access. Using Device-visible memory would be more efficient for rendering, as it allows the GPU to access the data directly, reducing latency and improving performance. Future projects will solve this problem.
 
 ## Requirements
 
