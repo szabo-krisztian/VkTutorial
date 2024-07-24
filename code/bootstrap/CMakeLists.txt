@@ -11,7 +11,8 @@ target_include_directories(AppBase
            swapchain-builder
 )
 target_link_libraries(AppBase
-    PUBLIC GLFW_VULKAN_GLM    
+    PUBLIC GLFW_VULKAN_GLM  
+           InputManager
     PRIVATE InstanceBuilder
             PhysicalDeviceSelector
             DeviceBuilder

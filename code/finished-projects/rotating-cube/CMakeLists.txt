@@ -7,6 +7,13 @@ project(MyVulkanProject)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MD")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MDd")
+endif()
+
 find_package(Vulkan REQUIRED)
 if(NOT Vulkan_FOUND)
     message(FATAL_ERROR "Vulkan not found!")
@@ -34,11 +41,6 @@ target_link_libraries(GLFW_VULKAN_GLM
               ${Vulkan_LIBRARIES}
               glm-header-only
 )
-
-if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MD")
-endif()
 
 set(TOOLSET_DIR ${CMAKE_SOURCE_DIR}/../../toolset)
 set(BOOTSTRAP_DIR ${CMAKE_SOURCE_DIR}/../../bootstrap)

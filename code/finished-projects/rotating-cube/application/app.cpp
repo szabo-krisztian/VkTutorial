@@ -18,19 +18,8 @@
 namespace tlr
 {
 
-void App::ExitApplication()
-{
-    _isAppRunning = false;
-}
-
 App::App()
 {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    InputManager::Init(window);
-    _inputManager = InputManager::GetInstance();
-    _inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, std::bind(&App::ExitApplication, this));
-
     InitCommands();
     InitSyncStructures();
 
@@ -416,18 +405,6 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
 }
 
-void App::Run()
-{
-    _isAppRunning = true;
-
-    while (!glfwWindowShouldClose(window) && _isAppRunning)
-    {
-        glfwPollEvents();
-        DrawFrame();
-        _inputManager->Update();
-    }
-}
-
 void App::UpdateUniformBuffer(uint32_t currentImage)
 {
     static auto startTime =std::chrono::high_resolution_clock::now(); 
@@ -452,7 +429,7 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
     prevTime = currentTime;
 }
 
-void App::DrawFrame()
+void App::Update()
 {
     UpdateUniformBuffer(_frameNumber);
 

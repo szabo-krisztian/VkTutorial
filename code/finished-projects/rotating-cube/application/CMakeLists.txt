@@ -11,5 +11,4 @@ target_link_libraries(App
     PRIVATE Toolset
             ShaderModule
             Buffer
-            InputManager
 )

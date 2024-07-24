@@ -9,7 +9,6 @@
 #include "app_base.hpp"
 #include "deletion_queue.hpp"
 #include "shader_vertex.hpp"
-#include "input_manager.hpp"
 
 #define FRAME_OVERLAP 2
 
@@ -29,12 +28,10 @@ public:
     App();
     ~App();
 
-    void Run();
-    void ExitApplication();
+protected:
+    void Update() override;
 
 private:
-    bool _isAppRunning = false;
-
     struct FrameData
     {
         VkCommandPool   commandPool;
@@ -92,7 +89,6 @@ private:
         VkImageView depthImageView;
     } _depthBuffer;
     
-    InputManager* _inputManager;
     DeletionQueue _deletionQueue;
 
     void        InitCommands();
@@ -112,7 +108,6 @@ private:
     void        CreateFramebuffers();
     void        CreateGraphicsPipeline();
     void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
-    void        DrawFrame();
     
     void        CreateDepthResources();
     VkFormat    FindDepthFormat();

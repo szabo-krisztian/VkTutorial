@@ -26,7 +26,7 @@ AppBase::AppBase()
 
 AppBase::~AppBase()
 {
-    for (auto imageView : swapchain.imageViews)
+    for (auto& imageView : swapchain.imageViews)
     {
         vkDestroyImageView(device, imageView, nullptr);
     }
@@ -40,13 +40,29 @@ AppBase::~AppBase()
     glfwTerminate();
 }
 
+void AppBase::Run()
+{
+    isAppRunning = true;
+
+    while (!glfwWindowShouldClose(window) && isAppRunning)
+    {
+        glfwPollEvents();
+        inputManager->Update();
+        Update();
+    }
+}
+
+void AppBase::ExitApp()
+{
+    isAppRunning = false;
+}
+
 void AppBase::Init()
 {
     InitGLFW();
     InitVulkan();
     InitSwapchain();
-
-    _isInitizalized = true;
+    InitInputManager();
 }
 
 void AppBase::InitGLFW()
@@ -94,6 +110,14 @@ void AppBase::InitSwapchain()
                        .SetDesiredArrayLayerCount(1)
                        .SetImageFlags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
                        .Build();
+}
+
+void AppBase::InitInputManager()
+{
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    InputManager::Init(window);
+    inputManager = InputManager::GetInstance();
+    inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, std::bind(&AppBase::ExitApp, this));
 }
 
 } // namespace tlr

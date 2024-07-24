@@ -16,6 +16,7 @@
 #include "physical_device.hpp"
 #include "device.hpp"
 #include "swapchain.hpp"
+#include "input_manager.hpp"
 
 namespace tlr
 {
@@ -25,6 +26,9 @@ class AppBase
 public:
     AppBase();
     ~AppBase();
+
+    void Run();
+    void ExitApp();
 
 protected:
     const int WINDOW_WIDTH = 800;
@@ -37,14 +41,18 @@ protected:
     PhysicalDevice           physicalDevice;
     Device                   device;
     Swapchain                swapchain;
+    InputManager             *inputManager;
+
+    bool isAppRunning = false;
+
+    virtual void Update() = 0;
 
 private:
-    bool _isInitizalized = false;
-    
     void Init();
     void InitGLFW();
     void InitVulkan();
     void InitSwapchain();
+    void InitInputManager();
 };
 
 } // namespace tlr
