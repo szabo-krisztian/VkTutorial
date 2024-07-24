@@ -23,21 +23,17 @@ void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scancode, in
 {
     InputManager* instance = GetInstance();
     
-    if (action == GLFW_PRESS)
+    switch (action)
     {
-        auto it = instance->_keyPressed.find(key);
-        if (it != instance->_keyPressed.end())
-        {
-            instance->_keyPressed[key].Raise();
-        }
-    }
-    else if (action == GLFW_RELEASE)
-    {
-        auto it = instance->_keyReleased.find(key);
-        if (it != instance->_keyReleased.end())
-        {
-            instance->_keyReleased[key].Raise();
-        }
+    case GLFW_PRESS:
+        instance->_keyPressed[key].Raise();
+        instance->_pressedKeys.insert(key);
+        break;
+
+    case GLFW_RELEASE:
+        instance->_keyReleased[key].Raise();
+        instance->_pressedKeys.erase(key);
+        break;
     }
 }
 
@@ -49,42 +45,42 @@ void InputManager::GLFWCursorCallback(GLFWwindow* window, double xpos, double yp
 
 void InputManager::AddCursorPositionListener(std::function<void(double, double)>&& listener)
 {
-    _cursorMoved += FunctionWrapper<void(double, double)>(std::move(listener));
+    _cursorMoved += std::move(listener);
 }
 
 void InputManager::RemoveCursorPositionListener(std::function<void(double, double)>&& listener)
 {
-    _cursorMoved -= FunctionWrapper<void(double, double)>(std::move(listener));
+    _cursorMoved -= std::move(listener);
 }
 
 void InputManager::AddKeyPressListener(int keyCode, std::function<void()>&& listener)
 {
-    _keyPressed[keyCode] += FunctionWrapper<void()>(std::move(listener));
+    _keyPressed[keyCode] += std::move(listener);
 }
 
 void InputManager::RemoveKeyPressListener(int keyCode, std::function<void()>&& listener)
 {
-    _keyPressed[keyCode] -= FunctionWrapper<void()>(std::move(listener));
+    _keyPressed[keyCode] -= std::move(listener);
 }
 
 void InputManager::AddKeyReleaseListener(int keyCode, std::function<void()>&& listener)
 {
-    _keyReleased[keyCode] += FunctionWrapper<void()>(std::move(listener));
+    _keyReleased[keyCode] += std::move(listener);
 }
 
 void InputManager::RemoveKeyReleaseListener(int keyCode, std::function<void()>&& listener)
 {
-    _keyReleased[keyCode] -= FunctionWrapper<void()>(std::move(listener));
+    _keyReleased[keyCode] -= std::move(listener);
 }
 
 void InputManager::AddKeyHoldListener(int keyCode, std::function<void()>&& listener)
 {
-    _keyIsBeingPressed[keyCode] += FunctionWrapper<void()>(std::move(listener));
+    _keyIsBeingPressed[keyCode] += std::move(listener);
 }
 
 void InputManager::RemoveKeyHoldListener(int keyCode, std::function<void()>&& listener)
 {
-    _keyIsBeingPressed[keyCode] += FunctionWrapper<void()>(std::move(listener));
+    _keyIsBeingPressed[keyCode] -= std::move(listener);
 }
 
 bool InputManager::IsKeyPressed(int keyCode)
@@ -97,11 +93,7 @@ void InputManager::Update()
 {
     for (int key : _pressedKeys)
     {
-        auto it = _keyIsBeingPressed.find(key);
-        if (it != _keyIsBeingPressed.end())
-        {
-            _keyIsBeingPressed[key].Raise();
-        }
+        _keyIsBeingPressed[key].Raise();
     }
 }
 

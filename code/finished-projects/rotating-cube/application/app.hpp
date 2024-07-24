@@ -30,6 +30,7 @@ public:
     ~App();
 
     void Run();
+    void ExitApplication();
 
 private:
     bool _isAppRunning = false;
@@ -118,8 +119,6 @@ private:
     VkFormat    FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
     void        CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
     VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-
-    void ExitApplication();
 };
 
 } // namespace tlr

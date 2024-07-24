@@ -43,17 +43,15 @@ public:
     void Update();
 
 private:
-    InputManager() = default;
-
     static GLFWwindow* _window;
 
-    Event<double, double> _cursorMoved;
-
+    Event<double, double>            _cursorMoved;
+    std::unordered_set<int>          _pressedKeys;
     std::unordered_map<int, Event<>> _keyPressed;
     std::unordered_map<int, Event<>> _keyReleased;
-    
-    std::unordered_set<int> _pressedKeys;
     std::unordered_map<int, Event<>> _keyIsBeingPressed;
+
+    InputManager() = default;
 };
 
 } // namespace tlr

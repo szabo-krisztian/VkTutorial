@@ -1,13 +1,3 @@
-/*
- *   TODO: This event system is not complete, it needs to be refined.
- * 
- *   The FunctionWrapper class is needed to allow std::function objects to be used in
- *   unordered containers such as std::unordered_set. This class provides custom hashing
- *   and equality comparison between std::function objects, ensuring that only one instance
- *   of each unique function type is stored in the container. std::functions can be expensive
- *   to copy, that is why you are seeing only rvalue parameters. 
- */
-
 #pragma once
 
 #include <unordered_set>
@@ -33,7 +23,8 @@ public:
         return _func.target_type() == other._func.target_type();
     }
 
-    R operator()(Args... args) const
+    template <typename... Args>
+    R operator()(Args&&... args) const
     {
         return _func(std::forward<Args>(args)...);
     }
@@ -82,7 +73,8 @@ public:
         _listeners.erase(FunctionWrapper<void(Args...)>(std::move(listener)));
     }
 
-    void Raise(Args... args)
+    template <typename... Args>
+    void Raise(Args&&... args)
     {
         for (auto& listener : _listeners)
         {

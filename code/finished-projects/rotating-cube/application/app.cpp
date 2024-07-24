@@ -424,6 +424,7 @@ void App::Run()
     {
         glfwPollEvents();
         DrawFrame();
+        _inputManager->Update();
     }
 }
 
