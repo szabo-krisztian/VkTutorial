@@ -23,10 +23,10 @@ public:
         return _func.target_type() == other._func.target_type();
     }
 
-    template <typename... Args>
-    R operator()(Args&&... args) const
+    template<typename... ArgsAlias>
+    R operator()(ArgsAlias&&... args) const
     {
-        return _func(std::forward<Args>(args)...);
+        return _func(std::forward<ArgsAlias>(args)...);
     }
 
     std::size_t hash() const
@@ -73,12 +73,12 @@ public:
         _listeners.erase(FunctionWrapper<void(Args...)>(std::move(listener)));
     }
 
-    template <typename... Args>
-    void Raise(Args&&... args)
+    template<typename... ArgsAlias>
+    void Raise(ArgsAlias&&... args)
     {
         for (auto& listener : _listeners)
         {
-            listener(std::forward<Args>(args)...);
+            listener(std::forward<ArgsAlias>(args)...);
         }
     }
 
