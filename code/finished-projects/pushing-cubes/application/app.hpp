@@ -7,6 +7,7 @@
 
 #include "app_base.hpp"
 #include "deletion_queue.hpp"
+#include "camera.hpp"
 
 #define FRAME_OVERLAP 2
 
