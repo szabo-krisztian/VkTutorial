@@ -54,7 +54,7 @@ void Camera::MoveLeft(float deltaTime)
 }
 
 void Camera::CursorMovementCallback(float xoffset, float yoffset)
-{
+{    
     _yaw += xoffset * _sensitivity;
     _pitch += yoffset * _sensitivity;
     _pitch = glm::clamp(_pitch, 1.0f, 179.0f);
@@ -64,9 +64,9 @@ void Camera::CursorMovementCallback(float xoffset, float yoffset)
 void Camera::UpdateDirections()
 {
     glm::vec3 front;
-    front.x = cos(glm::radians(_yaw)) * cos(glm::radians(_pitch));
-    front.y = sin(glm::radians(_pitch));
-    front.z = sin(glm::radians(_yaw)) * cos(glm::radians(_pitch));
+    front.x = sin(glm::radians(_pitch)) * cos(glm::radians(_yaw));
+    front.y = cos(glm::radians(_pitch));
+    front.z = sin(glm::radians(_pitch)) * sin(glm::radians(_yaw));
     
     _front = glm::normalize(front);
     _right = glm::normalize(glm::cross(_front, _worldUp));  

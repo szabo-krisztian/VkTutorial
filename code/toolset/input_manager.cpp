@@ -45,21 +45,17 @@ void InputManager::GLFWCursorCallback(GLFWwindow* window, double xpos, double yp
 
     if (first)
     {
-        // Initialize firstXpos and firstYpos to the current position
         firstXpos = xpos;
         firstYpos = ypos;
         first = false;
     }
 
-    // Calculate the cursor movement
     float deltaX = static_cast<float>(xpos - firstXpos);
     float deltaY = static_cast<float>(ypos - firstYpos);
 
-    // Update the stored position to the current position
     firstXpos = xpos;
     firstYpos = ypos;
 
-    // Get the singleton instance of InputManager and raise the event
     InputManager* instance = GetInstance();
     instance->_cursorMoved.Raise(deltaX, deltaY);
 }

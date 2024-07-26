@@ -13,7 +13,7 @@ CameraCreateInfo cameraCI = {
     glm::radians(45.0f),           // fov
     800.0f / 600.0f,               // aspect
     90.0f,                         // initialYaw
-    0.0f,                          // initialPitch
+    90.0f,                         // initialPitch
     0.1f,                          // sensitivity
     2.5f,                          // movementSpeed
     0.1f,                          // near
