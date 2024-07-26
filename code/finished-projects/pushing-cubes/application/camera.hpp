@@ -6,6 +6,8 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <iostream>
+
 namespace tlr
 {
 
@@ -32,7 +34,7 @@ public:
     glm::mat4 GetProjectionMatrix()     const;
     glm::mat4 GetViewProjectionMatrix() const;
 
-    void CursorMovementCallback(float xoffset, float yoffset, float deltaTime);
+    void CursorMovementCallback(float xoffset, float yoffset);
     void MoveForward(float deltaTime);
     void MoveBackward(float deltaTime);
     void MoveRight(float deltaTime);

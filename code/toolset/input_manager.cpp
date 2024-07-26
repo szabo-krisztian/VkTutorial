@@ -39,16 +39,38 @@ void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scancode, in
 
 void InputManager::GLFWCursorCallback(GLFWwindow* window, double xpos, double ypos)
 {
+    static bool first = true;
+    static double firstXpos = xpos;
+    static double firstYpos = ypos;
+
+    if (first)
+    {
+        // Initialize firstXpos and firstYpos to the current position
+        firstXpos = xpos;
+        firstYpos = ypos;
+        first = false;
+    }
+
+    // Calculate the cursor movement
+    float deltaX = static_cast<float>(xpos - firstXpos);
+    float deltaY = static_cast<float>(ypos - firstYpos);
+
+    // Update the stored position to the current position
+    firstXpos = xpos;
+    firstYpos = ypos;
+
+    // Get the singleton instance of InputManager and raise the event
     InputManager* instance = GetInstance();
-    instance->_cursorMoved.Raise(xpos, ypos);
+    instance->_cursorMoved.Raise(deltaX, deltaY);
 }
 
-void InputManager::AddCursorPositionListener(std::function<void(double, double)>&& listener)
+
+void InputManager::AddCursorPositionListener(std::function<void(float, float)>&& listener)
 {
     _cursorMoved += std::move(listener);
 }
 
-void InputManager::RemoveCursorPositionListener(std::function<void(double, double)>&& listener)
+void InputManager::RemoveCursorPositionListener(std::function<void(float, float)>&& listener)
 {
     _cursorMoved -= std::move(listener);
 }

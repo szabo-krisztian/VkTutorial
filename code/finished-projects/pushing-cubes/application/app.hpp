@@ -36,6 +36,7 @@ private:
     VkCommandPool _transferPool;
     
     DeletionQueue _deletionQueue;
+    Camera _camera;
 };
 
 } // namespace tlr

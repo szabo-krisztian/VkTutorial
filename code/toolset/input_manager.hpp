@@ -26,8 +26,8 @@ public:
     static void GLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void GLFWCursorCallback(GLFWwindow* window, double xpos, double ypos);
 
-    void AddCursorPositionListener(std::function<void(double, double)>&& listener);
-    void RemoveCursorPositionListener(std::function<void(double, double)>&& listener);
+    void AddCursorPositionListener(std::function<void(float, float)>&& listener);
+    void RemoveCursorPositionListener(std::function<void(float, float)>&& listener);
 
     void AddKeyPressListener(int keyCode, std::function<void()>&& listener);
     void RemoveKeyPressListener(int keyCode, std::function<void()>&& listener);
@@ -45,7 +45,7 @@ public:
 private:
     static GLFWwindow* _window;
 
-    Event<double, double>            _cursorMoved;
+    Event<float, float>              _cursorMoved;
     std::unordered_set<int>          _pressedKeys;
     std::unordered_map<int, Event<>> _keyPressed;
     std::unordered_map<int, Event<>> _keyReleased;

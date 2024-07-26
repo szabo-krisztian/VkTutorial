@@ -53,11 +53,11 @@ void Camera::MoveLeft(float deltaTime)
     _position -= _right * deltaTime * _movementSpeed;
 }
 
-void Camera::CursorMovementCallback(float xoffset, float yoffset, float deltaTime)
+void Camera::CursorMovementCallback(float xoffset, float yoffset)
 {
     _yaw += xoffset * _sensitivity;
     _pitch += yoffset * _sensitivity;
-    _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
+    _pitch = glm::clamp(_pitch, 1.0f, 179.0f);
     UpdateDirections();
 }
 
