@@ -57,7 +57,7 @@ void InputManager::GLFWCursorCallback(GLFWwindow* window, double xpos, double yp
     firstYpos = ypos;
 
     InputManager* instance = GetInstance();
-    instance->_cursorMoved.Raise(deltaX, deltaY);
+    instance->_cursorMoved.Raise(deltaX, -deltaY);
 }
 
 

@@ -39,6 +39,8 @@ public:
     void MoveBackward(float deltaTime);
     void MoveRight(float deltaTime);
     void MoveLeft(float deltaTime);
+    void MoveUp(float deltaTime);
+    void MoveDown(float deltaTime);
 
 private:
     glm::vec3 _position;

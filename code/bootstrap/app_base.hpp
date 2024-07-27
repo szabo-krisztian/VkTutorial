@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include <chrono>
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -22,8 +20,6 @@
 #include "camera.hpp"
 #include "timer.hpp"
 #include "deletion_queue.hpp"
-
-#define ENQUEUE_OBJ_DEL(lambda) (deletionQueue).PushFunction(lambda)
 
 namespace tlr
 {
@@ -51,12 +47,13 @@ protected:
     InputManager             *inputManager;
     Camera                   camera;
     Timer                    timer;
-    DeletionQueue            deletionQueue;
     bool                     isAppRunning = false;
 
     virtual void Update() = 0;
 
 private:
+    DeletionQueue _deletionQueue;
+
     void Init();
     void InitGLFW();
     void InitVulkan();

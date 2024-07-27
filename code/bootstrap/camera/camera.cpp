@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include <iostream>
 
 namespace tlr
 {
@@ -35,12 +36,14 @@ glm::mat4 Camera::GetViewProjectionMatrix() const
 
 void Camera::MoveForward(float deltaTime)
 {
-    _position += _front * deltaTime * _movementSpeed;
+    glm::vec3 front_y_null(_front.x, 0.0f, _front.z);
+    _position += glm::normalize(front_y_null) * deltaTime * _movementSpeed;
 }
 
 void Camera::MoveBackward(float deltaTime)
 {
-    _position -= _front * deltaTime * _movementSpeed;
+    glm::vec3 front_y_null(_front.x, 0.0f, _front.z);
+    _position -= glm::normalize(front_y_null) * deltaTime * _movementSpeed;
 }
 
 void Camera::MoveRight(float deltaTime)
@@ -53,10 +56,20 @@ void Camera::MoveLeft(float deltaTime)
     _position -= _right * deltaTime * _movementSpeed;
 }
 
+void Camera::MoveUp(float deltaTime)
+{
+    _position += _worldUp * deltaTime * _movementSpeed;
+}
+
+void Camera::MoveDown(float deltaTime)
+{
+    _position -= _worldUp * deltaTime * _movementSpeed;
+}
+
 void Camera::CursorMovementCallback(float xoffset, float yoffset)
 {    
-    _yaw += xoffset * _sensitivity;
-    _pitch += yoffset * _sensitivity;
+    _yaw -= xoffset * _sensitivity;
+    _pitch -= yoffset * _sensitivity;
     _pitch = glm::clamp(_pitch, 1.0f, 179.0f);
     UpdateDirections();
 }
@@ -69,7 +82,7 @@ void Camera::UpdateDirections()
     front.z = sin(glm::radians(_pitch)) * sin(glm::radians(_yaw));
     
     _front = glm::normalize(front);
-    _right = glm::normalize(glm::cross(_front, _worldUp));  
+    _right = glm::normalize(glm::cross(_front, -_worldUp));
     _up = glm::normalize(glm::cross(_right, _front));
 }
 

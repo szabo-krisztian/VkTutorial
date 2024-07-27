@@ -16,12 +16,14 @@
 #include "device_builder.hpp"
 #include "swapchain_builder.hpp"
 
+#define ENQUEUE_OBJ_DEL(lambda) (_deletionQueue).PushFunction(lambda)
+
 namespace tlr
 {
 
 CameraCreateInfo cameraCI = {
-    glm::vec3(0.0f, 0.0f, 0.0f),   // initialPosition
-    glm::vec3(0.0f, -1.0f, 0.0f),  // worldUp
+    glm::vec3(0.0f, 0.0f, -5.0f),  // initialPosition
+    glm::vec3(0.0f, 1.0f, 0.0f),   // worldUp
     glm::radians(45.0f),           // fov
     800.0f / 600.0f,               // aspect
     90.0f,                         // initialYaw
@@ -40,7 +42,7 @@ AppBase::AppBase() : camera(cameraCI)
 AppBase::~AppBase()
 {
     vkDeviceWaitIdle(device);
-    deletionQueue.Flush();    
+    _deletionQueue.Flush();
 }
 
 void AppBase::Run()
@@ -52,6 +54,7 @@ void AppBase::Run()
         glfwPollEvents();
         inputManager->Update();
         timer.Update();
+        
         Update();
     }
 }
@@ -134,8 +137,17 @@ void AppBase::InitInputManager()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     InputManager::Init(window);
     inputManager = InputManager::GetInstance();
-    inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, std::bind(&AppBase::ExitApp, this));
-    inputManager->AddCursorPositionListener(std::bind(&Camera::CursorMovementCallback, camera, std::placeholders::_1, std::placeholders::_2));
+    
+    inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, [&]() { ExitApp(); });
+    
+    inputManager->AddCursorPositionListener([&](float xoffset, float yoffset) { camera.CursorMovementCallback(xoffset, yoffset); });
+    
+    inputManager->AddKeyHoldListener(GLFW_KEY_W,          [&]() { camera.MoveForward(timer.GetDeltaTime());  });
+    inputManager->AddKeyHoldListener(GLFW_KEY_A,          [&]() { camera.MoveLeft(timer.GetDeltaTime());     });
+    inputManager->AddKeyHoldListener(GLFW_KEY_S,          [&]() { camera.MoveBackward(timer.GetDeltaTime()); });
+    inputManager->AddKeyHoldListener(GLFW_KEY_D,          [&]() { camera.MoveRight(timer.GetDeltaTime());    });
+    inputManager->AddKeyHoldListener(GLFW_KEY_SPACE,      [&]() { camera.MoveUp(timer.GetDeltaTime());       });
+    inputManager->AddKeyHoldListener(GLFW_KEY_LEFT_SHIFT, [&]() { camera.MoveDown(timer.GetDeltaTime());     });
 }
 
 } // namespace tlr

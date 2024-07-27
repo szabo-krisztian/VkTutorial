@@ -94,6 +94,7 @@ private:
     void        InitCommands();
     void        InitSyncStructures();
     FrameData&  GetCurrentFrameData();
+    
     void        CreateVertexBuffer();
     void        CreateIndexBuffer();
     void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
