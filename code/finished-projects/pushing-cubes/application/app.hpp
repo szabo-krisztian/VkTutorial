@@ -30,13 +30,17 @@ private:
         VkCommandBuffer commandBuffer;
         VkSemaphore     swapchainSemaphore, renderSemaphore;
         VkFence         renderFence;
-    };
+    } _frames[FRAME_OVERLAP];
+    
     int           _frameNumber = 0;
-    FrameData     _frames[FRAME_OVERLAP];
     VkCommandPool _transferPool;
     
     DeletionQueue _deletionQueue;
     Camera _camera;
+
+    void InitCommands();
+    void InitSyncStructures();
+    FrameData& GetCurrentFrameData();
 };
 
 } // namespace tlr
