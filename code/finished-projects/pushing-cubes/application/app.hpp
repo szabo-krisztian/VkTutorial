@@ -6,8 +6,6 @@
 #include <GLFW/glfw3.h>
 
 #include "app_base.hpp"
-#include "deletion_queue.hpp"
-#include "camera.hpp"
 
 #define FRAME_OVERLAP 2
 
@@ -34,9 +32,7 @@ private:
     
     int           _frameNumber = 0;
     VkCommandPool _transferPool;
-    
-    DeletionQueue _deletionQueue;
-    Camera _camera;
+
 
     void InitCommands();
     void InitSyncStructures();

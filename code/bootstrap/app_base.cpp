@@ -19,25 +19,28 @@
 namespace tlr
 {
 
-AppBase::AppBase()
+CameraCreateInfo cameraCI = {
+    glm::vec3(0.0f, 0.0f, 0.0f),   // initialPosition
+    glm::vec3(0.0f, -1.0f, 0.0f),  // worldUp
+    glm::radians(45.0f),           // fov
+    800.0f / 600.0f,               // aspect
+    90.0f,                         // initialYaw
+    90.0f,                         // initialPitch
+    0.1f,                          // sensitivity
+    2.5f,                          // movementSpeed
+    0.1f,                          // near
+    100.0f                         // far
+};
+
+AppBase::AppBase() : camera(cameraCI)
 {
     Init();
 }
 
 AppBase::~AppBase()
 {
-    for (auto& imageView : swapchain.imageViews)
-    {
-        vkDestroyImageView(device, imageView, nullptr);
-    }
-
-    vkDestroySwapchainKHR(device, swapchain, nullptr);
-    vkDestroySurfaceKHR(instance, surface, nullptr);
-    vkDestroyDevice(device, nullptr);
-    DestroyDebugMessenger(instance, debugMessenger);
-    vkDestroyInstance(instance, nullptr);
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    vkDeviceWaitIdle(device);
+    deletionQueue.Flush();    
 }
 
 void AppBase::Run()
@@ -68,9 +71,12 @@ void AppBase::Init()
 void AppBase::InitGLFW()
 {
     glfwInit();
+    ENQUEUE_OBJ_DEL(( []() { glfwTerminate(); } ));
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Vulkan", nullptr, nullptr);
+    ENQUEUE_OBJ_DEL(( [this]() { glfwDestroyWindow(window); } ));
 }
 
 void AppBase::InitVulkan()
@@ -86,10 +92,14 @@ void AppBase::InitVulkan()
                                 .UseDebugMessenger()
                                 .Build();
     instance = instances.instance;
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyInstance(instance, nullptr); } ));
+
     debugMessenger = instances.debugMessenger;
+    ENQUEUE_OBJ_DEL(( [this]() { DestroyDebugMessenger(instance, debugMessenger); } ));
 
     VK_CHECK_RESULT(glfwCreateWindowSurface(instance, window, nullptr, &surface));
-    
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroySurfaceKHR(instance, surface, nullptr); } ));
+
     PhysicalDeviceSelector physicalDeviceSelector{instance, surface};
     physicalDevice = physicalDeviceSelector.EnableDedicatedGPU()
                                            .Select();
@@ -97,6 +107,7 @@ void AppBase::InitVulkan()
     DeviceBuilder deviceBuilder{physicalDevice};
     device = deviceBuilder.EnableValidationLayers()
                           .Build();
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDevice(device, nullptr); } ));
 }
 
 void AppBase::InitSwapchain()
@@ -110,6 +121,11 @@ void AppBase::InitSwapchain()
                        .SetDesiredArrayLayerCount(1)
                        .SetImageFlags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
                        .Build();
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroySwapchainKHR(device, swapchain, nullptr); } ));
+    for (auto& imageView : swapchain.imageViews)
+    {
+        ENQUEUE_OBJ_DEL(( [&]() { vkDestroyImageView(device, imageView, nullptr); } ));
+    }
 }
 
 void AppBase::InitInputManager()
@@ -118,6 +134,7 @@ void AppBase::InitInputManager()
     InputManager::Init(window);
     inputManager = InputManager::GetInstance();
     inputManager->AddKeyPressListener(GLFW_KEY_ESCAPE, std::bind(&AppBase::ExitApp, this));
+    inputManager->AddCursorPositionListener(std::bind(&Camera::CursorMovementCallback, camera, std::placeholders::_1, std::placeholders::_2));
 }
 
 } // namespace tlr

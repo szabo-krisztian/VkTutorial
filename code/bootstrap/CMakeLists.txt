@@ -2,6 +2,8 @@ add_subdirectory(instance-builder)
 add_subdirectory(physical-device-selector)
 add_subdirectory(device-builder)
 add_subdirectory(swapchain-builder)
+add_subdirectory(input-manager)
+add_subdirectory(camera)
 
 add_library(AppBase app_base.cpp)
 target_include_directories(AppBase
@@ -9,10 +11,13 @@ target_include_directories(AppBase
            physical-device-selector
            device-builder
            swapchain-builder
+           input-manager
+           camera
 )
 target_link_libraries(AppBase
     PUBLIC GLFW_VULKAN_GLM  
            InputManager
+           Camera
     PRIVATE InstanceBuilder
             PhysicalDeviceSelector
             DeviceBuilder

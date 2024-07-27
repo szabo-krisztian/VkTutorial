@@ -17,6 +17,10 @@
 #include "device.hpp"
 #include "swapchain.hpp"
 #include "input_manager.hpp"
+#include "camera.hpp"
+#include "deletion_queue.hpp"
+
+#define ENQUEUE_OBJ_DEL(lambda) (deletionQueue).PushFunction(lambda)
 
 namespace tlr
 {
@@ -42,6 +46,8 @@ protected:
     Device                   device;
     Swapchain                swapchain;
     InputManager             *inputManager;
+    Camera                   camera;
+    DeletionQueue            deletionQueue;
 
     bool isAppRunning = false;
 
