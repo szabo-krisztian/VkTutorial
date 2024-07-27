@@ -21,7 +21,7 @@ App::~App()
 
 void App::Update()
 {
-       
+    std::cout << timer.GetElapsedTime() << std::endl;
 }
 
 void App::InitCommands()

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -18,6 +20,7 @@
 #include "swapchain.hpp"
 #include "input_manager.hpp"
 #include "camera.hpp"
+#include "timer.hpp"
 #include "deletion_queue.hpp"
 
 #define ENQUEUE_OBJ_DEL(lambda) (deletionQueue).PushFunction(lambda)
@@ -47,9 +50,9 @@ protected:
     Swapchain                swapchain;
     InputManager             *inputManager;
     Camera                   camera;
+    Timer                    timer;
     DeletionQueue            deletionQueue;
-
-    bool isAppRunning = false;
+    bool                     isAppRunning = false;
 
     virtual void Update() = 0;
 

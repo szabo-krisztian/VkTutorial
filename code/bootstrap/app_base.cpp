@@ -51,6 +51,7 @@ void AppBase::Run()
     {
         glfwPollEvents();
         inputManager->Update();
+        timer.Update();
         Update();
     }
 }
