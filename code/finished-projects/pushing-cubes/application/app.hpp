@@ -11,13 +11,14 @@
 #include "shader_vertex.hpp"
 
 #define FRAME_OVERLAP 2
+#define BULLET_COUNT 10
 
 namespace tlr
 {
 
 struct UniformBufferObject
 {
-    alignas(16) glm::mat4 model;
+    //alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 };
@@ -39,9 +40,14 @@ private:
         VkSemaphore     swapchainSemaphore, renderSemaphore;
         VkFence         renderFence;
     };
-    int           _frameNumber = 0;
-    FrameData     _frames[FRAME_OVERLAP];
-    VkCommandPool _transferPool;
+    int              _frameNumber = 0;
+    FrameData        _frames[FRAME_OVERLAP];
+    VkCommandPool    _transferPool;
+    VkDescriptorPool _descriptorPool;
+
+    Buffer                _cameraTransformBuffer[FRAME_OVERLAP];
+    VkDescriptorSetLayout _cameraTransformLayout;
+    VkDescriptorSet       _cameraTransformSets[FRAME_OVERLAP];
 
     const std::vector<Vertex> _boxVertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
@@ -72,11 +78,16 @@ private:
     Buffer _boxVertexBuffer;
     Buffer _boxIndexBuffer;
 
+    Buffer                _uniformBuffers[FRAME_OVERLAP];
+    VkDescriptorSetLayout _descriptorSetLayout;
+    VkDescriptorSet       _descriptorSets[FRAME_OVERLAP];
+    
+    
     const std::vector<Vertex> _bulletVertices = {
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // A 0
-        {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},   // C 1
-        {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // B 2
-        {{0.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}}    // D 3
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, 
+        {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},   
+        {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  
+        {{0.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}}    
     };
 
     const std::vector<uint16_t> _bulletIndices = {
@@ -89,10 +100,7 @@ private:
     Buffer _bulletVertexBuffer;
     Buffer _bulletIndexBuffer;
 
-    Buffer                _uniformBuffers[FRAME_OVERLAP];
-    VkDescriptorSetLayout _descriptorSetLayout;
-    VkDescriptorPool      _descriptorPool;
-    VkDescriptorSet       _descriptorSets[FRAME_OVERLAP];
+    
 
     VkRenderPass               _renderPass;
     std::vector<VkFramebuffer> _framebuffers;
@@ -118,10 +126,15 @@ private:
     void        CreateBulletVertexBuffer();
     void        CreateBulletIndexBuffer();    
 
+    void        CreateCameraTransformDescriptorSetLayout();
+    void        CreateCameraTransformBuffer();
+    void        CreateCameraTransformDescriptorSets();
+
 
     void        CreateDescriptorSetLayout();
     void        CreateUniformBuffers();
     void        UpdateUniformBuffer(uint32_t currentImage);
+    void        UpdateModel(uint32_t currentImage);
     void        CreateDescriptorPool();
     void        CreateDescriptorSets();
 
