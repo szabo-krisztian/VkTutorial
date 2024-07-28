@@ -201,30 +201,30 @@ void App::CreateCameraTransformDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0, 1);
     VkDescriptorSetLayoutCreateInfo layoutInfo = init::DescriptorSetLayoutCreateInfo(1, &uboLayoutBinding);
-    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_cameraTransformLayout));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _cameraTransformLayout, nullptr); } ));
+    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_cameraTransform.layout));
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _cameraTransform.layout, nullptr); } ));
 }
 
 void App::CreateCameraTransformBuffer()
 {
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_cameraTransformBuffer[i], sizeof(UniformBufferObject)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _cameraTransformBuffer[i].Destroy(); } ));
-        VK_CHECK_RESULT(_cameraTransformBuffer[i].Map());   
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_cameraTransform.ubos[i], sizeof(UniformBufferObject)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _cameraTransform.ubos[i].Destroy(); } ));
+        VK_CHECK_RESULT(_cameraTransform.ubos[i].Map());   
     }
 }
 
 void App::CreateCameraTransformDescriptorSets()
 {
-    std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _cameraTransformLayout);
+    std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _cameraTransform.layout);
     VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP));
 
-    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _cameraTransformSets));
+    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _cameraTransform.sets));
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_cameraTransformSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_cameraTransformBuffer[i].descriptor);
+        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_cameraTransform.sets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_cameraTransform.ubos[i].descriptor);
         vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
     }
 }
@@ -416,7 +416,7 @@ void App::CreateGraphicsPipeline()
     pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     
     pipelineLayoutCI.setLayoutCount = 2;
-    VkDescriptorSetLayout layout[] = {_cameraTransformLayout, _descriptorSetLayout};
+    VkDescriptorSetLayout layout[] = {_cameraTransform.layout, _descriptorSetLayout};
     pipelineLayoutCI.pSetLayouts = layout;
     
 
@@ -484,10 +484,9 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     // Drawing command
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_cameraTransformSets[_frameNumber], 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_cameraTransform.sets[_frameNumber], 0, nullptr);
     
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_descriptorSets[_frameNumber], 0, nullptr);
-
     vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_bulletIndices.size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(cmd);
@@ -500,7 +499,7 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
     //ubo.model = glm::mat4(1.0f);
     ubo.view = camera.GetViewMatrix();
     ubo.proj = camera.GetProjectionMatrix();
-    memcpy(_cameraTransformBuffer[currentImage].mapped, &ubo, sizeof(ubo));
+    memcpy(_cameraTransform.ubos[currentImage].mapped, &ubo, sizeof(ubo));
 }
 
 void App::UpdateModel(uint32_t currentImage)

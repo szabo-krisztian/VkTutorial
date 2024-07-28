@@ -45,9 +45,16 @@ private:
     VkCommandPool    _transferPool;
     VkDescriptorPool _descriptorPool;
 
-    Buffer                _cameraTransformBuffer[FRAME_OVERLAP];
-    VkDescriptorSetLayout _cameraTransformLayout;
-    VkDescriptorSet       _cameraTransformSets[FRAME_OVERLAP];
+    struct
+    {
+        Buffer                ubos[FRAME_OVERLAP];
+        VkDescriptorSetLayout layout;
+        VkDescriptorSet       sets[FRAME_OVERLAP];
+    } _cameraTransform;
+
+    //Buffer                _cameraTransformBuffer[FRAME_OVERLAP];
+    //VkDescriptorSetLayout _cameraTransformLayout;
+    //VkDescriptorSet       _cameraTransformSets[FRAME_OVERLAP];
 
     const std::vector<Vertex> _boxVertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
