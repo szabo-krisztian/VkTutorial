@@ -43,7 +43,7 @@ private:
     FrameData     _frames[FRAME_OVERLAP];
     VkCommandPool _transferPool;
 
-    const std::vector<Vertex> _vertices = {
+    const std::vector<Vertex> _boxVertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
         {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
         {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
@@ -55,7 +55,7 @@ private:
         {{-0.5f, 0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}}
     };
 
-    const std::vector<uint16_t> _indices = {
+    const std::vector<uint16_t> _boxIndices = {
         0, 1, 2, 2, 3, 0,
 
         7, 6, 5, 7, 5, 4,
@@ -69,8 +69,25 @@ private:
         4, 5, 1, 4, 1, 0
     };
 
-    Buffer _vertexBuffer;
-    Buffer _indexBuffer;
+    Buffer _boxVertexBuffer;
+    Buffer _boxIndexBuffer;
+
+    const std::vector<Vertex> _bulletVertices = {
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // A 0
+        {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},   // C 1
+        {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // B 2
+        {{0.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}}    // D 3
+    };
+
+    const std::vector<uint16_t> _bulletIndices = {
+        0, 2, 3,
+        2, 1, 3,
+        1, 0, 3,
+        1, 2, 0
+    };
+
+    Buffer _bulletVertexBuffer;
+    Buffer _bulletIndexBuffer;
 
     Buffer                _uniformBuffers[FRAME_OVERLAP];
     VkDescriptorSetLayout _descriptorSetLayout;
@@ -95,10 +112,13 @@ private:
     void        InitSyncStructures();
     FrameData&  GetCurrentFrameData();
     
-    void        CreateVertexBuffer();
-    void        CreateIndexBuffer();
     void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    
+    void        CreateCubeVertexBuffer();
+    void        CreateCubeIndexBuffer();
+    void        CreateBulletVertexBuffer();
+    void        CreateBulletIndexBuffer();    
+
+
     void        CreateDescriptorSetLayout();
     void        CreateUniformBuffers();
     void        UpdateUniformBuffer(uint32_t currentImage);

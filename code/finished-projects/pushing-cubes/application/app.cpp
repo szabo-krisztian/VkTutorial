@@ -23,8 +23,11 @@ App::App()
     InitCommands();
     InitSyncStructures();
 
-    CreateVertexBuffer();
-    CreateIndexBuffer();
+    CreateCubeVertexBuffer();
+    CreateCubeIndexBuffer();
+    CreateBulletVertexBuffer();
+    CreateBulletIndexBuffer();
+
     CreateUniformBuffers();
     CreateDepthResources();
 
@@ -85,51 +88,7 @@ void App::InitSyncStructures()
     }
 }
 
-void App::CreateVertexBuffer()
-{
-    VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertices.size();
-    
-    Buffer stagingBuffer;
-    
-    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
 
-    VK_CHECK_RESULT(stagingBuffer.Map());
-    stagingBuffer.CopyTo(_vertices.data(), bufferSize);
-
-    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_vertexBuffer, bufferSize));
-    ENQUEUE_OBJ_DEL(( [this]() { _vertexBuffer.Destroy(); } ));
-
-    CopyBuffer(stagingBuffer.buffer, _vertexBuffer.buffer, bufferSize);
-
-    stagingBuffer.Destroy();
-}
-
-void App::CreateIndexBuffer()
-{
-    VkDeviceSize bufferSize = sizeof(_indices[0]) * _indices.size();
-    
-    Buffer stagingBuffer;
-    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
-    VK_CHECK_RESULT(stagingBuffer.Map());
-    stagingBuffer.CopyTo(_indices.data(), bufferSize);
-
-    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_indexBuffer, bufferSize));
-    ENQUEUE_OBJ_DEL(( [this]() { _indexBuffer.Destroy(); } ));
-
-    CopyBuffer(stagingBuffer.buffer, _indexBuffer.buffer, bufferSize);
-
-    stagingBuffer.Destroy();
-}
-
-void App::CreateUniformBuffers()
-{
-    for (size_t i = 0; i < FRAME_OVERLAP; i++)
-    {
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_uniformBuffers[i], sizeof(UniformBufferObject)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _uniformBuffers[i].Destroy(); } ));
-        VK_CHECK_RESULT(_uniformBuffers[i].Map());   
-    }
-}
 
 void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
@@ -153,6 +112,87 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     vkQueueWaitIdle(device.queues.graphics);
 
     vkFreeCommandBuffers(device, _transferPool, 1, &commandBuffer);
+}
+
+void App::CreateCubeVertexBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(_boxVertices[0]) * _boxVertices.size();
+    
+    Buffer stagingBuffer;    
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
+    VK_CHECK_RESULT(stagingBuffer.Map());
+    stagingBuffer.CopyTo(_boxVertices.data(), bufferSize);
+
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_boxVertexBuffer, bufferSize));
+    ENQUEUE_OBJ_DEL(( [this]() { _boxVertexBuffer.Destroy(); } ));
+
+    CopyBuffer(stagingBuffer.buffer, _boxVertexBuffer.buffer, bufferSize);
+
+    stagingBuffer.Destroy();
+}
+
+void App::CreateCubeIndexBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(_boxIndices[0]) * _boxIndices.size();
+    
+    Buffer stagingBuffer;
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
+    VK_CHECK_RESULT(stagingBuffer.Map());
+    stagingBuffer.CopyTo(_boxIndices.data(), bufferSize);
+
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_boxIndexBuffer, bufferSize));
+    ENQUEUE_OBJ_DEL(( [this]() { _boxIndexBuffer.Destroy(); } ));
+
+    CopyBuffer(stagingBuffer.buffer, _boxIndexBuffer.buffer, bufferSize);
+
+    stagingBuffer.Destroy();
+}
+
+void App::CreateBulletVertexBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(_bulletVertices[0]) * _bulletVertices.size();
+    
+    Buffer stagingBuffer;
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
+    VK_CHECK_RESULT(stagingBuffer.Map());
+    stagingBuffer.CopyTo(_bulletVertices.data(), bufferSize);
+
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_bulletVertexBuffer, bufferSize));
+    ENQUEUE_OBJ_DEL(( [this]() { _bulletVertexBuffer.Destroy(); } ));
+
+    CopyBuffer(stagingBuffer.buffer, _bulletVertexBuffer.buffer, bufferSize);
+
+    stagingBuffer.Destroy();
+}
+
+void App::CreateBulletIndexBuffer()
+{
+    VkDeviceSize bufferSize = sizeof(_bulletIndices[0]) * _bulletIndices.size();
+    
+    Buffer stagingBuffer;
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
+    VK_CHECK_RESULT(stagingBuffer.Map());
+    stagingBuffer.CopyTo(_bulletIndices.data(), bufferSize);
+
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_bulletIndexBuffer, bufferSize));
+    ENQUEUE_OBJ_DEL(( [this]() { _bulletIndexBuffer.Destroy(); } ));
+
+    CopyBuffer(stagingBuffer.buffer, _bulletIndexBuffer.buffer, bufferSize);
+
+    stagingBuffer.Destroy();
+}
+
+
+
+
+void App::CreateUniformBuffers()
+{
+    for (size_t i = 0; i < FRAME_OVERLAP; i++)
+    {
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_uniformBuffers[i], sizeof(UniformBufferObject)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _uniformBuffers[i].Destroy(); } ));
+        VK_CHECK_RESULT(_uniformBuffers[i].Map());   
+    }
 }
 
 void App::CreateDescriptorPool()
@@ -184,6 +224,9 @@ void App::CreateDescriptorSetLayout()
     VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_descriptorSetLayout));
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _descriptorSetLayout, nullptr); } ));
 }
+
+
+
 
 void App::CreateRenderPass()
 {
@@ -360,6 +403,9 @@ void App::CreateGraphicsPipeline()
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipeline(device, _graphicsPipeline, nullptr); } ));
 }
 
+
+
+
 void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo = init::CommandBufferBeginInfo();
@@ -382,16 +428,16 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
     // Drawing command
-    VkBuffer vertexBuffers[] = {_vertexBuffer.buffer};
+    VkBuffer vertexBuffers[] = {_bulletVertexBuffer.buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
     // Drawing command
-    vkCmdBindIndexBuffer(cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(cmd, _bulletIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
 
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
-
+    
     // Drawing command
     vkCmdSetViewport(cmd, 0, 1, &viewport);
 
@@ -399,7 +445,8 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_frameNumber], 0, nullptr);
-    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_indices.size()), 1, 0, 0, 0);
+
+    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_bulletIndices.size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(cmd);
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
