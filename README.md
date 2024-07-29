@@ -1,6 +1,7 @@
 <p align="center">
     <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" alt="shooter" />
 </p>
+
 # Vulkan API Tutorial
 
 Welcome to my Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload, improve my code every day.
@@ -50,4 +51,4 @@ Contributions are welcome! If you have suggestions for improvements or find bugs
 
 ## Lincense
 
-This project includes code from the following third-party libraries, which are licensed under the MIT License. All the necessary details can be found in the LICENSE.md file, at t he projects root diretory and also in source files.
+This project includes code from the following third-party libraries, which are licensed under the MIT License. All the necessary details can be found in the LICENSE.md file, at the projects root diretory and also in source files.
