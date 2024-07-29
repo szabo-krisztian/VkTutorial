@@ -1,11 +1,15 @@
-# My build command:
-# cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3" -DGLM_PATH="C:/glm"
-
 cmake_minimum_required(VERSION 3.10)
 project(MyVulkanProject)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set compile options for static runtime linking
+add_compile_options(
+    "$<$<CONFIG:Debug>:/MTd>"
+    "$<$<CONFIG:Release>:/MT>"
+)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 find_package(Vulkan REQUIRED)
 if(NOT Vulkan_FOUND)
@@ -45,9 +49,25 @@ add_subdirectory(application)
 
 add_executable(Main main.cpp)
 
+set(PHYSX_INCLUDE "C:/PhysX-106.0-physx-5.4.1/physx/include")
+set(PHYSX_LIB_DIRECTORY "C:/PhysX-106.0-physx-5.4.1/physx/bin/win.x86_64.vc142.mt")
+
+add_library(PHYSX INTERFACE)
+target_include_directories(PHYSX INTERFACE ${PHYSX_INCLUDE})
+target_link_directories(PHYSX INTERFACE "${PHYSX_LIB_DIRECTORY}/checked")
+target_link_libraries(PHYSX
+    INTERFACE PhysXExtensions_static_64
+              PhysX_64
+              PhysXPvdSDK_static_64
+              PhysXCommon_64
+              PhysXFoundation_64
+              PhysXCooking_64
+)
+
 target_include_directories(Main
     PRIVATE application
 )
 target_link_libraries(Main
     PRIVATE App
+            msvcrt
 )
