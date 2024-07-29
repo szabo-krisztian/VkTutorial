@@ -29,7 +29,7 @@ CameraCreateInfo cameraCI = {
     90.0f,                         // initialYaw
     90.0f,                         // initialPitch
     0.1f,                          // sensitivity
-    8.5f,                          // movementSpeed
+    14.5f,                          // movementSpeed
     0.1f,                          // near
     100.0f                         // far
 };

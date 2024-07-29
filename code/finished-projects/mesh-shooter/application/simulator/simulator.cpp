@@ -78,7 +78,7 @@ void Simulator::ShootBullet(const PxVec3& velocity, const PxVec3& position)
 {
 	if (_bulletActors.size() < _MAX_BULLETS)
 	{
-		_bulletActors.push_back(CreateDynamic(PxTransform(position), PxConvexMeshGeometry(_bulletMesh), 1000.0f));
+		_bulletActors.push_back(CreateDynamic(PxTransform(position), PxConvexMeshGeometry(_bulletMesh), 500.0f));
 	}
 
 	auto& currentBullet = _bulletActors[_currentBullet];

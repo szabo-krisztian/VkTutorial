@@ -47,7 +47,7 @@ App::App()
     CreateDepthResources();
     CreateRenderPass();
     CreateGraphicsPipeline();
-    CreateFramebuffers();
+    CreateFramebuffers();        
 }
 
 App::~App()
@@ -125,10 +125,10 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 
 void App::CreateCubeVertices()
 {
-    _simulator.CreateMainMesh(physx::PxVec3(0, 40, 0), physx::PxVec3(10, 10, 10), 30);
+    _simulator.CreateMainMesh(physx::PxVec3(0, 100, 0), physx::PxVec3(15, 15, 15), 30);
     for (const auto& pos : _simulator.GetMainMeshTriangles())
     {
-        _boxVertices.push_back(Vertex{pos, {util::RandomFloat(0.5f, .8f), util::RandomFloat(0.5f, .8f), util::RandomFloat(0.5f, .8f)}});
+        _boxVertices.push_back(Vertex{pos, {util::RandomFloat(0.0f, 1.0f), 0, util::RandomFloat(0.0f, 1.0f)}});
     }
 }
 
