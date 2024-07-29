@@ -25,11 +25,10 @@ void SimulatorBase::Update(float fps)
 	gScene->fetchResults(true);
 }
 
-PxRigidDynamic* SimulatorBase::CreateDynamic(const PxTransform& transform, const PxGeometry& geometry)
+PxRigidDynamic* SimulatorBase::CreateDynamic(const PxTransform& transform, const PxGeometry& geometry, PxReal density)
 {
-	PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, transform, geometry, *gMaterial, 10.0f);
-	dynamic->setAngularDamping(0.1f);
-	dynamic->setLinearDamping(0.1f);
+	PxRigidDynamic* dynamic = PxCreateDynamic(*gPhysics, transform, geometry, *gMaterial, density);
+	dynamic->setAngularDamping(0.5f);
 	gScene->addActor(*dynamic);
 	return dynamic;
 }

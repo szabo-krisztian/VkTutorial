@@ -4,7 +4,6 @@ project(MyVulkanProject)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Set compile options for static runtime linking
 add_compile_options(
     "$<$<CONFIG:Debug>:/MTd>"
     "$<$<CONFIG:Release>:/MT>"

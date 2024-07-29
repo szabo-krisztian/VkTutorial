@@ -33,6 +33,8 @@ public:
     glm::mat4 GetViewMatrix()           const;
     glm::mat4 GetProjectionMatrix()     const;
     glm::mat4 GetViewProjectionMatrix() const;
+    glm::vec3 GetForwardVector()        const;
+    glm::vec3 GetPosition()             const;
 
     void CursorMovementCallback(float xoffset, float yoffset);
     void MoveForward(float deltaTime);

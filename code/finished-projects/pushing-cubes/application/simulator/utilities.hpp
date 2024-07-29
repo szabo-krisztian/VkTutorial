@@ -17,6 +17,8 @@ namespace util
 
 glm::vec3 PxVec3ToGlmVec3(const PxVec3& vector);
 
+PxVec3 GlmVec3ToPxVec3(const glm::vec3& vector);
+
 glm::mat4 PxTransformToGlmMat4(const PxTransform& transform);
 
 PxConvexMesh* CreateRandomConvexMesh(PxPhysics* physics, const PxVec3& size, const PxU32& vertexCount);

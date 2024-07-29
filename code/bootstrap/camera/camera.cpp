@@ -34,6 +34,16 @@ glm::mat4 Camera::GetViewProjectionMatrix() const
     return GetProjectionMatrix() * GetViewMatrix();
 }
 
+glm::vec3 Camera::GetForwardVector() const
+{
+    return _front;
+}
+
+glm::vec3 Camera::GetPosition() const
+{
+    return _position;
+}
+
 void Camera::MoveForward(float deltaTime)
 {
     glm::vec3 front_y_null(_front.x, 0.0f, _front.z);

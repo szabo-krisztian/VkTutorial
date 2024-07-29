@@ -26,6 +26,7 @@ public:
     void                   CreateBulletMesh(const PxVec3& dimensions, const PxU32& vertexCount);
     std::vector<glm::vec3> GetBulletMeshTriangles();
 
+    size_t                 GetBulletCount();
     void                   ShootBullet(const PxVec3& direction, const PxVec3& position);
     std::vector<glm::mat4> GetBulletTransforms();    
 

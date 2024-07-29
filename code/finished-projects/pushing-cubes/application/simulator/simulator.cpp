@@ -45,7 +45,7 @@ void Simulator::CleanPhysX()
 void Simulator::CreateMainMesh(const PxVec3& worldPosition, const PxVec3& dimensions, const PxU32& vertexCount)
 {
 	_mainMesh = util::CreateRandomConvexMesh(gPhysics, dimensions, vertexCount);
-	_mainActor = CreateDynamic(PxTransform(worldPosition), PxConvexMeshGeometry(_mainMesh));
+	_mainActor = CreateDynamic(PxTransform(worldPosition), PxConvexMeshGeometry(_mainMesh), 10.0f);
 }
 
 std::vector<glm::vec3> Simulator::GetMainMeshTriangles()
@@ -69,12 +69,18 @@ std::vector<glm::vec3> Simulator::GetBulletMeshTriangles()
 	return util::GetConvexMeshTriangles(_bulletMesh);
 }
 
+size_t Simulator::GetBulletCount()
+{
+	return _bulletActors.size();
+}
+
 void Simulator::ShootBullet(const PxVec3& velocity, const PxVec3& position)
 {
 	if (_bulletActors.size() < _MAX_BULLETS)
 	{
-		_bulletActors.push_back(CreateDynamic(PxTransform(position), PxConvexMeshGeometry(_bulletMesh)));
+		_bulletActors.push_back(CreateDynamic(PxTransform(position), PxConvexMeshGeometry(_bulletMesh), 1000.0f));
 	}
+
 	auto& currentBullet = _bulletActors[_currentBullet];
 	currentBullet->setGlobalPose(PxTransform(position));
 	currentBullet->setLinearVelocity(velocity);

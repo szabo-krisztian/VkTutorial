@@ -25,7 +25,7 @@ protected:
     static PxMaterial             *gMaterial;
     static PxPvd                  *gPvd;
 
-    PxRigidDynamic* CreateDynamic(const PxTransform& transform, const PxGeometry& geometry);
+    PxRigidDynamic* CreateDynamic(const PxTransform& transform, const PxGeometry& geometry, PxReal density);
 
 private:
     PxRigidStatic *_groundPlane;

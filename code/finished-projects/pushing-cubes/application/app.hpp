@@ -59,21 +59,6 @@ private:
     Buffer _boxVertexBuffer;
     std::vector<Vertex> _boxVertices;
 
-    Buffer _boxIndexBuffer;
-    const std::vector<uint16_t> _boxIndices = {
-        0, 1, 2, 2, 3, 0,
-
-        7, 6, 5, 7, 5, 4,
-
-        1, 6, 2, 1, 5, 6,
-
-        4, 0, 3, 4, 3, 7,
-
-        3, 2, 6, 3, 6, 7,
-
-        4, 5, 1, 4, 1, 0
-    };
-
     struct
     {
         Buffer          ubos[FRAME_OVERLAP];
@@ -81,31 +66,7 @@ private:
     } _cubeTransform;
     
     Buffer _bulletVertexBuffer;
-    const std::vector<Vertex> _bulletVertices = {
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, 
-        {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},   
-        {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  
-        {{0.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}}    
-    };
-
-
-    Buffer _bulletIndexBuffer;
-    const std::vector<uint16_t> _bulletIndices = {
-    0, 1, 2,
-    3, 4, 5,
-    6, 7, 8,
-    9, 10, 11,
-    12, 13, 14,
-    15, 16, 17,
-    18, 19, 20,
-    21, 22, 23,
-    24, 25, 26,
-    27, 28, 29,
-    30, 31, 32,
-    33, 34, 35,
-    36, 37, 38,
-    39, 40, 41
-};
+    std::vector<Vertex> _bulletVertices;
 
     struct
     {
@@ -118,6 +79,7 @@ private:
     std::vector<VkFramebuffer> _framebuffers;
     VkPipelineLayout           _pipelineLayout;
     VkPipeline                 _graphicsPipeline;
+    Simulator                  _simulator;
 
     struct DepthBuffer
     {
@@ -127,21 +89,19 @@ private:
     } _depthBuffer;
     
     DeletionQueue _deletionQueue;
+    
 
     void        InitCommands();
     void        InitSyncStructures();
     FrameData&  GetCurrentFrameData();
-    
-    Simulator sim;
 
     void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    void        CreateCubeVertices();
     void        CreateCubeVertexBuffer();
-    void        CreateCubeIndexBuffer();
+    void        CreateBulletVertices();
     void        CreateBulletVertexBuffer();
-    void        CreateBulletIndexBuffer();
 
     void        CreateDescriptorPool();
-
     void        CreateCameraTransformDescriptorSetLayout();
     void        CreateCameraTransformUniformBuffers();
     void        CreateCameraTransformDescriptorSets();
@@ -151,6 +111,7 @@ private:
     void        CreateCubeTransformUniformBuffers();
     void        CreateCubeTransformDescriptorSets();
     void        UpdateCubeTransform(uint32_t currentImage);
+    
     void        CreateBulletTransformsUniformBuffers();
     void        CreateBulletTransformsDescriptorSets();
     void        UpdateBulletTransforms(uint32_t currentImage);
@@ -160,7 +121,8 @@ private:
     void        CreateFramebuffers();
     void        CreateGraphicsPipeline();
     void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
-    
+    void        ShootBullet();
+
     void        CreateDepthResources();
     VkFormat    FindDepthFormat();
     VkFormat    FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
