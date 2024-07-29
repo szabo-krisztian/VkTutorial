@@ -37,6 +37,9 @@ App::App()
     CreateModelTransformDescriptorSetLayout();
     CreateCubeTransformUniformBuffers();
     CreateCubeTransformDescriptorSets();
+    CreateBulletTransformsUniformBuffers();
+    CreateBulletTransformsDescriptorSets();
+
 
     CreateDepthResources();
     CreateRenderPass();
@@ -282,6 +285,37 @@ void App::UpdateCubeTransform(uint32_t currentImage)
     glm::mat4 ubo(1.0f);
     ubo = glm::scale(ubo, glm::vec3(3,3,3));
     memcpy(_cubeTransform.ubos[currentImage].mapped, &ubo, sizeof(ubo));
+}
+
+void App::CreateBulletTransformsUniformBuffers()
+{
+    for (size_t i = 0; i < FRAME_OVERLAP * BULLET_COUNT; i++) 
+    {
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_bulletTransforms  .ubos[i], sizeof(glm::mat4)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _bulletTransforms.ubos[i].Destroy(); } ));
+        VK_CHECK_RESULT(_bulletTransforms.ubos[i].Map());   
+    }
+}
+
+void App::CreateBulletTransformsDescriptorSets()
+{
+    std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP * BULLET_COUNT, _modelTransformLayout);
+    VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP * BULLET_COUNT));
+    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _bulletTransforms.sets));
+
+    for (size_t i = 0; i < FRAME_OVERLAP * BULLET_COUNT; i++)
+    {
+        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_bulletTransforms.sets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_bulletTransforms.ubos[i].descriptor);
+        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+    }
+}
+
+void App::UpdateBulletTransforms(uint32_t currentImage)
+{
+    /*
+     *  std::vector<glm::mat4> trasnfoms = GetFromPhysX()
+     *  Update _bulletTransform.ubos accordingly
+     */
 }
 
 

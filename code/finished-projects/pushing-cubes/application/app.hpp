@@ -52,6 +52,8 @@ private:
         VkDescriptorSet       sets[FRAME_OVERLAP];
     } _cameraTransform;
 
+    VkDescriptorSetLayout _modelTransformLayout;
+
     Buffer _boxVertexBuffer;
     const std::vector<Vertex> _boxVertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
@@ -80,20 +82,12 @@ private:
         4, 5, 1, 4, 1, 0
     };
 
-    VkDescriptorSetLayout _modelTransformLayout;
     struct
     {
         Buffer          ubos[FRAME_OVERLAP];
         VkDescriptorSet sets[FRAME_OVERLAP];
     } _cubeTransform;
-    struct
-    {
-        Buffer          ubos[FRAME_OVERLAP * BULLET_COUNT];
-        VkDescriptorSet sets[FRAME_OVERLAP * BULLET_COUNT];
-    } _bulletTransforms;
-
-
-
+    
     Buffer _bulletVertexBuffer;
     const std::vector<Vertex> _bulletVertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, 
@@ -110,6 +104,13 @@ private:
         1, 2, 0
     };
     
+    struct
+    {
+        Buffer          ubos[FRAME_OVERLAP * BULLET_COUNT];
+        VkDescriptorSet sets[FRAME_OVERLAP * BULLET_COUNT];
+        int             count = 0;  
+    } _bulletTransforms;
+
     VkRenderPass               _renderPass;
     std::vector<VkFramebuffer> _framebuffers;
     VkPipelineLayout           _pipelineLayout;
@@ -149,7 +150,9 @@ private:
     void        CreateCubeTransformUniformBuffers();
     void        CreateCubeTransformDescriptorSets();
     void        UpdateCubeTransform(uint32_t currentImage);
-
+    void        CreateBulletTransformsUniformBuffers();
+    void        CreateBulletTransformsDescriptorSets();
+    void        UpdateBulletTransforms(uint32_t currentImage);
     
 
     void        CreateRenderPass();
