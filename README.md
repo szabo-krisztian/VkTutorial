@@ -1,10 +1,10 @@
-<p align="center">
-    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" alt="shooter" />
-</p>
-
 # Vulkan API Tutorial
 
 Welcome to my Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload, improve my code every day.
+
+<p align="center">
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" alt="shooter" />
+</p>
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -13,6 +13,7 @@ Welcome to my Vulkan API tutorial repository! This repository represents my pers
   - [Books](#books)
   - [Online Tutorials](#online-tutorials)
   - [Repositories](#repositories)
+  - [YouTube Channel](#youtube-channel)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -28,6 +29,9 @@ This repository contains tutorials, examples, and experiments that I have create
 
 Here is a comprehensive list of resources that have been instrumental in my learning journey:
 
+### YouTube Channel
+- **Computer Graphics at TU Wien**: A channel providing educational content on computer graphics and related topics. [link](https://www.youtube.com/@cgtuwien)
+
 ### Books
 - **"Real-Time Rendering, Fourth Edition"** by Tomas Akenine-Möller, Eric Haines, Naty Hoffman: An authoritative guide on the theory and practice of real-time rendering.
 
@@ -40,7 +44,6 @@ Here is a comprehensive list of resources that have been instrumental in my lear
 
 - **The Vulkan Guide**: A detailed guide and tutorial series on Vulkan. [link](https://vkguide.dev/)
 
-
 ### Repositories
 - **Sascha Willems' Vulkan Examples**: A collection of examples and demos that cover various aspects of Vulkan. [link](https://github.com/SaschaWillems/Vulkan)
 - **Vulkan samples**: Official Vulkan samples from the Khronos Group. [link](https://github.com/KhronosGroup/Vulkan-Samples)
@@ -49,6 +52,6 @@ Here is a comprehensive list of resources that have been instrumental in my lear
 
 Contributions are welcome! If you have suggestions for improvements or find bugs, please open an issue or submit a pull request. Let's learn and improve together.
 
-## Lincense
+## License
 
-This project includes code from the following third-party libraries, which are licensed under the MIT License. All the necessary details can be found in the LICENSE.md file, at the projects root diretory and also in source files.
+This project includes code from a variety of third-party libraries, which are licensed under various licenses. All the necessary details can be found in the `LICENSE.md` file, located in the project's root directory and also in the source files.
