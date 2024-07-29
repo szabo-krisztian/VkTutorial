@@ -10,6 +10,7 @@
 #include "deletion_queue.hpp"
 #include "shader_vertex.hpp"
 #include "simulator.hpp"
+#include "utilities.hpp"
 
 #define FRAME_OVERLAP 2
 #define BULLET_COUNT 10
@@ -56,17 +57,7 @@ private:
     VkDescriptorSetLayout _modelTransformLayout;
 
     Buffer _boxVertexBuffer;
-    const std::vector<Vertex> _boxVertices = {
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-
-        {{-0.5f, -0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, -0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}}
-    };
+    std::vector<Vertex> _boxVertices;
 
     Buffer _boxIndexBuffer;
     const std::vector<uint16_t> _boxIndices = {
@@ -147,9 +138,7 @@ private:
     void        CreateCubeVertexBuffer();
     void        CreateCubeIndexBuffer();
     void        CreateBulletVertexBuffer();
-    void        CreateBulletIndexBuffer();    
-
-
+    void        CreateBulletIndexBuffer();
 
     void        CreateDescriptorPool();
 

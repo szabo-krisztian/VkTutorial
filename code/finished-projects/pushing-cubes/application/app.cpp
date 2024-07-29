@@ -23,8 +23,22 @@ App::App()
     InitCommands();
     InitSyncStructures();
 
+    sim.CreateMainMesh(physx::PxVec3(0, 10, 0), physx::PxVec3(10, 10, 10), 30);
+    std::vector<Vertex> v;
+    for (const auto& pos : sim.GetMainMeshTriangles())
+    {
+        Vertex vv;
+        vv.pos = pos;
+        vv.color = {util::RandomFloat(0.5f, .8f), util::RandomFloat(0.5f, .8f), util::RandomFloat(0.5f, .8f)};
+        v.push_back(vv);
+    }
+    _boxVertices = v;
+    
+    
     CreateCubeVertexBuffer();
-    CreateCubeIndexBuffer();
+
+
+    //CreateCubeIndexBuffer();
     CreateBulletVertexBuffer();
     CreateBulletIndexBuffer();
 
@@ -457,7 +471,7 @@ void App::CreateGraphicsPipeline()
     VkPipelineViewportStateCreateInfo viewportStateCI = init::PipelineViewportStateCreateInfo(1, &viewport, 1, &scissor, 0);
 
     // Rasterizer
-    VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
+    VkPipelineRasterizationStateCreateInfo rasterizer = init::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, 0);
 
     // Multisampling
     VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
@@ -528,7 +542,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
     // Drawing command
-    vkCmdBindIndexBuffer(cmd, _boxIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
+    //vkCmdBindIndexBuffer(cmd, _boxIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
 
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
@@ -542,7 +556,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_cameraTransform.sets[_frameNumber], 0, nullptr);
     
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_cubeTransform.sets[_frameNumber], 0, nullptr);
-    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_boxIndices.size()), 1, 0, 0, 0);
+    vkCmdDraw(cmd, _boxVertices.size(), 1, 0, 0);
 
     vkCmdEndRenderPass(cmd);
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
