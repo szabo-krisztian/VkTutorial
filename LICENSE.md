@@ -1,8 +1,8 @@
 # LICENSE
 
-*This project uses code from the following third-party libraries, which are licensed under the MIT License.*
+*This project uses code from the following third-party libraries, which are licensed under various licenses.*
 
-# Library 1: Sascha Willems’ Code
+## Library 1: Sascha Willems’ Code
 
 The MIT License (MIT)
 
@@ -14,7 +14,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Library 2: Charles Giessen’s Code
+## Library 2: Charles Giessen’s Code
 
 Copyright © 2020 Charles Giessen (charles@lunarg.com)
 
@@ -50,7 +50,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-
 ## Library 4: GLFW
 
 Copyright (c) 2002-2006 Marcus Geelnard
@@ -66,7 +65,6 @@ Permission is granted to anyone to use this software for any purpose, including 
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 
 3. This notice may not be removed or altered from any source distribution.
-
 
 ## Library 5: Vulkan
 
@@ -159,3 +157,25 @@ granted to You under this License for that Work shall terminate
 as of the date such litigation is filed.
 
 3. Redistribution. You may reproduce
+
+## Library 6: NVIDIA PhysX SDK
+
+BSD 3-Clause License
+
+Copyright (c) 2008-2024, NVIDIA Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+   
+ * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+   
+ * Neither the name of NVIDIA CORPORATION nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
