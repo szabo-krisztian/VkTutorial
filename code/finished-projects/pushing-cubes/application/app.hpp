@@ -52,10 +52,7 @@ private:
         VkDescriptorSet       sets[FRAME_OVERLAP];
     } _cameraTransform;
 
-    //Buffer                _cameraTransformBuffer[FRAME_OVERLAP];
-    //VkDescriptorSetLayout _cameraTransformLayout;
-    //VkDescriptorSet       _cameraTransformSets[FRAME_OVERLAP];
-
+    Buffer _boxVertexBuffer;
     const std::vector<Vertex> _boxVertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
         {{0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
@@ -68,6 +65,7 @@ private:
         {{-0.5f, 0.5f, 1.0f}, {0.0f, 1.0f, 0.0f}}
     };
 
+    Buffer _boxIndexBuffer;
     const std::vector<uint16_t> _boxIndices = {
         0, 1, 2, 2, 3, 0,
 
@@ -82,14 +80,21 @@ private:
         4, 5, 1, 4, 1, 0
     };
 
-    Buffer _boxVertexBuffer;
-    Buffer _boxIndexBuffer;
+    VkDescriptorSetLayout _modelTransformLayout;
+    struct
+    {
+        Buffer          ubos[FRAME_OVERLAP];
+        VkDescriptorSet sets[FRAME_OVERLAP];
+    } _cubeTransform;
+    struct
+    {
+        Buffer          ubos[FRAME_OVERLAP * BULLET_COUNT];
+        VkDescriptorSet sets[FRAME_OVERLAP * BULLET_COUNT];
+    } _bulletTransforms;
 
-    Buffer                _uniformBuffers[FRAME_OVERLAP];
-    VkDescriptorSetLayout _descriptorSetLayout;
-    VkDescriptorSet       _descriptorSets[FRAME_OVERLAP];
-    
-    
+
+
+    Buffer _bulletVertexBuffer;
     const std::vector<Vertex> _bulletVertices = {
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, 
         {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},   
@@ -97,18 +102,14 @@ private:
         {{0.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}}    
     };
 
+    Buffer _bulletIndexBuffer;
     const std::vector<uint16_t> _bulletIndices = {
         0, 2, 3,
         2, 1, 3,
         1, 0, 3,
         1, 2, 0
     };
-
-    Buffer _bulletVertexBuffer;
-    Buffer _bulletIndexBuffer;
-
     
-
     VkRenderPass               _renderPass;
     std::vector<VkFramebuffer> _framebuffers;
     VkPipelineLayout           _pipelineLayout;
@@ -127,23 +128,29 @@ private:
     void        InitSyncStructures();
     FrameData&  GetCurrentFrameData();
     
+
+
     void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void        CreateCubeVertexBuffer();
     void        CreateCubeIndexBuffer();
     void        CreateBulletVertexBuffer();
     void        CreateBulletIndexBuffer();    
 
-    void        CreateCameraTransformDescriptorSetLayout();
-    void        CreateCameraTransformBuffer();
-    void        CreateCameraTransformDescriptorSets();
 
 
-    void        CreateDescriptorSetLayout();
-    void        CreateUniformBuffers();
-    void        UpdateUniformBuffer(uint32_t currentImage);
-    void        UpdateModel(uint32_t currentImage);
     void        CreateDescriptorPool();
-    void        CreateDescriptorSets();
+
+    void        CreateCameraTransformDescriptorSetLayout();
+    void        CreateCameraTransformUniformBuffers();
+    void        CreateCameraTransformDescriptorSets();
+    void        UpdateCameraTransform(uint32_t currentImage);
+
+    void        CreateModelTransformDescriptorSetLayout();
+    void        CreateCubeTransformUniformBuffers();
+    void        CreateCubeTransformDescriptorSets();
+    void        UpdateCubeTransform(uint32_t currentImage);
+
+    
 
     void        CreateRenderPass();
     void        CreateFramebuffers();

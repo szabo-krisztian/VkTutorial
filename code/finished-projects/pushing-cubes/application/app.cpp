@@ -30,13 +30,13 @@ App::App()
 
     CreateDescriptorPool();
 
-    CreateCameraTransformBuffer();
     CreateCameraTransformDescriptorSetLayout();
+    CreateCameraTransformUniformBuffers();
     CreateCameraTransformDescriptorSets();
     
-    CreateUniformBuffers();
-    CreateDescriptorSetLayout();
-    CreateDescriptorSets();
+    CreateModelTransformDescriptorSetLayout();
+    CreateCubeTransformUniformBuffers();
+    CreateCubeTransformDescriptorSets();
 
     CreateDepthResources();
     CreateRenderPass();
@@ -186,13 +186,22 @@ void App::CreateBulletIndexBuffer()
 }
 
 
+
 void App::CreateDescriptorPool()
 {
-    VkDescriptorPoolSize poolSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(FRAME_OVERLAP));
-    VkDescriptorPoolSize poolSize2 = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, static_cast<uint32_t>(FRAME_OVERLAP));
-    VkDescriptorPoolSize poolsizes[] = {poolSize, poolSize2};
+    uint32_t cameraTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
+    VkDescriptorPoolSize cameraTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, cameraTransformDescriptorCount);
 
-    VkDescriptorPoolCreateInfo poolInfo = init::DescriptorPoolCreateInfo(2, poolsizes, static_cast<uint32_t>(FRAME_OVERLAP) * 2);
+    uint32_t cubeTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
+    VkDescriptorPoolSize cubeTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, cubeTransformDescriptorCount);
+
+    uint32_t bulletTransformsDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP) * BULLET_COUNT;
+    VkDescriptorPoolSize bulletTransformsSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, bulletTransformsDescriptorCount);
+
+    uint32_t maxDescriptorCount = cameraTransformDescriptorCount + cubeTransformDescriptorCount + bulletTransformsDescriptorCount;
+    VkDescriptorPoolSize poolsizes[] = {cameraTransformSize, cubeTransformSize, bulletTransformsSize};
+    VkDescriptorPoolCreateInfo poolInfo = init::DescriptorPoolCreateInfo(3, poolsizes, maxDescriptorCount);
+
     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool));
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorPool(device, _descriptorPool, nullptr); } ));
 }
@@ -205,7 +214,7 @@ void App::CreateCameraTransformDescriptorSetLayout()
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _cameraTransform.layout, nullptr); } ));
 }
 
-void App::CreateCameraTransformBuffer()
+void App::CreateCameraTransformUniformBuffers()
 {
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
@@ -219,7 +228,6 @@ void App::CreateCameraTransformDescriptorSets()
 {
     std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _cameraTransform.layout);
     VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP));
-
     VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _cameraTransform.sets));
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
@@ -229,40 +237,53 @@ void App::CreateCameraTransformDescriptorSets()
     }
 }
 
+void App::UpdateCameraTransform(uint32_t currentImage)
+{
+    UniformBufferObject ubo{};
+    ubo.view = camera.GetViewMatrix();
+    ubo.proj = camera.GetProjectionMatrix();
+    memcpy(_cameraTransform.ubos[currentImage].mapped, &ubo, sizeof(ubo));
+}
 
+void App::CreateModelTransformDescriptorSetLayout()
+{
+    VkDescriptorSetLayoutBinding uboLayoutBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0, 1);
+    VkDescriptorSetLayoutCreateInfo layoutInfo = init::DescriptorSetLayoutCreateInfo(1, &uboLayoutBinding);
+    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_modelTransformLayout));
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _modelTransformLayout, nullptr); } ));
+}
 
-
-void App::CreateUniformBuffers()
+void App::CreateCubeTransformUniformBuffers()
 {
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_uniformBuffers[i], sizeof(glm::mat4)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _uniformBuffers[i].Destroy(); } ));
-        VK_CHECK_RESULT(_uniformBuffers[i].Map());   
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_cubeTransform.ubos[i], sizeof(glm::mat4)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _cubeTransform.ubos[i].Destroy(); } ));
+        VK_CHECK_RESULT(_cubeTransform.ubos[i].Map());   
     }
 }
 
-void App::CreateDescriptorSets()
+void App::CreateCubeTransformDescriptorSets()
 {
-    std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _descriptorSetLayout);
+    std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _modelTransformLayout);
     VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP));
 
-    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _descriptorSets));
+    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _cubeTransform.sets));
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_descriptorSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_uniformBuffers[i].descriptor);
+        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_cubeTransform.sets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_cubeTransform.ubos[i].descriptor);
         vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
     }
 }
 
-void App::CreateDescriptorSetLayout()
+void App::UpdateCubeTransform(uint32_t currentImage)
 {
-    VkDescriptorSetLayoutBinding uboLayoutBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0, 1);
-    VkDescriptorSetLayoutCreateInfo layoutInfo = init::DescriptorSetLayoutCreateInfo(1, &uboLayoutBinding);
-    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_descriptorSetLayout));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _descriptorSetLayout, nullptr); } ));
+    glm::mat4 ubo(1.0f);
+    ubo = glm::scale(ubo, glm::vec3(3,3,3));
+    memcpy(_cubeTransform.ubos[currentImage].mapped, &ubo, sizeof(ubo));
 }
+
 
 
 
@@ -416,7 +437,7 @@ void App::CreateGraphicsPipeline()
     pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     
     pipelineLayoutCI.setLayoutCount = 2;
-    VkDescriptorSetLayout layout[] = {_cameraTransform.layout, _descriptorSetLayout};
+    VkDescriptorSetLayout layout[] = {_cameraTransform.layout, _modelTransformLayout};
     pipelineLayoutCI.pSetLayouts = layout;
     
 
@@ -486,33 +507,19 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_cameraTransform.sets[_frameNumber], 0, nullptr);
     
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_descriptorSets[_frameNumber], 0, nullptr);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_cubeTransform.sets[_frameNumber], 0, nullptr);
     vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_bulletIndices.size()), 1, 0, 0, 0);
 
     vkCmdEndRenderPass(cmd);
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
 }
 
-void App::UpdateUniformBuffer(uint32_t currentImage)
-{
-    UniformBufferObject ubo{};
-    //ubo.model = glm::mat4(1.0f);
-    ubo.view = camera.GetViewMatrix();
-    ubo.proj = camera.GetProjectionMatrix();
-    memcpy(_cameraTransform.ubos[currentImage].mapped, &ubo, sizeof(ubo));
-}
 
-void App::UpdateModel(uint32_t currentImage)
-{
-    glm::mat4 ubo(1.0f);
-    ubo = glm::scale(ubo, glm::vec3(3,3,3));
-    memcpy(_uniformBuffers[currentImage].mapped, &ubo, sizeof(ubo));
-}
 
 void App::Update()
 {
-    UpdateUniformBuffer(_frameNumber);
-    UpdateModel(_frameNumber);
+    UpdateCameraTransform(_frameNumber);
+    UpdateCubeTransform(_frameNumber);
 
     auto frameData = GetCurrentFrameData();
     vkWaitForFences(device, 1, &frameData.renderFence, VK_TRUE, UINT64_MAX);
