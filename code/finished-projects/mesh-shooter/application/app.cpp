@@ -20,7 +20,7 @@ namespace tlr
 
 App::App()
 {
-    inputManager->AddKeyPressListener(GLFW_KEY_H, [&]() { ShootBullet(); });
+    inputManager->AddKeyPressListener(GLFW_KEY_E, [&]() { ShootBullet(); });
 
     InitCommands();
     InitSyncStructures();
@@ -32,11 +32,9 @@ App::App()
     
 
     CreateDescriptorPool();
-
     CreateCameraTransformDescriptorSetLayout();
     CreateCameraTransformUniformBuffers();
     CreateCameraTransformDescriptorSets();
-    
     CreateModelTransformDescriptorSetLayout();
     CreateCubeTransformUniformBuffers();
     CreateCubeTransformDescriptorSets();
@@ -119,16 +117,21 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     submitInfo.pCommandBuffers = &commandBuffer;
     vkQueueSubmit(device.queues.graphics, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(device.queues.graphics);
-
+    
     vkFreeCommandBuffers(device, _transferPool, 1, &commandBuffer);
 }
 
 void App::CreateCubeVertices()
 {
-    _simulator.CreateMainMesh(physx::PxVec3(0, 100, 0), physx::PxVec3(15, 15, 15), 30);
+    physx::PxVec3 cubeDimensions(15.0f, 15.0f, 15.0f);
+    physx::PxVec3 cubePosition(0.0f, 100.0f, 0.0f);
+    physx::PxU32  numberOfVertices = 20;
+
+    _simulator.CreateMainMesh(cubePosition, cubeDimensions, numberOfVertices);
     for (const auto& pos : _simulator.GetMainMeshTriangles())
     {
-        _boxVertices.push_back(Vertex{pos, {util::RandomFloat(0.0f, 1.0f), 0, util::RandomFloat(0.0f, 1.0f)}});
+        glm::vec3 randomColor = {util::RandomFloat(0.0f, 1.0f), 0, util::RandomFloat(0.0f, 1.0f)};
+        _boxVertices.push_back(Vertex{pos, randomColor});
     }
 }
 
@@ -151,17 +154,21 @@ void App::CreateCubeVertexBuffer()
 
 void App::CreateBulletVertices()
 {
-    _simulator.CreateBulletMesh(physx::PxVec3(2, 2, 2), 7);
+    PxVec3 bulletDimensions(2.0f, 2.0f, 2.0f);
+    PxU32  numberOfVertices = 7;
+
+    _simulator.CreateBulletMesh(bulletDimensions, numberOfVertices);
     for (const auto& pos : _simulator.GetBulletMeshTriangles())
     {
-        _bulletVertices.push_back(Vertex{pos, {util::RandomFloat(0.0f, .5f), util::RandomFloat(0.0f, .5f), util::RandomFloat(0.0f, .5f)}});
+        glm::vec3 randomColor = {util::RandomFloat(0.0f, .5f), util::RandomFloat(0.0f, .5f), util::RandomFloat(0.0f, .5f)};
+        _bulletVertices.push_back(Vertex{pos, randomColor});
     }
 }
 
 void App::CreateBulletVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_bulletVertices[0]) * _bulletVertices.size();
-    
+
     Buffer stagingBuffer;
     VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
     VK_CHECK_RESULT(stagingBuffer.Map());
@@ -185,7 +192,7 @@ void App::CreateDescriptorPool()
     uint32_t cubeTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
     VkDescriptorPoolSize cubeTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, cubeTransformDescriptorCount);
 
-    uint32_t bulletTransformsDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP) * BULLET_COUNT;
+    uint32_t bulletTransformsDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP) * static_cast<uint32_t>(BULLET_COUNT);
     VkDescriptorPoolSize bulletTransformsSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, bulletTransformsDescriptorCount);
 
     uint32_t maxDescriptorCount = cameraTransformDescriptorCount + cubeTransformDescriptorCount + bulletTransformsDescriptorCount;
@@ -298,14 +305,13 @@ void App::CreateBulletTransformsDescriptorSets()
 
 void App::UpdateBulletTransforms(uint32_t currentImage)
 {
+    _bulletTransforms.count = _simulator.GetBulletCount();
     std::vector<glm::mat4> bulletTransforms = _simulator.GetBulletTransforms();
-    for (int i = 0; i < bulletTransforms.size(); ++i)
+    for (int i = 0; i < _bulletTransforms.count; ++i)
     {
         memcpy(_bulletTransforms.ubos[currentImage * BULLET_COUNT + i].mapped, &bulletTransforms[i], sizeof(glm::mat4));
     }
 }
-
-
 
 
 
@@ -485,9 +491,6 @@ void App::CreateGraphicsPipeline()
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipeline(device, _graphicsPipeline, nullptr); } ));
 }
 
-
-
-
 void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 {
     VkCommandBufferBeginInfo beginInfo = init::CommandBufferBeginInfo();
@@ -503,33 +506,24 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
     
-    // Drawing command
+    
     vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-    // Drawing command
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
-    // Drawing command
     VkBuffer vertexBuffers[] = {_boxVertexBuffer.buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
-    
-    // Drawing command
     vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-    // Drawing command
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_cameraTransform.sets[_frameNumber], 0, nullptr);
-    
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_cubeTransform.sets[_frameNumber], 0, nullptr);
     vkCmdDraw(cmd, static_cast<uint32_t>(_boxVertices.size()), 1, 0, 0);
 
-    auto bullets = _simulator.GetBulletCount();
-    if (bullets != 0)
+    if (_bulletTransforms.count > 0)
     {
         VkBuffer vertexBuffers2[] = {_bulletVertexBuffer.buffer};
         VkDeviceSize offsets2[] = {0};
@@ -549,8 +543,8 @@ void App::ShootBullet()
 {    
     auto velocity = util::GlmVec3ToPxVec3(camera.GetForwardVector());
     auto position = util::GlmVec3ToPxVec3(camera.GetPosition());
-
-    _simulator.ShootBullet(velocity * 100, position + velocity);
+    float bulletSpeed = 100.0f;
+    _simulator.ShootBullet(velocity * bulletSpeed, position + velocity);
 }
 
 void App::Update()
@@ -581,6 +575,8 @@ void App::Update()
     vkQueuePresentKHR(device.queues.present, &presentInfo);
     _frameNumber = (_frameNumber + 1) % FRAME_OVERLAP;
 }
+
+
 
 void App::CreateDepthResources()
 {

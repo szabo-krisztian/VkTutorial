@@ -20,7 +20,6 @@ namespace tlr
 
 struct UniformBufferObject
 {
-    //alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 };
@@ -95,33 +94,38 @@ private:
     void        InitSyncStructures();
     FrameData&  GetCurrentFrameData();
 
+
+
     void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void        CreateCubeVertices();
     void        CreateCubeVertexBuffer();
     void        CreateBulletVertices();
     void        CreateBulletVertexBuffer();
 
+
+
     void        CreateDescriptorPool();
     void        CreateCameraTransformDescriptorSetLayout();
     void        CreateCameraTransformUniformBuffers();
     void        CreateCameraTransformDescriptorSets();
     void        UpdateCameraTransform(uint32_t currentImage);
-
     void        CreateModelTransformDescriptorSetLayout();
     void        CreateCubeTransformUniformBuffers();
     void        CreateCubeTransformDescriptorSets();
     void        UpdateCubeTransform(uint32_t currentImage);
-    
     void        CreateBulletTransformsUniformBuffers();
     void        CreateBulletTransformsDescriptorSets();
     void        UpdateBulletTransforms(uint32_t currentImage);
-    
+
+
 
     void        CreateRenderPass();
     void        CreateFramebuffers();
     void        CreateGraphicsPipeline();
     void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
     void        ShootBullet();
+
+
 
     void        CreateDepthResources();
     VkFormat    FindDepthFormat();
