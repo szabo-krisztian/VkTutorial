@@ -71,7 +71,7 @@ private:
     {
         Buffer          ubos[FRAME_OVERLAP * BULLET_COUNT];
         VkDescriptorSet sets[FRAME_OVERLAP * BULLET_COUNT];
-        int             count = 0;  
+        size_t          count = 0;  
     } _bulletTransforms;
 
     VkRenderPass               _renderPass;

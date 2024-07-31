@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" alt="cube" />
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/polyhedron.gif" alt="polyhedron" />
 </p>
 
 # Rotating Cube
