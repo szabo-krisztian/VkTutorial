@@ -32,9 +32,9 @@ cd build
 
 cmake .. -DCMAKE_PREFIX_PATH="location-of-glfw3;location-of-vulkan" -DGLM_PATH="location-of-glm" -DPHYSX_INCLUDE="location-of-physx/include" -DPHYSX_LIB="location-of-physx/bin/version/checked"
 
-REM mine is: cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake;C:/VulkanAPI/Lib/cmake" -DGLM_PATH="C:/glm"
+REM mine is: cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3" -DGLM_PATH="C:/glm" -DPHYSX_INCLUDE="C:/PhysX-106.0-physx-5.4.1/physx/include" -DPHYSX_LIB="C:/PhysX-106.0-physx-5.4.1/physx/bin/win.x86_64.vc142.mt/checked"
 
-cmake --build .
+cmake --build . --config Release
 ```
 
 ## Running
