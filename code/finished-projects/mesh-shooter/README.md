@@ -48,7 +48,7 @@ location-of-glslc/glslc.exe ../application/shaders/shader.vert -o spvs/vert.spv
 
 location-of-glslc/glslc.exe ../application/shaders/shader.frag -o spvs/frag.spv
 
-cd Debug
+cd Release
 
 Main.exe
 ```
