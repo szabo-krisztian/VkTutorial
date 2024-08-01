@@ -4,9 +4,12 @@
 \usepackage{listings}
 \usepackage{hyperref}
 \usepackage{xcolor}
-
-\title{\textcolor{purple}{\Huge\textbf{\textsc{Vulkan API Concepts}}}}
-\author{Krisztián Szabó}
+\usepackage{listings}
+\usepackage{amsfonts, amssymb, amsmath} 
+\usepackage{pgfplots}
+\usepackage{comment}
+\usepackage{tikz-3dplot}
+\usetikzlibrary{shadows.blur}
 
 \lstdefinestyle{customcpp}
 {
@@ -31,152 +34,847 @@
 	escapeinside={(*@}{@*)},
 }
 
+\title{\textcolor{purple}{\Huge\textbf{\textsc{Documentation}}}}
+\author{Krisztián Szabó}
+
 \setlength{\parindent}{0pt}
-\setcounter{section}{-1}
+
+\definecolor{modernyellow}{HTML}{F4E4BC} 
+\definecolor{moderngreen}{HTML}{BDDCBD}  
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\K}{\mathbb{K}}
+\newcommand{\E}{\exists}
+
+\tikzset{
+	definition/.style={
+		draw,
+		fill=modernyellow, 
+		line width=1pt,
+		rounded corners, 
+		drop shadow={shadow blur steps=5,shadow xshift=1ex,shadow yshift=-1ex}, 
+		text width=0.9\textwidth, 
+		inner sep=10pt
+	},
+	theorem/.style={
+		draw,
+		fill=white, 
+		line width=1pt,
+		rounded corners, 
+		drop shadow={shadow blur steps=5,shadow xshift=1ex,shadow yshift=-1ex}, 
+		text width=0.9\textwidth,
+		inner sep=10pt
+	},
+	proof/.style={
+		fill=white,
+		rectangle,
+		drop shadow={shadow blur steps=5,shadow xshift=1ex,shadow yshift=-1ex, gray},
+		%rounded corners=3pt,
+		text width=0.9\textwidth,
+		inner sep=6pt,
+	},
+	proof1/.style={
+		fill=white,
+		rectangle,
+		drop shadow={shadow blur steps=5,shadow xshift=1ex,shadow yshift=0, gray},
+		text width=0.9\textwidth,
+		inner sep=6pt,
+	}
+}
 
 
 \begin{document}
-	
 	\maketitle
+	\textit{In this PDF, I aim to describe concepts related to computer graphics, with a focus on the mathematical aspects. While this information may be useful to others, please note that it is primarily for my own purposes, and I do not assume responsibility for any errors.}
+	
 	\tableofcontents
 	\newpage
 	
-	\section{References}
-	This documentation was written with the help of the following sources:
-	\begin{itemize}
-		\item \href{https://docs.vulkan.org/spec/latest/index.html}{Vulkan Specification}
-		\item \href{https://vkguide.dev}{Vulkan Guide}
-	\end{itemize}
+	\begin{comment}
+		\section{From paper to the screen}
+		In this chapter, we will draw a cube on the screen. Let’s explore what Vulkan offers for this purpose. After some initial setup, we can render to our display. How does this process actually work? How can we instruct Vulkan to perform the drawing? It's important to note that Vulkan uses a coordinate system that differs slightly from that of OpenGL, for example.
+		
+		
+		\subsection{Canonical view volume}
+		We can specify points in the view volume's space represented below.
+		
+		\begin{center}
+			\tdplotsetmaincoords{60}{30}
+			\begin{tikzpicture}[tdplot_main_coords, scale=2]	
+				% Define the vertices of the cube
+				\coordinate (O) at (0,0,0);
+				\coordinate (A) at (2,0,0);
+				\coordinate (B) at (2,1,0);
+				\coordinate (C) at (0,1,0);
+				\coordinate (D) at (0,0,2);
+				\coordinate (E) at (2,0,2);
+				\coordinate (F) at (2,1,2);
+				\coordinate (G) at (0,1,2);
+				
+				% Draw the edges of the cube
+				\draw (O) -- (A) -- (B) -- (C) -- cycle; % Bottom face
+				\draw (D) -- (E) -- (F) -- (G) -- cycle; % Top face
+				\draw (O) -- (D); % Connecting edges
+				\draw (A) -- (E);
+				\draw (B) -- (F);
+				\draw (C) -- (G);
+				
+				\node at (D) [anchor=south east] {$(-1,-1,0)$};
+				\node at (B) [anchor=north west] {$(1,1,1)$};
+				
+				% Optionally, shade the faces
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (E) -- (D) -- cycle;
+				\fill[blue!20,opacity=0.3] (A) -- (B) -- (F) -- (E) -- cycle;
+				\fill[blue!20,opacity=0.3] (B) -- (C) -- (G) -- (F) -- cycle;
+				\fill[blue!20,opacity=0.3] (C) -- (O) -- (D) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (D) -- (E) -- (F) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (B) -- (C) -- cycle;
+				
+				\draw[thick,->] (0,0,0) -- (3,0,0) node[anchor=north east]{$x$};
+				\draw[thick,->] (0,0,0) -- (0,3,0) node[anchor=north west]{$z$};
+				\draw[thick,->] (0,0,0) -- (0,0,3) node[anchor=south]{$-y$};
+			\end{tikzpicture}	
+		\end{center}
+		
+		Every point inside this space is in normalized device coordinates (NDC). As you can see the $x$ axis goes -1 to 1 (left to right), the $y$ axis also goes from -1 to 1 (up to down) and the $z$ goes from 0 to 1 (near to far). For better understanding let us see the next illustration too.
+		
+		\begin{center}
+			\begin{tikzpicture}[scale=3]
+				\coordinate (O) at (0,0,0);
+				\coordinate (A) at (2,0,0);
+				\coordinate (B) at (0,-2,0);
+				\coordinate (C) at (2,-2,0);
+				
+				
+				
+				\node at (A) [anchor=west] {$(1,-1)$};
+				\node at (B) [anchor=east] {$(-1,1)$};
+				\node at (O) [anchor=east] {$(-1,-1)$};
+				\node at (C) [anchor=west] {$(1,1)$};
+				
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (C) -- (B) -- cycle;
+				
+				\draw[thick,->] (0,0,0) -- (2,0,0) node[anchor=north east]{$x$};
+				\draw[thick,->] (0,0,0) -- (0,-2,0) node[anchor=north west]{$y$};
+			\end{tikzpicture}	
+		\end{center}
+		
+		We have omitted the \( z \) axis. It might seem unusual that the \( y \) axis extends from top to bottom. When creating a mathematical model for our engine, we typically use a custom coordinate system and then transform it into this NDC (Normalized Device Coordinates) space. To make this concept clearer, consider the pixel dimensions of your screen. For instance, on a 1920 $\times$ 1080 resolution screen, you can think of the following coordinate system:
+		\begin{center}
+			\begin{tikzpicture}[scale=4]
+				\coordinate (O) at (0,0,0);
+				\coordinate (A) at (1.92,0,0);
+				\coordinate (B) at (0,-1.08,0);
+				\coordinate (C) at (1.92,-1.08,0);
+				
+				\node at (A) [anchor=south west] {$(1920,0)$};
+				\node at (B) [anchor=north east] {$(0,1080)$};
+				\node at (O) [anchor=south east] {$(0,0)$};
+				\node at (C) [anchor=north west] {$(1920,1080)$};
+				
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (C) -- (B) -- cycle;
+				
+				\draw[thick,->] (O) -- (B) node[anchor=north west]{$y$};
+				\draw[thick,->] (O) -- (A) node[anchor=north west]{$x$};
+			\end{tikzpicture}	
+		\end{center}
+		
+		Vulkan will transform the view volume as described above. Each pixel coordinate corresponds to a specific NDC (Normalized Device Coordinates) coordinate. Note that I have intentionally omitted the \( z \) axis here, as understanding the canonical view volume, particularly the \( z \) axis, can be complex. Let's explore this concept further. 
+		
+		Consider the first vertex, \( p1(0, 0, 0) \). This point is at the center of your screen with a depth value of 0. Next, take the second vertex, \( p2(1, -1, 1) \). This vertex is located at the top-right corner of your screen with a depth value of 1. Lastly, we have \( p3(1, 1, 0.5) \). The triangle formed by these vertices can be visualized as follows:
+		
+		\begin{center}
+			\begin{tikzpicture}[scale=4]
+				\coordinate (O) at (0,0,0);
+				\coordinate (A) at (1.92,0,0);
+				\coordinate (B) at (0,-1.08,0);
+				\coordinate (C) at (1.92,-1.08,0);
+				
+				\coordinate (P1) at (1.92 / 2,-1.08 / 2,0);
+				\coordinate (P2) at (1.92,0,0);
+				\coordinate (P3) at (1.92,-1.08,0);
+				
+				\node at (1.92 / 2, 0, 0) [anchor=south] {Your screen};
+				
+				
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (C) -- (B) -- cycle;
+				\fill[red!50,opacity=1] (P1) -- (P2) -- (P3) -- cycle;
+				
+				\draw[thick,->] (O) -- (B) node[anchor=north west]{$y$};
+				\draw[thick,->] (O) -- (A) node[anchor=north west]{$x$};
+				
+				\node at (P1) [anchor=east] {$p1$};
+				\node at (P2) [anchor=south] {$p2$};
+				\node at (P3) [anchor=north] {$p3$};
+			\end{tikzpicture}
+		\end{center}
+		
+		After the vertex shader outputs these vertices, the \( z \) values will be interpolated at each fragment during the rasterization stage. In the fragment shader, you can even access these interpolated \( z \) values. If a functional depth buffer attachment is set up, Vulkan will use these interpolated values to determine which fragments are visible on top. In this case, the exact \( z \) values of the fragments might not be crucial, but their relative positions to each other are.
+		
+		\subsection{Local to world}
+		Let us start building the model for our object. Note, that this can be done by a lot of different ways. In this case, I am going to use a really simple Cartesian coordinate system where I represent each point of our cube with $p \in \R^3$ point values. \newline
+		
+		Local coordinate systems:
+		\begin{center}
+			\tdplotsetmaincoords{60}{30}
+			\begin{tikzpicture}[tdplot_main_coords, scale=2]	
+				\draw[thick,->] (0,0,0) -- (1.5,0,0) node[anchor=north east]{$x$};
+				\draw[thick,->] (0,0,0) -- (0,1.5,0) node[anchor=north west]{$y$};
+				\draw[thick,->] (0,0,0) -- (0,0,2.5) node[anchor=south]{$z$};
+				
+				\coordinate (O) at (0,0,2);
+				\coordinate (A) at (1,1,0);
+				\coordinate (B) at (-1,1,0);
+				\coordinate (C) at (0,-1,0);
+				
+				\draw (A) -- (B) -- (C) -- cycle;
+				\draw (O) -- (B) -- (C) -- cycle;
+				\draw (O) -- (A) -- (C) -- cycle;
+				\draw (O) -- (B) -- (A) -- cycle;
+				
+				\fill[blue!20,opacity=0.3] (O) -- (B) -- (C) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (C) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (B) -- (A) -- cycle;
+				\fill[blue!20,opacity=0.3] (C) -- (B) -- (A) -- cycle;
+				
+				\node at (A) [anchor=south west] {$(1,1,0)$};
+				\node at (B) [anchor=south east] {$(-1,1,0)$};
+				\node at (C) [anchor=south east] {$(0,-1,0)$};
+				\node at (O) [anchor=south east] {$(0,0,2)$};
+				
+				\filldraw[blue!90] (O) circle (1pt);
+				\filldraw[blue!90] (A) circle (1pt);
+				\filldraw[blue!90] (B) circle (1pt);
+				\filldraw[blue!90] (C) circle (1pt);
+				
+			\end{tikzpicture}
+			\tdplotsetmaincoords{60}{30}
+			\begin{tikzpicture}[tdplot_main_coords, scale=1.5]	
+				\draw[thick,->] (-2,0,0) -- (2,0,0) node[anchor=north east]{$x$};
+				\draw[thick,->] (0,-2,0) -- (0,2,0) node[anchor=north west]{$y$};
+				\draw[thick,->] (0,0,-2) -- (0,0,2) node[anchor=south]{$z$};
+				
+				\coordinate (O) at (-1,-1,-1);
+				\coordinate (A) at (1,-1,-1);
+				\coordinate (B) at (1,1,-1);
+				\coordinate (C) at (-1,1,-1);
+				\coordinate (D) at (-1,-1,1);
+				\coordinate (E) at (1,-1,1);
+				\coordinate (F) at (1,1,1);
+				\coordinate (G) at (-1,1,1);
+				
+				% Draw the edges of the cube
+				\draw (O) -- (A) -- (B) -- (C) -- cycle; % Bottom face
+				\draw (D) -- (E) -- (F) -- (G) -- cycle; % Top face
+				\draw (O) -- (D); % Connecting edges
+				\draw (A) -- (E);
+				\draw (B) -- (F);
+				\draw (C) -- (G);
+				
+				% Optionally, shade the faces
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (E) -- (D) -- cycle;
+				\fill[blue!20,opacity=0.3] (A) -- (B) -- (F) -- (E) -- cycle;
+				\fill[blue!20,opacity=0.3] (B) -- (C) -- (G) -- (F) -- cycle;
+				\fill[blue!20,opacity=0.3] (C) -- (O) -- (D) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (D) -- (E) -- (F) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (B) -- (C) -- cycle;
+				
+				\node at (O) [anchor=north east] {$(-1,-1,-1)$};
+				\node at (F) [anchor=south west] {$(1,1,1)$};
+				
+				\filldraw[blue!90] (O) circle (1pt);
+				\filldraw[blue!90] (A) circle (1pt);
+				\filldraw[blue!90] (B) circle (1pt);
+				\filldraw[blue!90] (C) circle (1pt);
+				\filldraw[blue!90] (D) circle (1pt);
+				\filldraw[blue!90] (E) circle (1pt);
+				\filldraw[blue!90] (F) circle (1pt);
+				\filldraw[blue!90] (G) circle (1pt);
+				
+				\draw[thick] (0,-2,0) -- (0,-1,0);
+				\draw[thick] (1,0,0) -- (2,0,0);
+			\end{tikzpicture}
+		\end{center}
+		
+		As I mentioned, there might be a lot of different way to model an object. When you start sketching your project, you can think of any model that you find more convenient. However these models all boil down to the same idea of representing object with a finite set of $p \in \R^3$ points, when it comes to placing our object in our world. Here we are, with our set of points:
+		\[
+		H := \{ p_1, \, p_2, \, p_3, \, p_4, \, p_5, \, p_6 \} \subset \R^3
+		\]
+		
+		We would like to put this cube in our world coordinate system. We use local coordinate systems to determine the shape of our objects  more easily. In these cases our object is usually in the origo. We could have local coordinate systems per object. Now we want to put all of these objects in the world coordinate system that is going to represent our whole space where they live.\newline
+		
+		We might want to put these in are world.
+		\begin{center}
+			\tdplotsetmaincoords{60}{30}
+			\begin{tikzpicture}[tdplot_main_coords, scale=2]	
+				\draw[thick,->] (0,0,0) -- (1.5,0,0) node[anchor=north east]{$x$};
+				\draw[thick,->] (0,0,0) -- (0,1.5,0) node[anchor=north west]{$y$};
+				\draw[thick,->] (0,0,0) -- (0,0,1.5) node[anchor=south]{$z$};
+				
+				\coordinate (O) at (1.4651, 0.7248, -0.2000);
+				\coordinate (A) at (1.6752, 1.0651, -0.2000);
+				\coordinate (B) at (1.3349, 1.2752, -0.2000);
+				\coordinate (C) at (1.1248, 0.9349, -0.2000);
+				\coordinate (D) at (1.4651, 0.7248, 0.2000);
+				\coordinate (E) at (1.6752, 1.0651, 0.2000);
+				\coordinate (F) at (1.3349, 1.2752, 0.2000);
+				\coordinate (G) at (1.1248, 0.9349, 0.2000);
+				
+				% Draw the edges of the cube
+				\draw (O) -- (A) -- (B) -- (C) -- cycle; % Bottom face
+				\draw (D) -- (E) -- (F) -- (G) -- cycle; % Top face
+				\draw (O) -- (D); % Connecting edges
+				\draw (A) -- (E);
+				\draw (B) -- (F);
+				\draw (C) -- (G);
+				
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (E) -- (D) -- cycle;
+				\fill[blue!20,opacity=0.3] (A) -- (B) -- (F) -- (E) -- cycle;
+				\fill[blue!20,opacity=0.3] (B) -- (C) -- (G) -- (F) -- cycle;
+				\fill[blue!20,opacity=0.3] (C) -- (O) -- (D) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (D) -- (E) -- (F) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (B) -- (C) -- cycle;
+				
+				\coordinate (O) at (1.5, 2.7, 1.1112);
+				\coordinate (A) at (2.0556, 3.2556, 0);
+				\coordinate (B) at (0.9444, 3.2556, 0);
+				\coordinate (C) at (1.5, 2.1444, 0);
+				
+				
+				
+				\draw (A) -- (B) -- (C) -- cycle;
+				\draw (O) -- (B) -- (C) -- cycle;
+				\draw (O) -- (A) -- (C) -- cycle;
+				\draw (O) -- (B) -- (A) -- cycle;
+				
+				\fill[blue!20,opacity=0.3] (O) -- (B) -- (C) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (C) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (B) -- (A) -- cycle;
+				\fill[blue!20,opacity=0.3] (C) -- (B) -- (A) -- cycle;
+			\end{tikzpicture}
+		\end{center}
+		
+		Let us say we have done that. What about now? Vulkan does not know about 3D vector coordinates. We somehow need to transform the world coordinates to NDC coordinates. It would be convenient to just put our camera somewhere in the world, set its orientation and get the projection of our world somehow. This can actually be straigtforward. Let us start with the camera parameters.
+		
+		\subsection{Camera}
+		
+		Here is my camera code that I use:
+		\begin{lstlisting}[style=customcpp]
+			class Camera
+			{
+				public:
+				Camera(const CameraCreateInfo& createInfo);
+				
+				glm::mat4 GetViewMatrix()           const;
+				glm::mat4 GetProjectionMatrix()     const;
+				
+				/*
+				*  Getters
+				*/
+				
+				private:
+				glm::vec3 _position;
+				glm::vec3 _worldUp;
+				float _fov;
+				float _aspect;
+				float _yaw;
+				float _pitch;
+				float _sensitivity;
+				float _movementSpeed;
+				float _near;
+				float _far;
+				
+				glm::vec3 _front;
+				glm::vec3 _right;
+				glm::vec3 _up;
+				
+				void UpdateDirections();
+			};
+			
+		\end{lstlisting}
+		
+		This is a simple logic for implementing FPS camera movement. Let us go through the variables. I listed the most important pieces of data below:
+		
+		\begin{itemize}
+			\item world position of the camera
+			\item up vector of our world
+			\item aspect ratio of our frustum
+			\item forward facing direction of the camera
+			\item up facing direction of the camera
+			\item yaw: angle between the forward vector
+		\end{itemize}
+		
+		\begin{center}
+			\tdplotsetmaincoords{60}{30}
+			\begin{tikzpicture}[tdplot_main_coords, scale=2]	
+				\draw[thick,->] (0,0,0) -- (1.5,0,0) node[anchor=north east]{$x$};
+				\draw[thick,->] (0,0,0) -- (0,1.5,0) node[anchor=north west]{$y$};
+				\draw[thick,->] (0,0,0) -- (0,0,1.5) node[anchor=south]{$z$};
+				
+				\coordinate (O) at (1.4651, 0.7248, -0.2000);
+				\coordinate (A) at (1.6752, 1.0651, -0.2000);
+				\coordinate (B) at (1.3349, 1.2752, -0.2000);
+				\coordinate (C) at (1.1248, 0.9349, -0.2000);
+				\coordinate (D) at (1.4651, 0.7248, 0.2000);
+				\coordinate (E) at (1.6752, 1.0651, 0.2000);
+				\coordinate (F) at (1.3349, 1.2752, 0.2000);
+				\coordinate (G) at (1.1248, 0.9349, 0.2000);
+				
+				\coordinate (CAM) at (0.5,0.5,2);
+				\draw[->] (CAM) -- (1,1,1);
+				
+				\filldraw[blue!90] (CAM) circle (1pt);
+				
+				
+				% Draw the edges of the cube
+				\draw (O) -- (A) -- (B) -- (C) -- cycle; % Bottom face
+				\draw (D) -- (E) -- (F) -- (G) -- cycle; % Top face
+				\draw (O) -- (D); % Connecting edges
+				\draw (A) -- (E);
+				\draw (B) -- (F);
+				\draw (C) -- (G);
+				
+				
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (E) -- (D) -- cycle;
+				\fill[blue!20,opacity=0.3] (A) -- (B) -- (F) -- (E) -- cycle;
+				\fill[blue!20,opacity=0.3] (B) -- (C) -- (G) -- (F) -- cycle;
+				\fill[blue!20,opacity=0.3] (C) -- (O) -- (D) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (D) -- (E) -- (F) -- (G) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (B) -- (C) -- cycle;
+				
+				\coordinate (O) at (1.5, 2.7, 1.1112);
+				\coordinate (A) at (2.0556, 3.2556, 0);
+				\coordinate (B) at (0.9444, 3.2556, 0);
+				\coordinate (C) at (1.5, 2.1444, 0);
+				
+				
+				
+				\draw (A) -- (B) -- (C) -- cycle;
+				\draw (O) -- (B) -- (C) -- cycle;
+				\draw (O) -- (A) -- (C) -- cycle;
+				\draw (O) -- (B) -- (A) -- cycle;
+				
+				\fill[blue!20,opacity=0.3] (O) -- (B) -- (C) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (A) -- (C) -- cycle;
+				\fill[blue!20,opacity=0.3] (O) -- (B) -- (A) -- cycle;
+				\fill[blue!20,opacity=0.3] (C) -- (B) -- (A) -- cycle;
+			\end{tikzpicture}
+		\end{center}
+		
+		
+		\begin{center}
+			\begin{tikzpicture}[scale=2]
+				\coordinate (O) at (0,0,0);
+				\coordinate (A) at (2,-1,0);
+				\coordinate (B) at (2,1,0);
+				\draw[thick] (O) -- (A);
+				\draw[thick] (O) -- (B);
+			\end{tikzpicture}
+			
+		\end{center}
+		
+		\begin{center}
+			\tdplotsetmaincoords{50}{40}
+			\begin{tikzpicture}[tdplot_main_coords, scale=2]
+				
+				\coordinate (A) at (2,1,1);
+				\coordinate (B) at (-2,1,1);
+				\coordinate (C) at (2,1,-1);
+				\coordinate (D) at (-2,1,-1);			
+				\coordinate (O) at (0,-4,0);			
+				
+				
+				\draw (O) -- (A);
+				\draw (O) -- (B);
+				\draw (O) -- (C);
+				\draw (O) -- (D);
+				
+				\draw (A) -- (B);
+				\draw (C) -- (D);
+				\draw (A) -- (C);
+				\draw (B) -- (D);
+				
+			\end{tikzpicture}
+		\end{center}	
+	\end{comment}
 	
 	
-
-	\newpage
-	\section{Swapchain}
+	\section{Convex Mesh Division}
+	In this section, I will explain a simple yet effective method to divide any convex polyhedron into arbitrarily small tetrahedrons. This can be useful for creating destructible objects. Let us assume we have a convex polyhedron, where we only know the vertices of each face, and each face can be any polygon.
 	
-	A swapchain object (a.k.a. swapchain) provides the ability to present rendering results to a surface. Swapchain objects are represented by \texttt{VkSwapchainKHR} handles. A swapchain is an abstraction for an array of presentable images that are associated with a surface. The presentable images are represented by \texttt{VkImage} objects created by the platform. One image (which can be an array image for multiview/stereoscopic-3D surfaces) is displayed at a time, but multiple images can be queued for presentation. An application renders to the image, and then queues the image for presentation to the surface.\newline
+	\subsection{Polyhedron to Tetrahedrons}
+	First, we aim to divide our polyhedron into smaller tetrahedrons and subsequently divide those tetrahedrons further. As you might have guessed, a tetrahedron is also a polyhedron. We will use a slightly different approach for dividing tetrahedrons. For simplicity, convert all faces into triangles, which is straightforward:
 	
-	When creating a swapchain we have to specify a lot of pieces of data. One of the most important option is the present mode. To describe the functionality of these options, first let us introduce some definitions.
 	
-	\begin{itemize}
-		\item vertical blank: typically refers to the period during which the display device (such as a monitor) refreshes its image. This process is often referred to as Vertical Blank (VBlank) or Vertical Sync (VSync).
-		\item tearing: Tearing is a visual artifact in video display where a frame is displayed on the screen before the previous frame has finished being drawn, causing parts of multiple frames to be shown at once.
-	\end{itemize}
+	\begin{center}
+		\begin{tikzpicture}
+			\coordinate (A) at (-5.04,2.68);
+			\coordinate (B) at (-5.56,-2.58);
+			\coordinate (C) at (2.96,-5.2);
+			\coordinate (D) at (4.44,2.12);			
+			\coordinate (O) at (-1.22,5.04);
+			\draw (A) -- (B) -- (C) -- (D) --(O) -- cycle;
+			\draw[dashed] (A) -- (D);
+			\draw[dashed] (A) -- (C);
+			\node[left] at (A) {$A$};
+		\end{tikzpicture}	
+	\end{center}
 	
-	There are four options that are important for us.
+	All you need to do is select any vertex $A$ and connect it to every vertex in the polygon except its neighbors.
+	
+	\begin{lstlisting}[style=customcpp]
+		struct Triangle {
+			glm::vec3 v1;
+			glm::vec3 v2;
+			glm::vec3 v3;
+		};
+		
+		std::vector<Triangle> GetTrianglesFromPolygon(const std::vector<glm::vec3>& polygon) {
+			std::vector<Triangle> result;
+			
+			for (int i = 2; i < polygon.size(); ++i) {
+				result.push_back(Triangle{polygon[0], polygon[i-1], polygon[i]});
+			}
+			
+			return result;
+		}	
+	\end{lstlisting}
+	
+	Now we have any array of triangles that build up our convex polyhedron.
+	
+	\begin{center}
+		\tdplotsetmaincoords{60}{30}
+		\begin{tikzpicture}[tdplot_main_coords, scale=2]
+			\coordinate (A) at (2,-2,1.2176);
+			\coordinate (B) at (-1.78438,-1.21377,1.00766);
+			\coordinate (C) at (-3.30891,2.07936,0);
+			\coordinate (D) at (0.52544,1.88925,-2);
+			\coordinate (E) at (1.51747,-1.44592,-2);
+			\coordinate (F) at (-1.72773,-1.47543,-3.02305);
+			\coordinate (G) at (1.35119,1.6395,1.69245);
+			
+			
+			
+			\draw (A) -- (B) -- (C) -- (G) -- cycle;
+			\draw (A) -- (E) -- (F) -- (B) -- (E) -- (G) -- (D) -- (E);
+			\draw (A) -- (C);
+			\draw[dashed] (D) -- (F) -- (C) -- (D);
+			
+		\end{tikzpicture}
+	\end{center}
+	
+	The simplest method for dividing a convex polyhedron into smaller tetrahedrons is to find the center of the polyhedron and then connect this center to each of the polyhedron's triangular faces.
+	
+	\begin{lstlisting}[style=customcpp]
+		std::vector<Tetra> GetTetras(const std::vector<Triangle>& triangles) {
+			glm::vec3 center{0.0f, 0.0f, 0.0f};
+			for (const auto& t : triangles) {
+				center += t.v1; center += t.v2; center += t.v3;
+			}
+			center /= (triangles.size() * 3.0f);
+			std::vector<Tetra> tetras;
+			for (const auto& t : triangles)
+			{
+				tetras.push_back({t.v1, t.v2, t.v3, center});
+			}
+			return tetras;
+		}
+	\end{lstlisting}
+	
+	\begin{center}
+		\tdplotsetmaincoords{60}{30}
+		\begin{tikzpicture}[tdplot_main_coords, scale=2]
+			\coordinate (A) at (2,-2,1.2176);
+			\coordinate (B) at (-1.78438,-1.21377,1.00766);
+			\coordinate (C) at (-3.30891,2.07936,0);
+			\coordinate (D) at (0.52544,1.88925,-2);
+			\coordinate (E) at (1.51747,-1.44592,-2);
+			\coordinate (F) at (-1.72773,-1.47543,-3.02305);
+			\coordinate (G) at (1.35119,1.6395,1.69245);
+			\coordinate (M) at (-0.204,-0.075,-0.444);
+			
+			
+			\draw (A) -- (B) -- (C) -- (G) -- cycle;
+			\draw (A) -- (E) -- (F) -- (B) -- (E) -- (G) -- (D) -- (E);
+			\draw (A) -- (C);
+			\draw[dashed] (D) -- (F) -- (C) -- (D);
+			
+			\draw[dotted] (A) -- (M);
+			\draw[dotted] (B) -- (M);
+			\draw[dotted] (C) -- (M);
+			\draw[dotted] (D) -- (M);
+			\draw[dotted] (E) -- (M);
+			\draw[dotted] (F) -- (M);
+			\draw[dotted] (G) -- (M);
+			
+		\end{tikzpicture}
+	\end{center}
+	
+	
+	\subsection{Tetrahedrons to tetrahedrons}
+	We have successfully divided our mesh into tetrahedrons. While further subdivision might be desirable, this method may not be the most effective for dividing the tetrahedrons themselves. Let's explore why this particular tetrahedron could be an example of our polyhedron:
+	
+	\begin{center}
+		\tdplotsetmaincoords{60}{10}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (A) at (-1.48478,-2.47241,0);
+			\coordinate (B) at (-2,3,-0.1549);
+			\coordinate (C) at (2.6, 0, 0);
+			\coordinate (D) at (0, 0, 3);
+			
+			
+			\draw (A) -- (B) -- (D) -- (A) -- (C) -- (D);
+			\draw[dashed] (B) -- (C);
+			
+			
+			\node[below] at (A) {$A$};
+			\node[left] at (B) {$B$};
+			\node[right] at (C) {$C$};
+			\node[above] at (D) {$D$};
+			
+			
+		\end{tikzpicture}
+	\end{center}
+	
+	As illustrated, continuing this pattern would result in all the sub-tetrahedrons having identical faces. This would produce very thin tetrahedrons with wide faces, which might not be ideal for our purposes. Therefore, let’s explore a different algorithm. Our overall goal is to calculate the midpoints of all the edges in each tetrahedron and use these midpoints to generate smaller tetrahedrons.
+	
+	\begin{center}
+		\tdplotsetmaincoords{60}{10}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (A) at (-1.48478,-2.47241,0);
+			\coordinate (B) at (-2,3,-0.1549);
+			\coordinate (C) at (2.6, 0, 0);
+			\coordinate (D) at (0, 0, 3);
+			
+			\coordinate (AB) at (-1.74239,0.263795,-0.07745);
+			\coordinate (AC) at (0.55761,-1.236205,0);
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			\coordinate (BD) at (-1,1.5,1.42255);
+			\coordinate (CD) at (1.3,0,1.5);
+			
+			\draw (A) -- (B) -- (D) -- (A) -- (C) -- (D);
+			\draw[dashed] (B) -- (C);
+			
+			
+			\node[below] at (A) {$A$};
+			\node[left] at (B) {$B$};
+			\node[right] at (C) {$C$};
+			\node[above] at (D) {$D$};
+			
+			\draw[dotted] (AC) -- (AB) -- (AD) -- cycle;
+			\draw[dotted] (BD) -- (CD) -- (AD) -- cycle;
+			\draw[dotted] (AC) -- (BC) -- (CD) -- cycle;
+			\draw[dotted] (AB) -- (BC) -- (BD) -- cycle;
+			\draw[dotted] (BC) -- (AD);
+		\end{tikzpicture}
+	\end{center}
+	
+	The illustration may be tricky, but there are actually eight smaller tetrahedrons within the larger one. Identifying the vertices is straightforward:
+	
+	\begin{center}
+		\tdplotsetmaincoords{60}{10}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (A) at (-1.48478,-2.47241,0);
+			\coordinate (AB) at (-1.74239,0.263795,-0.07745);
+			\coordinate (AC) at (0.55761,-1.236205,0);
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			
+			\node[below] at (A) {$A$};
+			\node[left] at (AB) {$AB$};
+			\node[right] at (AC) {$AC$};
+			\node[above] at (AD) {$AD$};
+			
+			\draw[dashed] (AB) -- (AC);
+			\draw (AB) -- (A) -- (AC) -- (AD) -- (AB);
+			\draw (AD) -- (A);
+		\end{tikzpicture}
+		\tdplotsetmaincoords{60}{10}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (B) at (-2,3,-0.1549);
+			
+			\coordinate (AB) at (-1.74239,0.263795,-0.07745);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			\coordinate (BD) at (-1,1.5,1.42255);
+			
+			\node[left] at (B) {$B$};
+			\node[left] at (AB) {$AB$};
+			\node[right] at (BC) {$BC$};
+			\node[above] at (BD) {$BD$};
+			
+			
+			\draw[dashed] (B) -- (BC);
+			\draw (BC) -- (BD) -- (B) -- (AB);
+			\draw (BD) -- (AB) -- (BC);
+		\end{tikzpicture}
+		
+		\tdplotsetmaincoords{60}{10}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (C) at (2.6, 0, 0);
+			
+			\coordinate (AC) at (0.55761,-1.236205,0);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			\coordinate (CD) at (1.3,0,1.5);
+			
+			\node[right] at (C) {$C$};
+			\node[left] at (AC) {$AC$};
+			\node[left] at (BC) {$BC$};
+			\node[above] at (CD) {$CD$};
+			
+			
+			\draw[dashed] (BC) -- (C);
+			\draw (BC) -- (AC) -- (C) -- (CD) -- (BC);
+			\draw (AC) -- (CD);
+		\end{tikzpicture}
+		\tdplotsetmaincoords{60}{10}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (D) at (0, 0, 3);
+			
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			\coordinate (BD) at (-1,1.5,1.42255);
+			\coordinate (CD) at (1.3,0,1.5);
+			
+			\node[above] at (D) {$D$};
+			\node[left] at (BD) {$BD$};
+			\node[right] at (CD) {$CD$};
+			\node[left] at (AD) {$AD$};
+			
+			\draw[dashed] (BD) -- (CD);
+			\draw (BD) -- (D) -- (CD) -- (AD) -- (BD);
+			\draw (AD) -- (D);
+		\end{tikzpicture}
+	\end{center}
+	
+	Within the tetrahedron, there is a hexahedron comprised of four tetrahedrons.
+	
+	\begin{center}
+		\tdplotsetmaincoords{70}{-5}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (AB) at (-1.74239,0.263795,-0.07745);
+			\coordinate (AC) at (0.55761,-1.236205,0);
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			\coordinate (BD) at (-1,1.5,1.42255);
+			\coordinate (CD) at (1.3,0,1.5);
+			
+			\node[left] at (AB) {$AB$};
+			\node[below] at (AC) {$AC$};
+			\node[left] at (AD) {$AD$};
+			\node[right] at (BC) {$BC$};
+			\node[above] at (BD) {$BD$};
+			\node[right] at (CD) {$CD$};
+			
+			
+			\draw (AB) -- (BD) -- (AD) -- (AB);
+			\draw (AD) -- (AC) -- (CD) -- (AD);
+			\draw (AB) -- (AC);
+			\draw (BD) -- (CD);
+			
+			\draw[dashed] (AB) -- (BC);
+			\draw[dashed] (AC) -- (BC);
+			\draw[dashed] (AD) -- (BC);
+			\draw[dashed] (BD) -- (BC);
+			\draw[dashed] (CD) -- (BC);
+		\end{tikzpicture}
+	\end{center}
+	
+	The algorithm is quite straightforward. You start with six vertices and need to select two that do not share a common vertex. Following this labeling approach, if you examine the labels of the chosen midpoints, they will encompass all the vertices. In this case, the appropriate pairs of vertices might be:
+	\[
+	AD - BC, \, AB - CD, \, BD - AC
+	\]
+	All four tetrahedrons will contain these two vertices. Next, we need to determine the order in which to assemble the remaining four vertices. For instance, if we choose \(AD\) and \(BC\) as the two vertices, the tetrahedrons should be assembled as follows:
 	
 	\begin{enumerate}
-		\item \texttt{VK\textunderscore{}PRESENT\textunderscore{}MODE\textunderscore{}IMMEDIATE\textunderscore{}KHR}: specifies that the presentation engine does not wait for a vertical blanking period to update the current image, meaning this mode may result in visible tearing. No internal queuing of presentation requests is needed, as the requests are applied immediately.
-		
-		\item \texttt{VK\textunderscore{}PRESENT\textunderscore{}MODE\textunderscore{}MAILBOX\textunderscore{}KHR}: specifies that the presentation engine waits for the next vertical blanking period to update the current image. Tearing cannot be observed. An internal single-entry queue is used to hold pending presentation requests. If the queue is full when a new presentation request is received, the new request replaces the existing entry, and any images associated with the prior entry become available for reuse by the application. One request is removed from the queue and processed during each vertical blanking period in which the queue is non-empty.
-		
-		\item \texttt{VK\textunderscore{}PRESENT\textunderscore{}MODE\textunderscore{}FIFO\textunderscore{}KHR}: specifies that the presentation engine waits for the next vertical blanking period to update the current image. Tearing cannot be observed. An internal queue is used to hold pending presentation requests. New requests are appended to the end of the queue, and one request is removed from the beginning of the queue and processed during each vertical blanking period in which the queue is non-empty. This is the only value of presentMode that is required to be supported.
-		
-		\item \texttt{VK\textunderscore{}PRESENT\textunderscore{}MODE\textunderscore{}FIFO\textunderscore{}RELAXED\textunderscore{}KHR}: specifies that the presentation engine generally waits for the next vertical blanking period to update the current image. If a vertical blanking period has already passed since the last update of the current image then the presentation engine does not wait for another vertical blanking period for the update, meaning this mode may result in visible tearing in this case. This mode is useful for reducing visual stutter with an application that will mostly present a new image before the next vertical blanking period, but may occasionally be late, and present a new image just after the next vertical blanking period. An internal queue is used to hold pending presentation requests. New requests are appended to the end of the queue, and one request is removed from the beginning of the queue and processed during or after each vertical blanking period in which the queue is non-empty.
-		
+		\item $AD, \, BC, \, \cdot, \, \cdot$
+		\item $AD, \, BC, \, \cdot, \, \cdot$
+		\item $AD, \, BC, \, \cdot, \, \cdot$
+		\item $AD, \, BC, \, \cdot, \, \cdot$
 	\end{enumerate}
 	
-	\newpage
-	\section{Making abstractions}
-	\subsection{Object creations}
-	Vulkan utilizes object creations and deletions to make our engine work. We have to be very explicit when it comes to creating an object. In most of the cases, we do it by specifying an object creation struct and pass it to some functions. This way Vulkan can determine the state of an object creation. There is an example below:
-	\begin{lstlisting}[style=customcpp]
-void App::CreateInstanceObject()
-{
-	VkApplicationInfo appCI{};
-    appCI.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appCI.pNext = nullptr;
-    appCI.pApplicationName = "Vulkan Application";
-    appCI.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appCI.pEngineName = "No Engine";
-    appCI.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appCI.apiVersion = VK_MAKE_VERSION(1, 1, 0);
-
-	VkInstanceCreateInfo instanceCI{};
-	instanceCI.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	instanceCI.pNext = &mDebugMessengerCreateInfo;
-    instanceCI.flags = 0;
-    instanceCI.pApplicationInfo = &mAppCreateInfo;
-    instanceCI.enabledLayerCount = 0;
-    instanceCI.ppEnabledLayerNames = nullptr;
-    instanceCI.enabledExtensionCount = 0;
-    instanceCI.ppEnabledExtensionNames = nullptr;
-
-	VkInstance instance;
-	if (vkCreateInstance(&instanceCI, nullptr, &instance))
-    {
-        throw std::runtime_error("instance creation failure!");
-    }
-}
-	\end{lstlisting}
+	where the $\cdot$ symbols represent the remaining vertices. The algorithm is also quite simple: you need to choose two vertices that share exactly one vertex.
 	
-	In most of the cases, we only want to specify just a few options. This can be simplified in a variaty of ways, for instance using pre-written functions returning pre-filled structs.
-	\begin{lstlisting}[style=customcpp]
-inline VkMemoryBarrier memoryBarrier()
-{
-	VkMemoryBarrier memoryBarrier {};
-	memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-	return memoryBarrier;
-}
-	\end{lstlisting}
-
-	Another approach is to use the builder design pattern for such object creations.
-
-	\begin{lstlisting}[style=customcpp]
-class InstanceBuilder
-{
-public:
-	InstanceBuilder& EnableDebugger();
-	InstanceBuilder& SetAppName(const std::string& appName);
-	InstanceBuilder& SetAppVersion(uint32_t verson);
-	InstanceBuilder& SetEngineName(const std::string& appName);
-	InstanceBuilder& SetEngineVersion(uint32_t verson);
-	InstanceBuilder& SetAPIVersion(uint32_t version);
-	InstanceBuilder& EnableLayers(const char** layerNames);
-	InstanceBuilder& EnableExtensions(const char** extensions);
-	InstanceBuilder& Build();
-	VkInstance       GetInstance();
-
-private:
-	VkInstance instance;
-};
-
-InstanceBuilder builder;
-VkInstance instance = builder.EnableDebugger()
-								.SetAppName("Vulkan")
-								.SetAppVersion(VK_MAKE_VERSION(1,0,0))
-								.SetEngineName("No Engine")
-								.SetEngineVersion(VK_MAKE_VERSION(1,0,0))
-								.SetAPIVersion(VK_MAKE_VERSION(1,1,0))
-								.Build()
-								.GetInstance();
-	\end{lstlisting}
-
-	\section{Command buffers}
-	\subsection{What are command buffers?}
-	The Vulkan documentation describes command buffers the follow way:\newline
-
-	Command buffers are objects used to record commands which can be subsequently submitted to a device queue for execution. There are two levels of command buffers - primary command buffers, which can execute secondary command buffers, and which are submitted to queues, and secondary command buffers, which can be executed by primary command buffers, and which are not directly submitted to queues. Recorded commands include commands to bind pipelines and descriptor sets to the command buffer, commands to modify dynamic state, commands to draw (for graphics rendering), commands to dispatch (for compute), commands to execute secondary command buffers (for primary command buffers only), commands to copy buffers and images, and other commands.
-
-	\newpage
-	\section{Descriptors}
-	\subsection{What are descriptors?}
-	Think of a single descriptor as a handle or pointer into a resource. That resource being a Buffer or a Image, and also holds other information, such as the size of the buffer, or the type of sampler if it's for an image. A \texttt{VkDescriptorSet} is a pack of those pointers that are bound together. Vulkan does not allow you to bind individual resources in shaders. They have to be grouped in the sets. If you still insist on being able to bind them individually, then you will need a descriptor set for each resource. This is very inefficient and won't work in many hardware. If you look at this \href{https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxBoundDescriptorSets&platform=windows}{Chart}, you will see that some devices will only allow up to 4 descriptor sets to be bound to a given pipeline, on PC. Due to this, we can really only use up to 4 descriptor sets in our pipelines if we want the engine to run on Intel integrated GPUs. A common and performant way of dealing with that limitation of 4 descriptors, is to group them by binding frequency.
-
-	\subsection{Descriptor allocation}
-	Descriptor sets have to be allocated directly by the engine from a \texttt{VkDescriptorPool}. A descriptor set allocation will typically be allocated in a section of GPU VRAM. Once a descriptor set is allocated, you need to write it to make it point into your buffers/textures. Once you bind a descriptor set and use it in a \texttt{vkCmdDraw()} function, you can no longer modify it unless you specify the \texttt{VK\textunderscore{}DESCRIPTOR\textunderscore{}POOL\textunderscore{}CREATE\textunderscore{}UPDATE\textunderscore{}AFTER\textunderscore{}BIND\textunderscore{}BIT} flag. When a descriptor pool is allocated, you have to tell the driver how many descriptors sets, and what number of resources you will be using.\newline
-
-	Allocating descriptor sets can be very cheap if you explicitly disallow freeing individual sets by not setting the \texttt{VK\textunderscore{}DESCRIPTOR\textunderscore{}POOL\textunderscore{}CREATE\textunderscore{}FREE\textunderscore{}DESCRIPTOR\textunderscore{}SET\textunderscore{}BIT} flag. By using that flag, you are telling the driver that you want descriptors to be able to deallocate individually. If you are allocating descriptor sets per frame, you should not be using that, and then you reset the entire pool instead of individual descriptor sets. For your global descriptor sets, it's fine to allocate them once, and reuse them from frame to frame.
-
-	\subsection{Writing descriptors}
-	A freshly allocated descriptor set is just a bit of GPU memory, you need to make it point to your buffers. For that you use \texttt{vkUpdateDescriptorSets()}, which takes an array of \texttt{VkWriteDescriptorSet} for each of the resources that a descriptor set points to. If you were using the Update After Bind flag, it is possible to use descriptor sets, and bind them in command buffers, and update it right before submitting the command buffer. This is mostly a niche use case, and not commonly used. You can only update a descriptor set before it's bound for the first time, unless you use that flag, in which case you can only update it before you submit the command buffer into a queue. When a descriptor set is being used, it's immutable, and trying to update it will cause errors. The validation layers catch that. To be able to update the descriptor sets again, you need to wait until the command has finished executing.
-
-	\subsection{Binding descriptors}
-	Descriptor sets bind into specific "slots" on a Vulkan pipeline. When creating a pipeline, you have to specify the layouts for each of the descriptor sets that can be bound to the pipeline. This is commonly done automatically, generated from reflection on the shader. We will be doing it manually to show how it's done. Once you bind a pipeline in a command buffer, the pipeline has slots for the different descriptor sets, and then you can bind a set into each of the slots. If the descriptor set doesn't match the slot, there will be errors. If you bind a descriptor set to slot 0, and then you switch pipelines by binding another one, the descriptor set will stay bound, IF the slot is the same on the new pipeline. If the slot isn't exactly the same, then the slot will be "unbound", and you need to bind it again. For example, let's say we have 2 pipelines, one of which has a descriptor set 0 that binds to a buffer, and descriptor set 1 that binds to 4 images. Then the other pipeline has descriptor set 0 that binds to a buffer (same as the same slot in the other pipeline), but in descriptor set 1 it has a descriptor set that binds to 3 images, not 4. If you bind the second pipeline, the descriptor set 0 will stay bound, but the descriptor 1 will be unbound because it no longer matches. This is why we assign a frequency to the descriptor slots, to minimize binding.
-
-	\subsection{Descriptor set layout}
-	Used in both the pipelines and when allocating descriptors, a \texttt{VkDescriptorSetLayout} is the shape of the descriptor. For example, a possible layout will be one where it binds 2 buffers and 1 image. When creating pipelines or allocating the descriptor sets themselves, you have to use the layout. Descriptor set layouts can be compatible if they are the same even if they are created in two different places.
-
-	\subsection{Uniform buffers}
-	Descriptor sets point into buffers, but we didn't explain that. Right now we are creating GPU buffers that hold vertex data, but you can also create buffers that hold arbitrary data for you to use in the shaders. For that type of data, Uniform Buffers are the common thing. They are small size (up to a few kilobytes), but are very fast to read, so they are perfect for shader parameters. By creating a Uniform Buffer and writing to it from the CPU, you can send data to the GPU in a much more efficient way than push constants. We will be using it for the camera information. It is possible to have multiple descriptor sets pointing to one uniform buffer, and it's also possible to have a big uniform buffer, and then each descriptor sets point to a section of the buffer. The shader will not know the difference.
-
+	
+	\begin{enumerate}
+		\item $AD, \, BC, \, B\mathbf{D}, \, C\mathbf{D}$
+		\item $AD, \, BC, \, \mathbf{B}D, \, A\mathbf{B}$
+		\item $AD, \, BC, \, \mathbf{A}B, \, \mathbf{A}C$
+		\item $AD, \, BC, \, A\mathbf{C}, \, \mathbf{C}D$
+	\end{enumerate}
+	
+	\begin{center}
+		\tdplotsetmaincoords{70}{-5}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			\coordinate (AB) at (-1.74239,0.263795,-0.07745);
+			\coordinate (BD) at (-1,1.5,1.42255);
+			
+			\node[left] at (AD) {$AD$};
+			\node[right] at (BC) {$BC$};
+			\node[below] at (AB) {$AB$};
+			\node[above] at (BD) {$BD$};
+			
+			\draw (AD) -- (AB) -- (BD) -- cycle;
+			\draw (BD) -- (BC) -- (AB);
+			\draw (AD) -- (BC);
+		\end{tikzpicture}
+		\tdplotsetmaincoords{70}{-5}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			
+			\coordinate (BD) at (-1,1.5,1.42255);
+			\coordinate (CD) at (1.3,0,1.5);
+			
+			\node[left] at (AD) {$AD$};
+			\node[below] at (BC) {$BC$};
+			\node[left] at (BD) {$BD$};
+			\node[right] at (CD) {$CD$};
+			
+			\draw (BD) -- (CD) -- (AD) -- cycle;
+			\draw (AD) -- (BC) -- (CD);
+			\draw[dashed] (BD) -- (BC);
+		\end{tikzpicture}
+		
+		\tdplotsetmaincoords{70}{-5}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			\coordinate (AB) at (-1.74239,0.263795,-0.07745);
+			\coordinate (AC) at (0.55761,-1.236205,0);
+			
+			
+			\node[above] at (AD) {$AD$};
+			\node[above right] at (BC) {$BC$};
+			\node[left] at (AB) {$AB$};
+			\node[below right] at (AC) {$AC$};
+			
+			\draw (AB) -- (AD) -- (AC) -- cycle;
+			\draw (AD) -- (BC) -- (AC);
+			\draw[dashed] (AB) -- (BC);
+		\end{tikzpicture}
+		\tdplotsetmaincoords{70}{-5}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (AD) at (-0.74239,-1.236205,1.5);
+			\coordinate (BC) at (0.3,1.5,-0.07745);
+			\coordinate (AC) at (0.55761,-1.236205,0);
+			\coordinate (CD) at (1.3,0,1.5);
+			
+			\node[left] at (AD) {$AD$};
+			\node[right] at (BC) {$BC$};
+			\node[below] at (AC) {$AC$};
+			\node[right] at (CD) {$CD$};
+			
+			\draw (AD) -- (CD) -- (AC) -- cycle;
+			\draw[dashed] (AD) -- (BC) -- (CD);
+			\draw[dashed] (BC) -- (AC);
+			
+			
+		\end{tikzpicture}
+	\end{center}
+	
+	The good news is that the midpoints calculated initially do not need to be exact; they can be any points along the edges. This flexibility can lead to a noisy division.
+	
+	
 \end{document}
