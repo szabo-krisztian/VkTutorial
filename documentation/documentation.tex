@@ -876,5 +876,54 @@
 	
 	The good news is that the midpoints calculated initially do not need to be exact; they can be any points along the edges. This flexibility can lead to a noisy division.
 	
+	\subsection{Triangle vertex ordering}
+	In computer graphics, the ordering of triangle vertices is really important. When you look at your mesh at any position in the world, the triangles you are currently looking at have to be ordered either clockwise or counter clokwise. In this subsection I provide as simple algorithm to order the triangles in your mesh. Let us have a list of triangles that built up our mesh. Using the glm library here is a code:
+	
+	\begin{lstlisting}[style=customcpp]
+bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
+{
+	glm::vec3 triangleCenter = (triangle.v1 + triangle.v2 + triangle.v3) / 3.0f;
+	glm::vec3 outVector = triangleCenter - polyCenter;
+	
+	glm::vec3 v1 = outVector.v2 - outVector.v1;
+	glm::vec3 v2 = triangle.v3 - triangle.v1;
+	glm::vec3 normal = glm::cross(v1, v2);
+	
+	return glm::dot(normal, outVector) > 0;
+}
+	\end{lstlisting}
+	Now let us dvelve into this code with illustrations. Let we have a convex polyhedron. We can easily calculate it's centerpoint by adding up all the vertices and then dividing with the size. For simplicity I have chosen a tetrahedron:
+	
+	\begin{center}
+		\tdplotsetmaincoords{60}{0}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1.5]
+			\coordinate (A) at (-1.48478,-2.47241,0);
+			\coordinate (B) at (-2,3,-0.1549);
+			\coordinate (C) at (2.6, 0, 0);
+			\coordinate (D) at (0, 0, 3);
+			
+			\coordinate (M) at (-0.221195,0.1318975,0.711275);
+			\coordinate (CENTER) at (0.37173,-0.82414,1);
+			\coordinate (NORMAL) at (0.472,-0.780,0.410);
+			
+			\draw (A) -- (B) -- (D) -- (A) -- (C) -- (D);
+			\draw[dashed] (B) -- (C);
+			
+			\filldraw [black] (M) circle (2pt);
+			
+			
+			\draw[->, thick] (M) -- (CENTER);
+			\draw[->, thick] (M) -+ (CENTER) --+(NORMAL);
+			
+			\node[below] at (A) {$A$};
+			\node[left] at (B) {$B$};
+			\node[right] at (C) {$C$};
+			\node[above] at (D) {$D$};
+			
+			
+		\end{tikzpicture}
+	\end{center}
+	
+	
 	
 \end{document}

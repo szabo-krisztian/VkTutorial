@@ -37,16 +37,9 @@ cmake --build .
 ```
 
 ## Running
-```bat
-This would be it, however you need to compile the shaders. If you have Vulkan downloaded, you should have a 
-glslc.exe
- at 
-path-to-vulkan/bin/glslc.exe
- (.exe if you are using Windows). Assuming you are still in the 
-build
- folder:
+This would be it, however you need to compile the shaders. If you have Vulkan downloaded, you should have a glslc.exe at path-to-vulkan/bin/glslc.exe (.exe if you are using Windows). Assuming you are still in the build folder:
 
-bat
+```bat
 mkdir spvs
 
 location-of-glslc/glslc.exe ../application/shaders/shader.vert -o spvs/vert.spv
