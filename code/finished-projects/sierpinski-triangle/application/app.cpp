@@ -330,16 +330,8 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     VK_CHECK_RESULT(vkEndCommandBuffer(cmd));
 }
 
-void App::Run()
-{
-    while (!glfwWindowShouldClose(window))
-    {
-        glfwPollEvents();
-        DrawFrame();
-    }
-}
 
-void App::DrawFrame()
+void App::Update()
 {
     auto frameData = GetCurrentFrameData();
     vkWaitForFences(device, 1, &frameData.renderFence, VK_TRUE, UINT64_MAX);

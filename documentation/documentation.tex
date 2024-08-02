@@ -916,14 +916,16 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 			
 			\filldraw [black] (M) circle (2pt);
 			
-			\draw[->, thick] (M) -- (CENTER);
-			\draw[->, thick] (M) -+ (CENTER) --+(NORMAL);
+			\draw[->, thick] (M) -- (CENTER) node[midway, below left] {$v_1$};
+			\draw[->, thick] (M) -+ (CENTER) --+(NORMAL) node[midway, below right] {$v_2$};
+			
 			
 			\node[below] at (A) {$A$};
 			\node[left] at (B) {$B$};
 			\node[right] at (C) {$C$};
 			\node[above] at (D) {$D$};
 		\end{tikzpicture}
+		
 	\end{center}
 
 	First of all, we know that given three triangle vertices, they are either ordered clockwise or counterclockwise. To ensure the desired ordering, you can examine the current order and, if necessary, swap two vertices in the triangle. The key to determining the order is the cross product of the triangle's edge vectors. The cross product of two vectors always results in a vector that is perpendicular to the plane defined by the vectors, following the right-hand rule.

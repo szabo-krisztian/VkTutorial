@@ -20,8 +20,9 @@ class App : public AppBase
 public:
     App(int fractalDepth);
     ~App();
-    
-    void Run();
+
+protected:
+    void Update() override;
 
 private:
     DeletionQueue _deleteQueue;
