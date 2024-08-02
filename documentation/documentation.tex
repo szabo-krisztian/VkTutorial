@@ -876,8 +876,9 @@
 	
 	The good news is that the midpoints calculated initially do not need to be exact; they can be any points along the edges. This flexibility can lead to a noisy division.
 	
-	\subsection{Triangle vertex ordering}
-	In computer graphics, the ordering of triangle vertices is really important. When you look at your mesh at any position in the world, the triangles you are currently looking at have to be ordered either clockwise or counter clokwise. In this subsection I provide as simple algorithm to order the triangles in your mesh. Let us have a list of triangles that built up our mesh. Using the glm library here is a code:
+	\subsection{Triangle Vertex Ordering}
+	
+	In computer graphics, the ordering of triangle vertices is crucial. When viewing a mesh from any position in the world, the triangles you see must be consistently ordered, either clockwise or counterclockwise. In this subsection, I provide a simple algorithm to order the triangles in your mesh. Suppose we have a list of triangles that make up our mesh. Using the glm library, the following code illustrates this:
 	
 	\begin{lstlisting}[style=customcpp]
 bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
@@ -885,14 +886,15 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	glm::vec3 triangleCenter = (triangle.v1 + triangle.v2 + triangle.v3) / 3.0f;
 	glm::vec3 outVector = triangleCenter - polyCenter;
 	
-	glm::vec3 v1 = outVector.v2 - outVector.v1;
+	glm::vec3 v1 = triangle.v2 - triangle.v1;
 	glm::vec3 v2 = triangle.v3 - triangle.v1;
 	glm::vec3 normal = glm::cross(v1, v2);
 	
-	return glm::dot(normal, outVector) > 0;
+	return glm::dot(normal, outVector) < 0;
 }
 	\end{lstlisting}
-	Now let us dvelve into this code with illustrations. Let we have a convex polyhedron. We can easily calculate it's centerpoint by adding up all the vertices and then dividing with the size. For simplicity I have chosen a tetrahedron:
+	
+	Now, let us delve into this code with illustrations. Consider a convex polyhedron. We can easily calculate its center point by adding up all the vertices and then dividing by their count. For simplicity, I have chosen a tetrahedron:
 	
 	\begin{center}
 		\tdplotsetmaincoords{60}{0}
@@ -911,7 +913,6 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 			
 			\filldraw [black] (M) circle (2pt);
 			
-			
 			\draw[->, thick] (M) -- (CENTER);
 			\draw[->, thick] (M) -+ (CENTER) --+(NORMAL);
 			
@@ -919,11 +920,14 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 			\node[left] at (B) {$B$};
 			\node[right] at (C) {$C$};
 			\node[above] at (D) {$D$};
-			
-			
 		\end{tikzpicture}
 	\end{center}
+
+	First of all, we know that given three triangle vertices, they are either ordered clockwise or counterclockwise. To ensure the desired ordering, you can examine the current order and, if necessary, swap two vertices in the triangle. The key to determining the order is the cross product of the triangle's edge vectors. The cross product of two vectors always results in a vector that is perpendicular to the plane defined by the vectors, following the right-hand rule.
 	
+	We can calculate the normal vector of a triangle by computing the cross product of two vectors along its edges. However, the order of the vectors matters, as it can change the sign of the resulting normal vector. We need to determine whether the normal is pointing outwards or inwards relative to our polyhedron.
 	
-	
+	As shown in the image above, the vector is pointing outwards. There are different methods to check if the normal is pointing outwards, but I chose to check the dot product with the vector from the polyhedron center to the triangle center. By examining the sign of the dot product, we can determine the direction of the normal vector. If the dot product is negative, it means that the angle between the two vectors is greater than 90 degrees, indicating that the normal vector is pointing outwards.
+
+
 \end{document}
