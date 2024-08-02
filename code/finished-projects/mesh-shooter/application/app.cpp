@@ -4,8 +4,6 @@
 #include <chrono>
 #include <cmath>
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -25,8 +23,8 @@ App::App()
     InitCommands();
     InitSyncStructures();
 
-    CreateCubeVertices();
-    CreateCubeVertexBuffer();
+    CreateMainMeshVertices();
+    CreateMainMeshVertexBuffer();
     CreateBulletVertices();
     CreateBulletVertexBuffer();
     
@@ -36,8 +34,8 @@ App::App()
     CreateCameraTransformUniformBuffers();
     CreateCameraTransformDescriptorSets();
     CreateModelTransformDescriptorSetLayout();
-    CreateCubeTransformUniformBuffers();
-    CreateCubeTransformDescriptorSets();
+    CreateMainMeshTransformUniformBuffers();
+    CreateMainMeshTransformDescriptorSets();
     CreateBulletTransformsUniformBuffers();
     CreateBulletTransformsDescriptorSets();
 
@@ -121,13 +119,13 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     vkFreeCommandBuffers(device, _transferPool, 1, &commandBuffer);
 }
 
-void App::CreateCubeVertices()
+void App::CreateMainMeshVertices()
 {
-    physx::PxVec3 cubeDimensions(15.0f, 15.0f, 15.0f);
-    physx::PxVec3 cubePosition(0.0f, 100.0f, 0.0f);
+    physx::PxVec3 mainMeshDimensions(15.0f, 15.0f, 15.0f);
+    physx::PxVec3 mainMeshPosition(0.0f, 100.0f, 0.0f);
     physx::PxU32  numberOfVertices = 20;
 
-    _simulator.CreateMainMesh(cubePosition, cubeDimensions, numberOfVertices);
+    _simulator.CreateMainMesh(mainMeshPosition, mainMeshDimensions, numberOfVertices);
     for (const auto& pos : _simulator.GetMainMeshTriangles())
     {
         glm::vec3 randomColor = {util::RandomFloat(0.0f, 1.0f), 0, util::RandomFloat(0.0f, 1.0f)};
@@ -135,7 +133,7 @@ void App::CreateCubeVertices()
     }
 }
 
-void App::CreateCubeVertexBuffer()
+void App::CreateMainMeshVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(_mainMesh.vertices[0]) * _mainMesh.vertices.size();
     
@@ -189,14 +187,14 @@ void App::CreateDescriptorPool()
     uint32_t cameraTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
     VkDescriptorPoolSize cameraTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, cameraTransformDescriptorCount);
 
-    uint32_t cubeTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
-    VkDescriptorPoolSize cubeTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, cubeTransformDescriptorCount);
+    uint32_t mainMeshTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
+    VkDescriptorPoolSize mainMeshTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mainMeshTransformDescriptorCount);
 
     uint32_t bulletTransformsDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP) * static_cast<uint32_t>(BULLET_COUNT);
     VkDescriptorPoolSize bulletTransformsSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, bulletTransformsDescriptorCount);
 
-    uint32_t maxDescriptorCount = cameraTransformDescriptorCount + cubeTransformDescriptorCount + bulletTransformsDescriptorCount;
-    VkDescriptorPoolSize poolsizes[] = {cameraTransformSize, cubeTransformSize, bulletTransformsSize};
+    uint32_t maxDescriptorCount = cameraTransformDescriptorCount + mainMeshTransformDescriptorCount + bulletTransformsDescriptorCount;
+    VkDescriptorPoolSize poolsizes[] = {cameraTransformSize, mainMeshTransformSize, bulletTransformsSize};
     VkDescriptorPoolCreateInfo poolInfo = init::DescriptorPoolCreateInfo(3, poolsizes, maxDescriptorCount);
 
     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool));
@@ -250,7 +248,7 @@ void App::CreateModelTransformDescriptorSetLayout()
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _modelTransformLayout, nullptr); } ));
 }
 
-void App::CreateCubeTransformUniformBuffers()
+void App::CreateMainMeshTransformUniformBuffers()
 {
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
@@ -260,7 +258,7 @@ void App::CreateCubeTransformUniformBuffers()
     }
 }
 
-void App::CreateCubeTransformDescriptorSets()
+void App::CreateMainMeshTransformDescriptorSets()
 {
     std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _modelTransformLayout);
     VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP));
@@ -274,7 +272,7 @@ void App::CreateCubeTransformDescriptorSets()
     }
 }
 
-void App::UpdateCubeTransform(uint32_t currentImage)
+void App::UpdateMainMeshTransform(uint32_t currentImage)
 {
     glm::mat4 ubo = _simulator.GetMainMeshTransform();
     memcpy(_mainMesh.transformBuffers[currentImage].mapped, &ubo, sizeof(ubo));
@@ -552,7 +550,7 @@ void App::Update()
     _simulator.Update(timer.GetDeltaTime());
 
     UpdateCameraTransform(_frameNumber);
-    UpdateCubeTransform(_frameNumber);
+    UpdateMainMeshTransform(_frameNumber);
     UpdateBulletTransforms(_frameNumber);
 
     auto frameData = GetCurrentFrameData();

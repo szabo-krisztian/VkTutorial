@@ -4,6 +4,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 #include "app_base.hpp"
@@ -93,8 +94,8 @@ private:
     FrameData&  GetCurrentFrameData();
 
     void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void        CreateCubeVertices();
-    void        CreateCubeVertexBuffer();
+    void        CreateMainMeshVertices();
+    void        CreateMainMeshVertexBuffer();
     void        CreateBulletVertices();
     void        CreateBulletVertexBuffer();
 
@@ -104,9 +105,9 @@ private:
     void        CreateCameraTransformDescriptorSets();
     void        UpdateCameraTransform(uint32_t currentImage);
     void        CreateModelTransformDescriptorSetLayout();
-    void        CreateCubeTransformUniformBuffers();
-    void        CreateCubeTransformDescriptorSets();
-    void        UpdateCubeTransform(uint32_t currentImage);
+    void        CreateMainMeshTransformUniformBuffers();
+    void        CreateMainMeshTransformDescriptorSets();
+    void        UpdateMainMeshTransform(uint32_t currentImage);
     void        CreateBulletTransformsUniformBuffers();
     void        CreateBulletTransformsDescriptorSets();
     void        UpdateBulletTransforms(uint32_t currentImage);

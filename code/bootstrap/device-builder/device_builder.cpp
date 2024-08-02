@@ -37,7 +37,7 @@ Device DeviceBuilder::Build()
         queueCreateInfo.pQueuePriorities = &queuePriority;
         queueCreateInfos.push_back(queueCreateInfo);
     }
-    
+
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pNext = nullptr;
@@ -58,7 +58,9 @@ Device DeviceBuilder::Build()
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(_physicalDevice.extensions.size());
     createInfo.ppEnabledExtensionNames = _physicalDevice.extensions.data();
-    createInfo.pEnabledFeatures = nullptr;
+    VkPhysicalDeviceFeatures enabledFeatures = {};
+    enabledFeatures.fillModeNonSolid = VK_TRUE;
+    createInfo.pEnabledFeatures = &enabledFeatures;
     VK_CHECK_RESULT(vkCreateDevice(_physicalDevice, &createInfo, nullptr, &device.device));
 
     device.queues.graphicsFamily = _physicalDevice.familyIndices.graphicsFamily.value();
