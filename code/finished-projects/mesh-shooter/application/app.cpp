@@ -131,23 +131,23 @@ void App::CreateCubeVertices()
     for (const auto& pos : _simulator.GetMainMeshTriangles())
     {
         glm::vec3 randomColor = {util::RandomFloat(0.0f, 1.0f), 0, util::RandomFloat(0.0f, 1.0f)};
-        _boxVertices.push_back(Vertex{pos, randomColor});
+        _mainMesh.vertices.push_back(Vertex{pos, randomColor});
     }
 }
 
 void App::CreateCubeVertexBuffer()
 {
-    VkDeviceSize bufferSize = sizeof(_boxVertices[0]) * _boxVertices.size();
+    VkDeviceSize bufferSize = sizeof(_mainMesh.vertices[0]) * _mainMesh.vertices.size();
     
     Buffer stagingBuffer;    
     VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
     VK_CHECK_RESULT(stagingBuffer.Map());
-    stagingBuffer.CopyTo(_boxVertices.data(), bufferSize);
+    stagingBuffer.CopyTo(_mainMesh.vertices.data(), bufferSize);
 
-    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_boxVertexBuffer, bufferSize));
-    ENQUEUE_OBJ_DEL(( [this]() { _boxVertexBuffer.Destroy(); } ));
+    VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_mainMesh.vertexBuffer, bufferSize));
+    ENQUEUE_OBJ_DEL(( [this]() { _mainMesh.vertexBuffer.Destroy(); } ));
 
-    CopyBuffer(stagingBuffer.buffer, _boxVertexBuffer.buffer, bufferSize);
+    CopyBuffer(stagingBuffer.buffer, _mainMesh.vertexBuffer.buffer, bufferSize);
 
     stagingBuffer.Destroy();
 }
@@ -254,9 +254,9 @@ void App::CreateCubeTransformUniformBuffers()
 {
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_cubeTransform.ubos[i], sizeof(glm::mat4)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _cubeTransform.ubos[i].Destroy(); } ));
-        VK_CHECK_RESULT(_cubeTransform.ubos[i].Map());   
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_mainMesh.transformBuffers[i], sizeof(glm::mat4)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _mainMesh.transformBuffers[i].Destroy(); } ));
+        VK_CHECK_RESULT(_mainMesh.transformBuffers[i].Map());   
     }
 }
 
@@ -265,11 +265,11 @@ void App::CreateCubeTransformDescriptorSets()
     std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _modelTransformLayout);
     VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP));
 
-    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _cubeTransform.sets));
+    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _mainMesh.transformSets));
 
     for (size_t i = 0; i < FRAME_OVERLAP; i++)
     {
-        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_cubeTransform.sets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_cubeTransform.ubos[i].descriptor);
+        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_mainMesh.transformSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_mainMesh.transformBuffers[i].descriptor);
         vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
     }
 }
@@ -277,7 +277,7 @@ void App::CreateCubeTransformDescriptorSets()
 void App::UpdateCubeTransform(uint32_t currentImage)
 {
     glm::mat4 ubo = _simulator.GetMainMeshTransform();
-    memcpy(_cubeTransform.ubos[currentImage].mapped, &ubo, sizeof(ubo));
+    memcpy(_mainMesh.transformBuffers[currentImage].mapped, &ubo, sizeof(ubo));
 }
 
 void App::CreateBulletTransformsUniformBuffers()
@@ -510,7 +510,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
-    VkBuffer vertexBuffers[] = {_boxVertexBuffer.buffer};
+    VkBuffer vertexBuffers[] = {_mainMesh.vertexBuffer.buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
@@ -520,8 +520,8 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_cameraTransform.sets[_frameNumber], 0, nullptr);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_cubeTransform.sets[_frameNumber], 0, nullptr);
-    vkCmdDraw(cmd, static_cast<uint32_t>(_boxVertices.size()), 1, 0, 0);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_mainMesh.transformSets[_frameNumber], 0, nullptr);
+    vkCmdDraw(cmd, static_cast<uint32_t>(_mainMesh.vertices.size()), 1, 0, 0);
 
     if (_bulletTransforms.count > 0)
     {

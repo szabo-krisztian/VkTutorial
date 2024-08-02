@@ -55,18 +55,16 @@ private:
 
     VkDescriptorSetLayout _modelTransformLayout;
 
-    Buffer _boxVertexBuffer;
-    std::vector<Vertex> _boxVertices;
-
     struct
     {
-        Buffer          ubos[FRAME_OVERLAP];
-        VkDescriptorSet sets[FRAME_OVERLAP];
-    } _cubeTransform;
+        Buffer              vertexBuffer;
+        std::vector<Vertex> vertices;
+        Buffer              transformBuffers[FRAME_OVERLAP];
+        VkDescriptorSet     transformSets[FRAME_OVERLAP];
+    } _mainMesh;
     
-    Buffer _bulletVertexBuffer;
+    Buffer              _bulletVertexBuffer;
     std::vector<Vertex> _bulletVertices;
-
     struct
     {
         Buffer          ubos[FRAME_OVERLAP * BULLET_COUNT];
@@ -94,15 +92,11 @@ private:
     void        InitSyncStructures();
     FrameData&  GetCurrentFrameData();
 
-
-
     void        CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void        CreateCubeVertices();
     void        CreateCubeVertexBuffer();
     void        CreateBulletVertices();
     void        CreateBulletVertexBuffer();
-
-
 
     void        CreateDescriptorPool();
     void        CreateCameraTransformDescriptorSetLayout();
@@ -117,15 +111,11 @@ private:
     void        CreateBulletTransformsDescriptorSets();
     void        UpdateBulletTransforms(uint32_t currentImage);
 
-
-
     void        CreateRenderPass();
     void        CreateFramebuffers();
     void        CreateGraphicsPipeline();
     void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
     void        ShootBullet();
-
-
 
     void        CreateDepthResources();
     VkFormat    FindDepthFormat();

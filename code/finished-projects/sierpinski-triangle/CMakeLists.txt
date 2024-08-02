@@ -13,8 +13,8 @@ if (MSVC)
 endif()
 
 set(MY_CMAKE_DIR ../../cmake)
-include(${MY_CMAKE_DIR}/GLFW_Vulkan_GLM.cmake)
-include(${MY_CMAKE_DIR}/Essentials.cmake)
+include(${MY_CMAKE_DIR}/glfw_vulkan_glm.cmake)
+include(${MY_CMAKE_DIR}/essentials.cmake)
 
 add_subdirectory(application)
 add_executable(Main main.cpp)
