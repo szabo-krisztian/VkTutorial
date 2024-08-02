@@ -622,11 +622,14 @@
 			\coordinate (B) at (-2,3,-0.1549);
 			\coordinate (C) at (2.6, 0, 0);
 			\coordinate (D) at (0, 0, 3);
-			
+			\coordinate (M) at (-0.221195,0.1318975,0.711275);
 			
 			\draw (A) -- (B) -- (D) -- (A) -- (C) -- (D);
 			\draw[dashed] (B) -- (C);
-			
+			\draw[dotted] (A) -- (M);
+			\draw[dotted] (B) -- (M);
+			\draw[dotted] (C) -- (M);
+			\draw[dotted] (D) -- (M);
 			
 			\node[below] at (A) {$A$};
 			\node[left] at (B) {$B$};
