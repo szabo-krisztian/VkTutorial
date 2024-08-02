@@ -148,9 +148,17 @@ glm::vec3 GetMidpoint(const glm::vec3& v1, const glm::vec3& v2)
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
-    double random_number = dis(gen);
-    glm::vec3 res_rand = v1 + static_cast<float>(random_number)*(v2 - v1);
-    return res_rand;
+    double randomNumber = dis(gen);
+    
+    /*
+     *  Use this for perfect division:
+     *  glm::vec3 midPoint = (v1 + v2) / 2.0f;
+     *  Use this for noisy division:
+     *  glm::vec3 midPoint = v1 + static_cast<float>(randomNumber) * (v2 - v1);
+     */
+
+    glm::vec3 midPoint = (v1 + v2) / 2.0f;
+    return midPoint;
 }
 
 std::vector<Tetra> DivideTetra(const Tetra& tetra)
@@ -303,12 +311,19 @@ void App::CreateMainMeshVertices()
         auto v2 = vertices[static_cast<unsigned int>(triangle.y)];
         auto v3 = vertices[static_cast<unsigned int>(triangle.z)];
 
+
+        _mainMesh.vertices.push_back(Vertex{v1, {1.0f, 0.0f, 0.0f}});
+        _mainMesh.vertices.push_back(Vertex{v2, {1.0f, 0.0f, 0.0f}});
+        _mainMesh.vertices.push_back(Vertex{v3, {1.0f, 0.0f, 0.0f}});
+
+        
         MeshDivision::Tetra tetra{v1, v2, v3, center};
         tetras.push_back(tetra);
+        
     }
 
     
-    MeshDivision::DivideTetras(tetras, 2);
+    MeshDivision::DivideTetras(tetras, 3);
     
     std::vector<glm::vec3> triangleVertices;
     for (const auto& tetra : tetras)
@@ -460,9 +475,8 @@ void App::CreateMainMeshTransformDescriptorSets()
 void App::UpdateMainMeshTransform(uint32_t currentImage)
 {
     glm::mat4 model{1.0f};
-    model = glm::scale(model, glm::vec3(10,10,10));
-    model = glm::rotate(model, 3.14f / 8.0f * timer.GetElapsedTime(), glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::rotate(model, 3.14f / 3, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(5,5,5));
+    model = glm::rotate(model, 3.14f / 2.0f * timer.GetElapsedTime(), glm::vec3(0.0f, 1.0f, 0.0f));
     memcpy(_mainMesh.transformBuffers[currentImage].mapped, &model, sizeof(model));
 }
 
