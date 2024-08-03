@@ -298,31 +298,15 @@ void App::CreateMainMeshVertices()
     };
 
     glm::vec3 center{0.0f, 0.0f, 0.0f};
-    for (const auto& vertex : vertices)
-    {
-        center += vertex;
-    }
-    center /= vertices.size();
-
     std::vector<MeshDivision::Tetra> tetras;
     for (const auto& triangle : triangles)
     {
         auto v1 = vertices[static_cast<unsigned int>(triangle.x)];
         auto v2 = vertices[static_cast<unsigned int>(triangle.y)];
         auto v3 = vertices[static_cast<unsigned int>(triangle.z)];
-
-
-        _mainMesh.vertices.push_back(Vertex{v1, {1.0f, 0.0f, 0.0f}});
-        _mainMesh.vertices.push_back(Vertex{v2, {1.0f, 0.0f, 0.0f}});
-        _mainMesh.vertices.push_back(Vertex{v3, {1.0f, 0.0f, 0.0f}});
-
-        
-        MeshDivision::Tetra tetra{v1, v2, v3, center};
-        tetras.push_back(tetra);
-        
+        tetras.push_back({v1, v2, v3, center});
     }
 
-    
     MeshDivision::DivideTetras(tetras, 3);
     
     std::vector<glm::vec3> triangleVertices;
@@ -338,8 +322,7 @@ void App::CreateMainMeshVertices()
     for (const auto& vertex : triangleVertices)
     {
         _mainMesh.vertices.push_back(Vertex{vertex, {1.0f, 0.0f, 0.0f}});
-    }
-    
+    }   
 }
 
 void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)

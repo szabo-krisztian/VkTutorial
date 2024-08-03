@@ -3,14 +3,14 @@
 namespace tlr
 {
 
-GLFWwindow* InputManager::_window = nullptr;
+bool InputManager::_isInitialized = false;
 
 void InputManager::Init(GLFWwindow* window)
 {
-    assert(_window == nullptr && "InputManager already initialized!");
-    _window = window;
-    glfwSetKeyCallback(_window, GLFWKeyCallback);
-    glfwSetCursorPosCallback(_window, GLFWCursorCallback);
+    assert(!_isInitialized && "InputManager already initialized!");
+    _isInitialized = true;
+    glfwSetKeyCallback(window, GLFWKeyCallback);
+    glfwSetCursorPosCallback(window, GLFWCursorCallback);
 }
 
 InputManager* InputManager::GetInstance()
@@ -59,7 +59,6 @@ void InputManager::GLFWCursorCallback(GLFWwindow* window, double xpos, double yp
     InputManager* instance = GetInstance();
     instance->_cursorMoved.Raise(deltaX, -deltaY);
 }
-
 
 void InputManager::AddCursorPositionListener(std::function<void(float, float)>&& listener)
 {

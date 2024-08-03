@@ -10,9 +10,9 @@ class Timer
 public:
     Timer();
 
-    void Update();
+    void  Update();
     float GetElapsedTime() const;
-    float GetDeltaTime() const;
+    float GetDeltaTime()   const;
 
 private:
     std::chrono::high_resolution_clock::time_point _lastTime;

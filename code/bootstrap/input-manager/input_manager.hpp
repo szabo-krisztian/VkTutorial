@@ -43,7 +43,7 @@ public:
     void Update();
 
 private:
-    static GLFWwindow* _window;
+    static bool _isInitialized;
 
     Event<float, float>              _cursorMoved;
     std::unordered_set<int>          _pressedKeys;
