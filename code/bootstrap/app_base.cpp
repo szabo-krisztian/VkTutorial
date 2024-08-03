@@ -26,7 +26,7 @@ CameraCreateInfo cameraCI =
     glm::vec3(0.0f, 0.0f, -40.0f),  // initialPosition
     glm::vec3(0.0f, 1.0f, 0.0f),    // worldUp
     glm::radians(45.0f),            // fov
-    800.0f / 600.0f,                // aspect
+    1920.0f / 1080.0f,              // aspect
     90.0f,                          // initialYaw
     90.0f,                          // initialPitch
     0.1f,                           // sensitivity
