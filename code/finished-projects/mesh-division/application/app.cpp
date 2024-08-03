@@ -2,6 +2,7 @@
 
 #include <random>
 #include <utility>
+#include <cstring>
 
 #include <glm/gtc/matrix_transform.hpp>
 
