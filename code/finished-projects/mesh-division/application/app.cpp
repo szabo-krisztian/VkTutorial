@@ -155,7 +155,7 @@ glm::vec3 GetMidpoint(const glm::vec3& v1, const glm::vec3& v2)
      *  glm::vec3 midPoint = v1 + static_cast<float>(randomNumber) * (v2 - v1);
      */
 
-    glm::vec3 midPoint = (v1 + v2) / 2.0f;
+    glm::vec3 midPoint = v1 + static_cast<float>(randomNumber) * (v2 - v1);
     return midPoint;
 }
 
@@ -305,7 +305,7 @@ void App::CreateMainMeshVertices()
         tetras.push_back({v1, v2, v3, center});
     }
 
-    MeshDivision::DivideTetras(tetras, 3);
+    MeshDivision::DivideTetras(tetras, 2);
     
     std::vector<glm::vec3> triangleVertices;
     for (const auto& tetra : tetras)
