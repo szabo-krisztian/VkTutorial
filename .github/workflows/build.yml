@@ -1,4 +1,4 @@
-name: Build project 
+name: Build projects
 
 on:
   push:
@@ -59,9 +59,25 @@ jobs:
           cd ${{ github.workspace }}
           git clone --branch master https://github.com/g-truc/glm.git glm
 
-      - name: Build app
+      - name: Build sierpinski-triangle project
+        run: |
+          cd ${{ github.workspace }}/code/finished-projects/sierpinski-triangle
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm
+          cmake --build .  
+
+      - name: Build rotating-cube project
         run: |
           cd ${{ github.workspace }}/code/finished-projects/rotating-cube
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm
+          cmake --build . 
+
+      - name: Build mesh-division project
+        run: |
+          cd ${{ github.workspace }}/code/finished-projects/mesh-division
           mkdir build
           cd build
           cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm

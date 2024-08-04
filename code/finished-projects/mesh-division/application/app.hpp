@@ -62,18 +62,8 @@ private:
         VkDescriptorSet     transformSets[FRAME_OVERLAP];
     } _mainMesh;
 
-    struct DepthBuffer
-    {
-        VkImage depthImage;
-        VkDeviceMemory depthImageMemory;
-        VkImageView depthImageView;
-    } _depthBuffer;
-
-    VkRenderPass               _renderPass;
-    std::vector<VkFramebuffer> _framebuffers;
-    VkPipelineLayout           _pipelineLayout;
-    VkPipeline                 _graphicsPipeline;
-
+    VkPipelineLayout _pipelineLayout;
+    VkPipeline       _graphicsPipeline;
 
     void        InitCommands();
     void        InitSyncStructures();
@@ -93,16 +83,8 @@ private:
     void        CreateMainMeshTransformDescriptorSets();
     void        UpdateMainMeshTransform(uint32_t currentImage);
 
-    void        CreateRenderPass();
-    void        CreateFramebuffers();
     void        CreateGraphicsPipeline();
     void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
-
-    void        CreateDepthResources();
-    VkFormat    FindDepthFormat();
-    VkFormat    FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-    void        CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 };
 
 } // namespace tlr

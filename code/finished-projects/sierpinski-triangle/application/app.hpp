@@ -25,9 +25,6 @@ protected:
     void Update() override;
 
 private:
-    DeletionQueue _deleteQueue;
-
-    int _frameNumber = 0;
     struct FrameData
     {
         VkCommandPool   commandPool;
@@ -35,40 +32,29 @@ private:
         VkSemaphore     swapchainSemaphore, renderSemaphore;
         VkFence         renderFence;
     };
+    int       _frameNumber = 0;
     FrameData _frames[FRAME_OVERLAP];
-    std::vector<VkFramebuffer> _framebuffers;
-
-    struct Queues
-    {
-        uint32_t graphicsQueueFamily;
-        VkQueue  graphicsQueue;
-        uint32_t presentationQueueFamily;
-        VkQueue  presentationQueue;
-    } _queues;
 
     VkPipelineLayout _pipelineLayout;
-    VkRenderPass     _renderPass;
     VkBuffer         _vertexBuffer;
     VkDeviceMemory   _vertexBufferMemory;
     VkPipeline       _graphicsPipeline;
 
+    DeletionQueue _deleteQueue;
+
     FrameData& GetCurrentFrameData();
-    void       InitQueues();
     void       InitCommands();
     void       InitSyncStructures();
     void       CreateVertexBuffer();
     uint32_t   FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     void       CreateGraphicsPipeline();
-    void       CreateRenderPass();
-    void       CreateFramebuffers();
     void       PopulateSierpinskiTriangles(Vertex v1, Vertex v2, Vertex v3, int depth);
     void       RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
-    void       DrawFrame();
 
     std::vector<Vertex> vertices = {
-        {{0.0f, -0.9f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{0.9f, 0.9f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.9f, 0.9f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+        {{0.0f, -0.9f, 0.9f}, {1.0f, 0.0f, 0.0f}},
+        {{0.9f, 0.9f, 0.9f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.9f, 0.9f, 0.9f}, {0.0f, 0.0f, 1.0f}}
     };
 };
 

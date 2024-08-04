@@ -39,11 +39,7 @@ App::App()
     CreateBulletTransformsUniformBuffers();
     CreateBulletTransformsDescriptorSets();
 
-
-    CreateDepthResources();
-    CreateRenderPass();
     CreateGraphicsPipeline();
-    CreateFramebuffers();        
 }
 
 App::~App()
@@ -313,87 +309,6 @@ void App::UpdateBulletTransforms(uint32_t currentImage)
 
 
 
-void App::CreateRenderPass()
-{
-    VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = swapchain.imageFormat;
-    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentDescription depthAttachment{};
-    depthAttachment.format = FindDepthFormat();
-    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    VkAttachmentReference colorAttachmentRef{};
-    colorAttachmentRef.attachment = 0;
-    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkAttachmentReference depthAttachmentRef{};
-    depthAttachmentRef.attachment = 1;
-    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    VkSubpassDescription subpass{};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachmentRef;
-    subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-    VkSubpassDependency dependency{};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-    dependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-    std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
-    VkRenderPassCreateInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    renderPassInfo.pAttachments = attachments.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-    VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &_renderPass));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyRenderPass(device, _renderPass, nullptr); } ));
-}
-
-void App::CreateFramebuffers()
-{
-    _framebuffers.resize(swapchain.imageCount);
-    for (int i = 0; i < _framebuffers.size(); ++i)
-    {
-        std::array<VkImageView, 2> attachments = {
-            swapchain.imageViews[i],
-            _depthBuffer.depthImageView
-        };
-
-        VkFramebufferCreateInfo framebufferInfo = init::FramebufferCreateInfo();
-        framebufferInfo.renderPass = _renderPass;
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-        framebufferInfo.pAttachments = attachments.data();
-        framebufferInfo.width = swapchain.extent.width;
-        framebufferInfo.height = swapchain.extent.height;
-        framebufferInfo.height = swapchain.extent.height;
-        framebufferInfo.layers = 1;
-        
-        VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &_framebuffers[i]));
-        ENQUEUE_OBJ_DEL(( [this, i]() { vkDestroyFramebuffer(device, _framebuffers[i], nullptr); } ));
-    }
-}
-
 std::string GetAbsolutePath(const std::string& relativePath)
 {
     std::string fullPath(__FILE__);
@@ -478,11 +393,10 @@ void App::CreateGraphicsPipeline()
     pipelineCI.pViewportState = &viewportStateCI;
     pipelineCI.pRasterizationState = &rasterizer;
     pipelineCI.pMultisampleState = &multisampling;
-    pipelineCI.pDepthStencilState = nullptr;
     pipelineCI.pColorBlendState = &colorBlending;
     pipelineCI.pDynamicState = &dynamicStateCI;
     pipelineCI.pDepthStencilState = &depthStencil;
-    pipelineCI.renderPass = _renderPass;
+    pipelineCI.renderPass = renderPass;
     pipelineCI.layout = _pipelineLayout;
     pipelineCI.subpass = 0;
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
@@ -494,7 +408,7 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     VkCommandBufferBeginInfo beginInfo = init::CommandBufferBeginInfo();
     VK_CHECK_RESULT(vkBeginCommandBuffer(cmd, &beginInfo));
 
-    VkRenderPassBeginInfo renderPassInfo = init::RenderPassBeginInfo(_renderPass, _framebuffers[imageIndex]);
+    VkRenderPassBeginInfo renderPassInfo = init::RenderPassBeginInfo(renderPass, framebuffers[imageIndex]);
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapchain.extent;
     
@@ -572,100 +486,6 @@ void App::Update()
     VkPresentInfoKHR presentInfo = init::PresentInfoKHR(1, signalSemaphores, &swapchain.swapchain, &imageIndex);
     vkQueuePresentKHR(device.queues.present, &presentInfo);
     _frameNumber = (_frameNumber + 1) % FRAME_OVERLAP;
-}
-
-
-
-void App::CreateDepthResources()
-{
-    VkFormat depthFormat = FindDepthFormat();
-    CreateImage(swapchain.extent.width, swapchain.extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthBuffer.depthImage, _depthBuffer.depthImageMemory);
-    _depthBuffer.depthImageView = CreateImageView(_depthBuffer.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
-    ENQUEUE_OBJ_DEL(( [this]() {
-        vkDestroyImage(device, _depthBuffer.depthImage, nullptr);
-        vkFreeMemory(device, _depthBuffer.depthImageMemory, nullptr);
-        vkDestroyImageView(device, _depthBuffer.depthImageView, nullptr);
-    } ));
-}
-
-VkFormat App::FindDepthFormat()
-{
-    return FindSupportedFormat(
-        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-    );
-}
-
-bool HasStencilComponent(VkFormat format)
-{
-    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-}
-
-VkFormat App::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
-{
-    for (VkFormat format : candidates)
-    {
-        VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
-        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
-        {
-            return format;
-        }
-        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
-        {
-            return format;
-        }
-    }
-    throw std::runtime_error("failed to find supported format!");
-}
-
-void App::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
-{
-    VkImageCreateInfo imageInfo = init::ImageCreateInfo();
-    imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = width;
-    imageInfo.extent.height = height;
-    imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = 1;
-    imageInfo.arrayLayers = 1;
-    imageInfo.format = format;
-    imageInfo.tiling = tiling;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage = usage;
-    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    VK_CHECK_RESULT(vkCreateImage(device, &imageInfo, nullptr, &image));
-
-    VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device, image, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo = init::MemoryAllocateInfo();
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = device.GetMemoryType(memRequirements.memoryTypeBits, properties);
-
-    VK_CHECK_RESULT(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory));
-
-    vkBindImageMemory(device, image, imageMemory, 0);
-}
-
-VkImageView App::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
-{
-    VkImageViewCreateInfo viewInfo = init::ImageViewCreateInfo();
-    viewInfo.image = image;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = format;
-    viewInfo.subresourceRange.aspectMask = aspectFlags;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
-
-    VkImageView imageView;
-    VK_CHECK_RESULT(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
-
-    return imageView;
 }
 
 } // namespace tlr
