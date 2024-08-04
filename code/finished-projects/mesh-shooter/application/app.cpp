@@ -393,7 +393,6 @@ void App::CreateGraphicsPipeline()
     pipelineCI.pViewportState = &viewportStateCI;
     pipelineCI.pRasterizationState = &rasterizer;
     pipelineCI.pMultisampleState = &multisampling;
-    pipelineCI.pDepthStencilState = nullptr;
     pipelineCI.pColorBlendState = &colorBlending;
     pipelineCI.pDynamicState = &dynamicStateCI;
     pipelineCI.pDepthStencilState = &depthStencil;

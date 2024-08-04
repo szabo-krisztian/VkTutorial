@@ -264,7 +264,6 @@ void App::CreateGraphicsPipeline()
     pipelineCI.pViewportState = &viewportStateCI;
     pipelineCI.pRasterizationState = &rasterizer;
     pipelineCI.pMultisampleState = &multisampling;
-    pipelineCI.pDepthStencilState = nullptr;
     pipelineCI.pColorBlendState = &colorBlending;
     pipelineCI.pDynamicState = &dynamicStateCI;
     pipelineCI.pDepthStencilState = &depthStencil;
@@ -290,27 +289,21 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
     
-    // Drawing command
+    
     vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    // Drawing command
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
-    // Drawing command
     VkBuffer vertexBuffers[] = {_vertexBuffer.buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
-    // Drawing command
     vkCmdBindIndexBuffer(cmd, _indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
 
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
-    VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
-
-    // Drawing command
     vkCmdSetViewport(cmd, 0, 1, &viewport);
 
-    // Drawing command
+    VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[_frameNumber], 0, nullptr);
@@ -322,26 +315,18 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 
 void App::UpdateUniformBuffer(uint32_t currentImage)
 {
-    static auto startTime =std::chrono::high_resolution_clock::now(); 
-    static auto prevTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-
-    float deltaTime = std::chrono::duration<float>(currentTime - prevTime).count();
-    float elapsedTime = std::chrono::duration<float>(currentTime - startTime).count();
-
     UniformBufferObject ubo{};
-
-    ubo.view = glm::lookAt(glm::vec3(0.0, 0.0, -5.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-    
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    auto rotation = glm::rotate(modelMatrix, glm::radians(90.0f) * elapsedTime, glm::vec3(1.0f, 0.0f, 0.0f));;
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(10, 10, 10));
+    auto rotation = glm::rotate(modelMatrix, glm::radians(90.0f) * timer.GetElapsedTime(), glm::vec3(1.0f, 0.0f, 0.0f));;
     auto rotation2 = glm::rotate(rotation, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 1.0f));;
     ubo.model = glm::translate(rotation2, glm::vec3(0,0,-0.5));
     
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapchain.extent.width / (float) swapchain.extent.height, 0.1f, 10.0f);
+    ubo.view = camera.GetViewMatrix();
+    
+    ubo.proj = camera.GetProjectionMatrix();
     
     memcpy(_uniformBuffers[currentImage].mapped, &ubo, sizeof(ubo));
-    prevTime = currentTime;
 }
 
 void App::Update()

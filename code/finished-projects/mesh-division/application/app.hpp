@@ -62,8 +62,8 @@ private:
         VkDescriptorSet     transformSets[FRAME_OVERLAP];
     } _mainMesh;
 
-    VkPipelineLayout           _pipelineLayout;
-    VkPipeline                 _graphicsPipeline;
+    VkPipelineLayout _pipelineLayout;
+    VkPipeline       _graphicsPipeline;
 
     void        InitCommands();
     void        InitSyncStructures();

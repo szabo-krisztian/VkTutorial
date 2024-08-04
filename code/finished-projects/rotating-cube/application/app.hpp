@@ -77,8 +77,8 @@ private:
     VkDescriptorPool      _descriptorPool;
     VkDescriptorSet       _descriptorSets[FRAME_OVERLAP];
 
-    VkPipelineLayout           _pipelineLayout;
-    VkPipeline                 _graphicsPipeline;
+    VkPipelineLayout _pipelineLayout;
+    VkPipeline       _graphicsPipeline;
     
     DeletionQueue _deletionQueue;
 
