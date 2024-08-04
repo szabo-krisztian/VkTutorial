@@ -118,15 +118,9 @@ uint32_t App::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properti
 }
 
 std::string GetAbsolutePath(const std::string& relativePath) {
-    // __FILE__ gives the full path of the current source file
     std::string fullPath(__FILE__);
-
-    // Remove the filename (app.cpp) to get the directory path
     std::string directory = fullPath.substr(0, fullPath.find_last_of("\\/") + 1);
-
-    // Combine the directory path with the relative path you want to reference
     std::string absolutePath = directory + relativePath;
-
     return absolutePath;
 }
 
@@ -251,27 +245,20 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
     
-    // Drawing command
     vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    // Drawing command
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
-    // Drawing command
     VkBuffer vertexBuffers[] = {_vertexBuffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
-    VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
-
-    // Drawing command
     vkCmdSetViewport(cmd, 0, 1, &viewport);
 
-    // Drawing command
+    VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // Drawing command
     vkCmdDraw(cmd, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
     vkCmdEndRenderPass(cmd);
