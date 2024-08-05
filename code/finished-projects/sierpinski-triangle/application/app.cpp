@@ -2,22 +2,16 @@
 
 #include <cstring>
 
-#include <glm/glm.hpp>
-
 #include "toolset.hpp"
 #include "initializers.hpp"
 #include "shader_module.hpp"
-
 
 namespace tlr
 {
 
 App::App(int fractalDepth)
 {
-    if (fractalDepth < 0)
-    {
-        throw std::runtime_error("fractal depth must be non-negative!");
-    }
+    assert(fractalDepth >= 0 && "fractal depth must be non-negative!");
     PopulateSierpinskiTriangles(vertices[0], vertices[1], vertices[2], fractalDepth);
 
     InitCommands();

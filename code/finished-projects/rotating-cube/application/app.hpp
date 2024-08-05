@@ -38,9 +38,8 @@ private:
         VkCommandBuffer commandBuffer;
         VkSemaphore     swapchainSemaphore, renderSemaphore;
         VkFence         renderFence;
-    };
+    }             _frames[FRAME_OVERLAP];
     int           _frameNumber = 0;
-    FrameData     _frames[FRAME_OVERLAP];
     VkCommandPool _transferPool;
 
     const std::vector<Vertex> _vertices = {

@@ -31,9 +31,8 @@ private:
         VkCommandBuffer mainCommandBuffer;
         VkSemaphore     swapchainSemaphore, renderSemaphore;
         VkFence         renderFence;
-    };
-    int       _frameNumber = 0;
-    FrameData _frames[FRAME_OVERLAP];
+    }   _frames[FRAME_OVERLAP];
+    int _frameNumber = 0;
 
     VkPipelineLayout _pipelineLayout;
     VkBuffer         _vertexBuffer;

@@ -180,6 +180,7 @@ VkFormat AppBase::FindSupportedFormat(const std::vector<VkFormat>& candidates, V
             return format;
         }
     }
+    
     throw std::runtime_error("failed to find supported format!");
 }
 

@@ -38,12 +38,10 @@ private:
         VkCommandBuffer commandBuffer;
         VkSemaphore     swapchainSemaphore, renderSemaphore;
         VkFence         renderFence;
-    };
+    }                _frames[FRAME_OVERLAP];
     int              _frameNumber = 0;
-    FrameData        _frames[FRAME_OVERLAP];
     VkCommandPool    _transferPool;
     VkDescriptorPool _descriptorPool;
-    DeletionQueue    _deletionQueue;
 
     struct
     {
@@ -64,6 +62,7 @@ private:
 
     VkPipelineLayout _pipelineLayout;
     VkPipeline       _graphicsPipeline;
+    DeletionQueue    _deletionQueue;
 
     void        InitCommands();
     void        InitSyncStructures();
