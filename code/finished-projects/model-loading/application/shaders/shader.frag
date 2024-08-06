@@ -50,5 +50,5 @@ void main()
                      vec3(1,0,0) * specular * vec3(1,1,1) * 10.0 / distance;
   
   vec3 colorGammaCorrected = pow(colorLinear, vec3(1.0 / screenGamma));
-  outColor = vec4(vec3(1,0,0), 1.0);
+  outColor = vec4(colorGammaCorrected, 1.0);
 }
