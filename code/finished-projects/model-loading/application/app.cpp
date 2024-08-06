@@ -16,17 +16,14 @@ App::App()
 {
     InitCommands();
     InitSyncStructures();
+
     ReadMeshInfo();
-    CreateMainMeshVertexBuffer();
+    InitMeshVertexBuffer();
 
+
+    CreateDescriptorLayouts();
     CreateDescriptorPool();
-    CreateCameraTransformDescriptorSetLayout();
-    CreateCameraTransformUniformBuffers();
-    CreateCameraTransformDescriptorSets();
-
-    CreateModelTransformDescriptorSetLayout();
-    CreateMainMeshTransformUniformBuffers();
-    CreateMainMeshTransformDescriptorSets();
+    CreateDescriptorSets();
 
     CreateGraphicsPipeline();
 }
@@ -39,16 +36,7 @@ App::~App()
 
 void App::Update()
 {
-    auto pos = camera.GetPosition();
-    auto forw = camera.GetForwardVector();
-
-    std::cout << "pos:" << pos.x << ", "<< pos.y << ", " << pos.z << std::endl;
-    std::cout << "forw:" << forw.x << ", "<< forw.y << ", " << forw.z << std::endl;
-
-    UpdateCameraTransform(_frameNumber);
-    UpdateOtherSets(_frameNumber);
-    UpdateMainMeshTransform(_frameNumber);
-    
+    UpdateDesciptorUbos(_frameNumber);
 
     auto frameData = GetCurrentFrameData();
     vkWaitForFences(device, 1, &frameData.renderFence, VK_TRUE, UINT64_MAX);
@@ -58,6 +46,7 @@ void App::Update()
     vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, frameData.swapchainSemaphore, VK_NULL_HANDLE, &imageIndex);
     
     vkResetCommandBuffer(frameData.commandBuffer, 0);
+    
     RecordCommandBuffer(frameData.commandBuffer, imageIndex);
     
     VkSemaphore waitSemaphores[] = {frameData.swapchainSemaphore};
@@ -71,10 +60,6 @@ void App::Update()
     _frameNumber = (_frameNumber + 1) % FRAME_OVERLAP;
 }
 
-App::FrameData& App::GetCurrentFrameData()
-{
-    return _frames[_frameNumber];
-}
 
 void App::InitCommands()
 {
@@ -112,6 +97,12 @@ void App::InitSyncStructures()
     }
 }
 
+App::FrameData& App::GetCurrentFrameData()
+{
+    return _frames[_frameNumber];
+}
+
+
 void App::ReadMeshInfo()
 {
     tinyobj::ObjReader reader;
@@ -136,61 +127,30 @@ void App::ReadMeshInfo()
     auto& shapes = reader.GetShapes();
     auto& materials = reader.GetMaterials();
 
-    // Initialize materials
-    for (const auto& mat : materials)
+    for (const auto& m : materials)
     {
         Material material;
-        
-        // Specular Exponent (Ns)
-        material.specularExponent = mat.shininess;
-
-        // Ambient (Ka)
-        material.ambient = glm::vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
-
-        // Diffuse (Kd)
-        material.diffuse = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
-
-        // Specular (Ks)
-        material.specular = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
-
-        // Emissive (Ke)
-        material.emissive = glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]);
-
-        // Alpha (d)
-        material.alpha = mat.dissolve;
-
-        _materials.push_back(material);
+        material.specularExponent = m.shininess;
+        material.ambient = glm::vec3(m.ambient[0], m.ambient[1], m.ambient[2]);
+        material.diffuse = glm::vec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
+        material.specular = glm::vec3(m.specular[0], m.specular[1], m.specular[2]);
+        material.emissive = glm::vec3(m.emission[0], m.emission[1], m.emission[2]);
+        material.alpha = m.dissolve;
+        _mesh.materials.push_back(material);
     }
 
-    // Loop over shapes
     for (const auto& shape : shapes)
     {
         const auto& mesh = shape.mesh;
 
-        // Loop over faces (polygon)
         size_t index_offset = 0;
         for (size_t f = 0; f < mesh.num_face_vertices.size(); ++f)
         {
             size_t fv = mesh.num_face_vertices[f];
             int materialId = mesh.material_ids[f];
 
-            // Ensure the material ID is valid
-            if (materialId < 0 || materialId >= _materials.size())
-            {
-                std::cerr << "Warning: Invalid material ID " << materialId << std::endl;
-                continue;
-            }
-
-            // Initialize the vector if it does not exist
-            if (_shapeVertices.find(materialId) == _shapeVertices.end())
-            {
-                _shapeVertices[materialId] = std::vector<Vertex>();
-            }
-
-            // Loop over vertices in the face
             for (size_t v = 0; v < fv; ++v)
             {
-                // Access to vertex
                 tinyobj::index_t idx = mesh.indices[index_offset + v];
                 
                 glm::vec3 position =
@@ -209,7 +169,12 @@ void App::ReadMeshInfo()
 
                 Vertex vertex = {position, normal};
                 
-                _shapeVertices[materialId].push_back(vertex);
+                if (_mesh.vertices.find(materialId) == _mesh.vertices.end())
+                {
+                    _mesh.vertices[materialId] = std::vector<Vertex>();
+                }
+
+                _mesh.vertices[materialId].push_back(vertex);
             }
             index_offset += fv;
         }
@@ -240,191 +205,164 @@ void App::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
     vkFreeCommandBuffers(device, _transferPool, 1, &commandBuffer);
 }
 
-void App::CreateMainMeshVertexBuffer()
+void App::InitMeshVertexBuffer()
 {
-    for (const auto& pair : _shapeVertices)
+    _mesh.buffers.resize(_mesh.materials.size());
+
+    for (int i = 0; i < _mesh.materials.size(); ++i)
     {
-        int materialID = pair.first;
-        auto vertices = pair.second;
+        auto& vertices = _mesh.vertices[i];
+        auto& buffer = _mesh.buffers[i];
 
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-        Buffer stagingBuffer;    
+        Buffer stagingBuffer;
         VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, bufferSize));
         VK_CHECK_RESULT(stagingBuffer.Map());
         stagingBuffer.CopyTo(vertices.data(), bufferSize);
 
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &_shapeBuffers[materialID], bufferSize));
-        
-        ENQUEUE_OBJ_DEL(([this, materialID] { _shapeBuffers[materialID].Destroy(); }));
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &buffer, bufferSize));
+        ENQUEUE_OBJ_DEL(([this, i] { _mesh.buffers[i].Destroy(); }));
 
-        CopyBuffer(stagingBuffer.buffer, _shapeBuffers[materialID].buffer, bufferSize);
+        CopyBuffer(stagingBuffer.buffer, buffer.buffer, bufferSize);
 
         stagingBuffer.Destroy();
     }
 }
 
+
+void App::CreateDescriptorLayouts()
+{
+    VkDescriptorSetLayoutBinding modelBindingSet0 = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0, 1);
+    VkDescriptorSetLayoutBinding lightBindingSet0 = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1);
+    VkDescriptorSetLayoutBinding cameraPositionBindingSet0 = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1);
+    VkDescriptorSetLayoutBinding bindingsSet0[] = { modelBindingSet0, lightBindingSet0, cameraPositionBindingSet0 };
+    VkDescriptorSetLayoutCreateInfo layoutInfoSet0 = init::DescriptorSetLayoutCreateInfo(3, bindingsSet0);
+    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfoSet0, nullptr, &_set0Layout));
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _set0Layout, nullptr); } ));
+
+    VkDescriptorSetLayoutBinding materialBindingSet1 = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1);
+    VkDescriptorSetLayoutBinding bindingsSet1[] = { materialBindingSet1 };
+    VkDescriptorSetLayoutCreateInfo layoutInfoSet1 = init::DescriptorSetLayoutCreateInfo(1, bindingsSet1);
+    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfoSet1, nullptr, &_set1Layout));
+    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _set1Layout, nullptr); } ));
+}
+
 void App::CreateDescriptorPool()
 {
-    uint32_t cameraTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
-    VkDescriptorPoolSize cameraTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, cameraTransformDescriptorCount);
+    uint32_t modelTransformCount = static_cast<uint32_t>(FRAME_OVERLAP);
+    VkDescriptorPoolSize modeltransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, modelTransformCount);
 
-    uint32_t mainMeshTransformDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP);
-    VkDescriptorPoolSize mainMeshTransformSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, mainMeshTransformDescriptorCount);
-
-    uint32_t matDescriptorCount = static_cast<uint32_t>(FRAME_OVERLAP * _materials.size());
-    VkDescriptorPoolSize matSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, matDescriptorCount);
-
-    uint32_t lightDescCount = static_cast<uint32_t>(FRAME_OVERLAP);
-    VkDescriptorPoolSize lightSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, lightDescCount);
-
-    uint32_t camData = static_cast<uint32_t>(FRAME_OVERLAP);
-    VkDescriptorPoolSize camSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, camData);
-
-    uint32_t maxDescriptorCount = cameraTransformDescriptorCount + mainMeshTransformDescriptorCount + matDescriptorCount + lightDescCount + camData;
-    VkDescriptorPoolSize poolsizes[] = {cameraTransformSize, mainMeshTransformSize, matSize, lightSize, camSize};
-    VkDescriptorPoolCreateInfo poolInfo = init::DescriptorPoolCreateInfo(5, poolsizes, maxDescriptorCount);
+    uint32_t lightCount = static_cast<uint32_t>(FRAME_OVERLAP);
+    VkDescriptorPoolSize lightSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, lightCount);
+    
+    uint32_t cameraPositionCount = static_cast<uint32_t>(FRAME_OVERLAP);
+    VkDescriptorPoolSize cameraPositionSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, cameraPositionCount);
+    
+    uint32_t materialsCount = static_cast<uint32_t>(FRAME_OVERLAP * _mesh.materials.size());
+    VkDescriptorPoolSize materialsSize = init::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, materialsCount);
+    
+    uint32_t maxDescriptorCount = modelTransformCount + lightCount + cameraPositionCount + materialsCount;
+    VkDescriptorPoolSize poolsizes[] = {modeltransformSize, lightSize, cameraPositionSize, materialsSize};
+    VkDescriptorPoolCreateInfo poolInfo = init::DescriptorPoolCreateInfo(4, poolsizes, maxDescriptorCount);
 
     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool));
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorPool(device, _descriptorPool, nullptr); } ));
 }
 
-void App::CreateCameraTransformDescriptorSetLayout()
+void App::CreateDescriptorSets()
 {
-    VkDescriptorSetLayoutBinding uboLayoutBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0, 1);
-    VkDescriptorSetLayoutCreateInfo layoutInfo = init::DescriptorSetLayoutCreateInfo(1, &uboLayoutBinding);
-    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &_cameraTransform.layout));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _cameraTransform.layout, nullptr); } ));
-}
-
-void App::CreateCameraTransformUniformBuffers()
-{
-    for (size_t i = 0; i < FRAME_OVERLAP; i++)
-    {
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_cameraTransform.ubos[i], sizeof(CameraTransform)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _cameraTransform.ubos[i].Destroy(); } ));
-        VK_CHECK_RESULT(_cameraTransform.ubos[i].Map());   
-    }
-}
-
-void App::CreateCameraTransformDescriptorSets()
-{
-    std::vector<VkDescriptorSetLayout> layouts(FRAME_OVERLAP, _cameraTransform.layout);
-    VkDescriptorSetAllocateInfo allocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, layouts.data(), static_cast<uint32_t>(FRAME_OVERLAP));
-    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, _cameraTransform.sets));
-
-    for (size_t i = 0; i < FRAME_OVERLAP; i++)
-    {
-        VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(_cameraTransform.sets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_cameraTransform.ubos[i].descriptor);
-        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
-    }
-}
-
-void App::UpdateCameraTransform(uint32_t currentImage)
-{
-    CameraTransform ubo{};
-    ubo.view = camera.GetViewMatrix();
-    ubo.proj = camera.GetProjectionMatrix();
-    memcpy(_cameraTransform.ubos[currentImage].mapped, &ubo, sizeof(ubo));
-}
-
-void App::CreateModelTransformDescriptorSetLayout()
-{
-    VkDescriptorSetLayoutBinding modelTransformBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0, 1);
-    VkDescriptorSetLayoutBinding lightBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1);
-    VkDescriptorSetLayoutBinding cameraBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1);
-    
-    VkDescriptorSetLayoutBinding bindings[] = {modelTransformBinding, lightBinding, cameraBinding};
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo = init::DescriptorSetLayoutCreateInfo(3, bindings);
-    
-    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &layoutSet1));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, layoutSet1, nullptr); } ));
-
-    VkDescriptorSetLayoutBinding materialBinding = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1);
-    VkDescriptorSetLayoutBinding bindingsMat[] = {materialBinding};
-    VkDescriptorSetLayoutCreateInfo layoutInfoMat = init::DescriptorSetLayoutCreateInfo(1, bindingsMat);
-    VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfoMat, nullptr, &layoutSet2));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, layoutSet2, nullptr); } ));
-}
-
-void App::CreateMainMeshTransformUniformBuffers()
-{
-    _mats.buffers.resize(FRAME_OVERLAP * _materials.size());
+    _sets0.resize(FRAME_OVERLAP);
+    _sets1.resize(FRAME_OVERLAP * _mesh.materials.size());
 
     for (size_t i = 0; i < FRAME_OVERLAP; ++i)
     {
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_model.buffers[i], sizeof(ModelTransform)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _model.buffers[i].Destroy(); } ));
-        VK_CHECK_RESULT(_model.buffers[i].Map());
+        auto& set = _sets0[i];
 
-        for (size_t j = 0; j < _materials.size(); ++j)
-        {
-            VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_mats.buffers[i * _materials.size() + j], sizeof(Material)));
-            
-            ENQUEUE_OBJ_DEL(( [this, i, j]() { _mats.buffers[i * _materials.size() + j].Destroy(); } ));
-            VK_CHECK_RESULT(_mats.buffers[i * _materials.size() + j].Map());   
-            memcpy(_mats.buffers[i * _materials.size() + j].mapped, &_materials[j], sizeof(Material));
-            _mats.buffers[i * _materials.size() + j].Unmap();   
-        }
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &set.modelUbo, sizeof(ModelTransform)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _sets0[i].modelUbo.Destroy(); } ));
+        VK_CHECK_RESULT(set.modelUbo.Map());
+
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &set.lightUbo, sizeof(Light)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _sets0[i].lightUbo.Destroy(); } ));
+        VK_CHECK_RESULT(set.lightUbo.Map());
         
-
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_light.buffers[i], sizeof(Light)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _light.buffers[i].Destroy(); } ));
-        VK_CHECK_RESULT(_light.buffers[i].Map());   
-        Light light;
-        light.position = {0,0,0};
-        light.lightColor = {1,1,1};
-        light.lightPower = 60.0f;
-        memcpy(_light.buffers[i].mapped, &light, sizeof(Light));
-        _light.buffers[i].Unmap();
-
-
-        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_cam.buffers[i], sizeof(glm::vec3)));
-        ENQUEUE_OBJ_DEL(( [this, i]() { _cam.buffers[i].Destroy(); } ));
-        VK_CHECK_RESULT(_cam.buffers[i].Map());   
+        VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &set.cameraPositionUbo, sizeof(glm::vec3)));
+        ENQUEUE_OBJ_DEL(( [this, i]() { _sets0[i].cameraPositionUbo.Destroy(); } ));
+        VK_CHECK_RESULT(set.cameraPositionUbo.Map())
     }
-}
 
-void App::CreateMainMeshTransformDescriptorSets()
-{
-    std::vector<VkDescriptorSetLayout> layouts1(FRAME_OVERLAP, layoutSet1);
-    VkDescriptorSetAllocateInfo allocInfoModel = init::DescriptorSetAllocateInfo(_descriptorPool, layouts1.data(), static_cast<uint32_t>(FRAME_OVERLAP));
-    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfoModel, sets1));
-    
-    for (size_t i = 0; i < FRAME_OVERLAP; i++)
+    for (size_t i = 0; i < FRAME_OVERLAP; ++i)
     {
-        VkWriteDescriptorSet descriptorWrites[] = {
-            init::WriteDescriptorSet(sets1[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_model.buffers[i].descriptor),
-            init::WriteDescriptorSet(sets1[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &_light.buffers[i].descriptor),
-            init::WriteDescriptorSet(sets1[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2, &_cam.buffers[i].descriptor)
+        for (size_t j = 0; j < _mesh.materials.size(); ++j)
+        {
+            auto& set = _sets1[i * _mesh.materials.size() + j];
+
+            VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &set.materialUbo, sizeof(Material)));
+            ENQUEUE_OBJ_DEL(( [this, i, j]() { _sets1[i * _mesh.materials.size() + j].materialUbo.Destroy(); } ));
+            VK_CHECK_RESULT(set.materialUbo.Map());
+        }
+    }
+    
+    for (size_t i = 0; i < FRAME_OVERLAP; ++i)
+    {
+        VkDescriptorSetAllocateInfo set0AllocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, &_set0Layout, 1);
+        VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &set0AllocInfo, &_sets0[i].set));
+
+
+        VkWriteDescriptorSet descriptorWrites[] =
+        {
+            init::WriteDescriptorSet(_sets0[i].set, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_sets0[i].modelUbo.descriptor),
+            init::WriteDescriptorSet(_sets0[i].set, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &_sets0[i].lightUbo.descriptor),
+            init::WriteDescriptorSet(_sets0[i].set, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2, &_sets0[i].cameraPositionUbo.descriptor)
         };
         vkUpdateDescriptorSets(device, 3, descriptorWrites, 0, nullptr);
-    }
 
-    sets2.resize(FRAME_OVERLAP * _materials.size());
-    std::vector<VkDescriptorSetLayout> layouts2(FRAME_OVERLAP * _materials.size(), layoutSet2);
-    VkDescriptorSetAllocateInfo allocInfoMat = init::DescriptorSetAllocateInfo(_descriptorPool, layouts2.data(), static_cast<uint32_t>(FRAME_OVERLAP) * static_cast<uint32_t>(_materials.size()));
-    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfoMat, sets2.data()));
-    for (size_t i = 0; i < FRAME_OVERLAP; i++)
-    {
-        for (size_t j = 0; j < _materials.size(); ++j)
-        {
-            VkWriteDescriptorSet descriptorWrite = init::WriteDescriptorSet(sets2[i * _materials.size() + j], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_mats.buffers[i * _materials.size() + j].descriptor);
-            vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
-        }
+        assert(_sets0[i].set != VK_NULL_HANDLE);
     }
     
+    for (size_t i = 0; i < FRAME_OVERLAP; ++i)
+    {
+        for (size_t j = 0; j < _mesh.materials.size(); ++j)
+        {
+            VkDescriptorSetAllocateInfo set1AllocInfo = init::DescriptorSetAllocateInfo(_descriptorPool, &_set1Layout, 1);
+            VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &set1AllocInfo, &_sets1[i * _mesh.materials.size() + j].set));
+
+            
+            VkWriteDescriptorSet descriptorWrites[] =
+            {
+                init::WriteDescriptorSet(_sets1[i * _mesh.materials.size() + j].set, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &_sets1[i * _mesh.materials.size() + j].materialUbo.descriptor)
+            };
+            vkUpdateDescriptorSets(device, 1, descriptorWrites, 0, nullptr);
+        }
+    }
 }
 
-void App::UpdateMainMeshTransform(uint32_t currentImage)
+void App::UpdateDesciptorUbos(uint32_t frameNumber)
 {
-    ModelTransform modelTransform {};
-    modelTransform.vertex = glm::mat4(1.0f);
-    modelTransform.normal = glm::transpose(glm::inverse(modelTransform.vertex));
-    //model = glm::rotate(model, 3.14f / 2.0f * timer.GetElapsedTime(), glm::vec3(0.0f, 1.0f, 0.0f));
-    memcpy(_model.buffers[currentImage].mapped, &modelTransform, sizeof(ModelTransform));
+    ModelTransform modelUbo {};
+    modelUbo.vertexTransform = glm::mat4(1.0f);
+    modelUbo.normalTransform = glm::mat4(1.0f);
+    modelUbo.view = camera.GetViewMatrix();
+    modelUbo.proj = camera.GetProjectionMatrix();
+    memcpy(_sets0[frameNumber].modelUbo.mapped, &modelUbo, sizeof(ModelTransform));
+
+    Light lightUbo {};
+    lightUbo.position = {2.97619, 9.57204, 17.167};
+    lightUbo.lightColor = {1,1,1};
+    lightUbo.lightPower = 10.0f;
+    memcpy(_sets0[frameNumber].lightUbo.mapped, &lightUbo, sizeof(Light));
+
+    glm::vec3 cameraUbo = camera.GetPosition();
+    memcpy(_sets0[frameNumber].cameraPositionUbo.mapped, &cameraUbo, sizeof(glm::vec3));
+
+    for (size_t j = 0; j < _mesh.materials.size(); ++j)
+    {
+        Material materialUbo = _mesh.materials[j];
+        memcpy(_sets1[frameNumber * _mesh.materials.size() + j].materialUbo.mapped, &materialUbo, sizeof(Material));
+    }
 }
+
 
 std::string GetAbsolutePath(const std::string& relativePath)
 {
@@ -432,12 +370,6 @@ std::string GetAbsolutePath(const std::string& relativePath)
     std::string directory = fullPath.substr(0, fullPath.find_last_of("\\/") + 1);
     std::string absolutePath = directory + relativePath;
     return absolutePath;
-}
-
-void App::UpdateOtherSets(uint32_t currentImage)
-{   
-    glm::vec3 cameraPosition = camera.GetPosition();
-    memcpy(_cam.buffers[currentImage].mapped, &cameraPosition, sizeof(glm::vec3));
 }
 
 void App::CreateGraphicsPipeline()
@@ -492,15 +424,18 @@ void App::CreateGraphicsPipeline()
     VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 
     // Color blending
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, VK_FALSE);
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(
+    VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, 
+    VK_FALSE
+);
     VkPipelineColorBlendStateCreateInfo colorBlending = init::PipelineColorBlendStateCreateInfo(1, &colorBlendAttachment);
 
     // Pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutCI{};
     pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     
-    pipelineLayoutCI.setLayoutCount = 3;
-    VkDescriptorSetLayout layout[] = {_cameraTransform.layout, layoutSet1, layoutSet2};
+    pipelineLayoutCI.setLayoutCount = 2;
+    VkDescriptorSetLayout layout[] = {_set0Layout, _set1Layout};
     pipelineLayoutCI.pSetLayouts = layout;
     
 
@@ -545,28 +480,22 @@ void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
     vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
-    for (const auto& pair : _shapeBuffers)
+    VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
+    VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_sets0[_frameNumber].set, 0, nullptr);
+    for (size_t i = 0; i < _mesh.materials.size(); ++i)
     {
-        VkBuffer vertexBuffers[] = {pair.second.buffer};
+        size_t index = _frameNumber * _mesh.materials.size() + i;
+
+        VkBuffer vertexBuffers[] = {_mesh.buffers[i].buffer};
         VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
-
-        VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
-        VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
-        vkCmdSetViewport(cmd, 0, 1, &viewport);
-        vkCmdSetScissor(cmd, 0, 1, &scissor);
-
         
-        VkDescriptorSet descriptorSets[] = {
-            _cameraTransform.sets[_frameNumber],
-            sets1[_frameNumber],
-            sets2[_frameNumber * _materials.size() + pair.first],
-        };
-
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 3, descriptorSets, 0, nullptr);
-
-
-        vkCmdDraw(cmd, static_cast<uint32_t>(_shapeVertices[pair.first].size()), 1, 0, 0);
+        vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 1, 1, &_sets1[index].set, 0, nullptr);
+        vkCmdDraw(cmd, static_cast<uint32_t>(_mesh.vertices[i].size()), 1, 0, 0);
     }
 
     vkCmdEndRenderPass(cmd);
