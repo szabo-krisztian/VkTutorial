@@ -13,7 +13,7 @@ namespace tlr
 
 struct Vertex
 {
-    glm::vec3 position;
+    glm::vec3 pos;
     glm::vec3 color;
 
     static VkVertexInputBindingDescription GetBindingDescription()
@@ -22,13 +22,11 @@ struct Vertex
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
     {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-
-        attributeDescriptions[0] = init::VertexInputAttributeDescription(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position));
-        attributeDescriptions[1] = init::VertexInputAttributeDescription(0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color));
-
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+        attributeDescriptions[0] = init::VertexInputAttributeDescription(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos));
+        attributeDescriptions[1] = init::VertexInputAttributeDescription(0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color));
         return attributeDescriptions;
     }
 };

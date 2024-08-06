@@ -59,13 +59,37 @@ private:
     };
     std::vector<Material> _materials;
 
-    std::unordered_map<int, std::vector<Vertex>> _vertices;
+    std::vector<Vertex> vertices;
+    Buffer buffer;
+    
+    struct
+    {
+        VkDescriptorSetLayout layout;
+        Buffer              transformBuffers[FRAME_OVERLAP];
+        VkDescriptorSet     transformSets[FRAME_OVERLAP];
+    } _model;
+
 
     void InitCommands();
     void InitSyncStructures();
     FrameData& GetCurrentFrameData();
 
     void ReadMeshInfo();
+    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    void CreateMainMeshVertexBuffer();
+
+    void        CreateDescriptorPool();
+    void        CreateCameraTransformDescriptorSetLayout();
+    void        CreateCameraTransformUniformBuffers();
+    void        CreateCameraTransformDescriptorSets();
+    void        UpdateCameraTransform(uint32_t currentImage);
+    void        CreateModelTransformDescriptorSetLayout();
+    void        CreateMainMeshTransformUniformBuffers();
+    void        CreateMainMeshTransformDescriptorSets();
+    void        UpdateMainMeshTransform(uint32_t currentImage);
+
+     void        CreateGraphicsPipeline();
+    void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
 
     struct
     {
@@ -73,6 +97,9 @@ private:
         VkDescriptorSetLayout layout;
         VkDescriptorSet       sets[FRAME_OVERLAP];
     } _cameraTransform;
+
+    VkPipelineLayout _pipelineLayout;
+    VkPipeline       _graphicsPipeline;
 
     DeletionQueue _deletionQueue;
 
