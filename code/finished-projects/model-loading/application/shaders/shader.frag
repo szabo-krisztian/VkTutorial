@@ -1,7 +1,9 @@
 #version 450
 
-layout(location = 0) in vec3 worldPosition;
-layout(location = 1) in vec3 worldNormal;
+precision mediump float;
+
+layout(location = 0) in vec3 normalInterp;
+layout(location = 1) in vec3 vertPos;
 
 layout(set = 0, binding = 1) uniform Light
 {
@@ -29,26 +31,39 @@ const float screenGamma = 2.2;
 
 layout(location = 0) out vec4 outColor;
 
-void main()
-{
-  vec3 lightDirection = light.position - worldPosition;
-  float distance = pow(length(lightDirection), 2);
-  lightDirection = normalize(lightDirection);
+void main() {
 
-  float lambertian = max(dot(lightDirection, worldNormal), 0.0);
-  float specular = 0.0;
+    vec3 normal = normalize(normalInterp);
+    vec3 lightDir = light.position - vertPos;
+    float distance = length(lightDir);
+    distance = distance * distance; // square the distance
+    lightDir = normalize(lightDir);
 
-  if (lambertian > 0.0)
-  {
-    vec3 viewDirection = normalize(worldPosition - camera.position);
-    vec3 halfDirection = normalize(lightDirection + viewDirection);
-    float specularAngle = max(dot(halfDirection, worldNormal), 0.0);
-    specular = pow(specularAngle, material.shininess);   
-  }
+    float lambertian = max(dot(lightDir, normal), 0.0);
+    float specular = 0.0;
 
-  vec3 colorLinear = vec3(1,0,0) * lambertian * vec3(1,1,1) * 10.0 / distance;
-                     vec3(1,0,0) * specular * vec3(1,1,1) * 10.0 / distance;
-  
-  vec3 colorGammaCorrected = pow(colorLinear, vec3(1.0 / screenGamma));
-  outColor = vec4(colorGammaCorrected, 1.0);
+    if (lambertian > 0.0) {
+        vec3 viewDir = normalize(camera.position - vertPos);
+
+        // Blinn-Phong
+        vec3 halfDir = normalize(lightDir + viewDir);
+        float specAngle = max(dot(halfDir, normal), 0.0);
+        specular = pow(specAngle, material.shininess);
+
+        // Phong (for comparison)
+        if (material.shininess < 0.0) { // Use a negative shininess value as a flag for Phong
+            vec3 reflectDir = reflect(-lightDir, normal);
+            specAngle = max(dot(reflectDir, viewDir), 0.0);
+            specular = pow(specAngle, material.shininess / 4.0);
+        }
+    }
+
+    vec3 ambient = material.ambientColor;
+    vec3 diffuse = material.diffuseColor * lambertian * light.color * light.power / distance;
+    vec3 spec = material.specColor * specular * light.color * light.power / distance;
+
+    vec3 colorLinear = diffuse + spec;
+
+    vec3 colorGammaCorrected = pow(colorLinear, vec3(1.0 / screenGamma));
+    outColor = vec4(colorGammaCorrected, material.alpha);
 }

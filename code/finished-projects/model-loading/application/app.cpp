@@ -36,6 +36,9 @@ App::~App()
 
 void App::Update()
 {
+    auto pos = camera.GetPosition();
+    std::cout << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
+
     UpdateDesciptorUbos(_frameNumber);
 
     auto frameData = GetCurrentFrameData();
@@ -348,9 +351,9 @@ void App::UpdateDesciptorUbos(uint32_t frameNumber)
     memcpy(_sets0[frameNumber].modelUbo.mapped, &modelUbo, sizeof(ModelTransform));
 
     Light lightUbo {};
-    lightUbo.position = {2.97619, 9.57204, 17.167};
+    lightUbo.position = {-0.0999182, 22.4754, -1.63288};
     lightUbo.lightColor = {1,1,1};
-    lightUbo.lightPower = 10.0f;
+    lightUbo.lightPower = 70.0f;
     memcpy(_sets0[frameNumber].lightUbo.mapped, &lightUbo, sizeof(Light));
 
     glm::vec3 cameraUbo = camera.GetPosition();
@@ -411,7 +414,6 @@ void App::CreateGraphicsPipeline()
     depthStencil.front = {}; // Optional
     depthStencil.back = {}; // Optional
 
-
     // Viewport state
     VkViewport viewport = init::Viewport(static_cast<float>(swapchain.extent.width), static_cast<float>(swapchain.extent.height), 0.0f, 1.0f);
     VkRect2D scissor = init::Rect2D({0, 0}, swapchain.extent);
@@ -424,21 +426,25 @@ void App::CreateGraphicsPipeline()
     VkPipelineMultisampleStateCreateInfo multisampling = init::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 
     // Color blending
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = init::PipelineColorBlendAttachmentState(
-    VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, 
-    VK_FALSE
-);
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+    colorBlendAttachment.blendEnable = VK_TRUE;
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
     VkPipelineColorBlendStateCreateInfo colorBlending = init::PipelineColorBlendStateCreateInfo(1, &colorBlendAttachment);
 
     // Pipeline layout
     VkPipelineLayoutCreateInfo pipelineLayoutCI{};
     pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    
     pipelineLayoutCI.setLayoutCount = 2;
     VkDescriptorSetLayout layout[] = {_set0Layout, _set1Layout};
     pipelineLayoutCI.pSetLayouts = layout;
     
-
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipelineLayout(device, _pipelineLayout, nullptr); } ));
 
@@ -460,6 +466,7 @@ void App::CreateGraphicsPipeline()
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
     ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipeline(device, _graphicsPipeline, nullptr); } ));
 }
+
 
 void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 {

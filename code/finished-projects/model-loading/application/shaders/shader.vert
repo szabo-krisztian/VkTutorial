@@ -11,13 +11,13 @@ layout(set = 0, binding = 0) uniform ModelTransform
     mat4 proj;
 } model;
 
-layout(location = 0) out vec3 outVertex;
-layout(location = 1) out vec3 outNormal;
+layout(location = 0) out vec3 normalInterp;
+layout(location = 1) out vec3 vertPos;
 
 void main()
 {
     vec4 worldPosition = model.vertexTransform * vec4(inVertex, 1.0);
     gl_Position = model.proj * model.view * worldPosition;
-    outVertex = vec3(worldPosition) / worldPosition.w;
-    outNormal = normalize(vec3(model.normalTransform * vec4(inNormal, 0.0)));
+    vertPos = vec3(worldPosition) / worldPosition.w;
+    normalInterp = normalize(vec3(model.normalTransform * vec4(inNormal, 0.0)));
 }
