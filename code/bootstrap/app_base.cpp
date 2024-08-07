@@ -26,7 +26,7 @@ namespace tlr
 
 CameraCreateInfo cameraCI =
 {
-    glm::vec3(0.0f, 0.0f, -40.0f),  // initialPosition
+    glm::vec3(2.97619f, 9.57204f, 17.167f),  // initialPosition
     glm::vec3(0.0f, 1.0f, 0.0f),    // worldUp
     glm::radians(45.0f),            // fov
     1920.0f / 1080.0f,              // aspect
