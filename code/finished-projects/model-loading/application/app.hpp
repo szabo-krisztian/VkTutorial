@@ -42,6 +42,17 @@ struct Light
     alignas(4)  float     lightPower;
 };
 
+template <typename LayoutUBO>
+struct Layout
+{
+    VkDescriptorSetLayout layout;
+    operator VkDescriptorSetLayout&() { return layout; }
+    operator VkDescriptorSetLayout*() { return &layout; }
+
+    std::vector<LayoutUBO>       ubos;
+    std::vector<VkDescriptorSet> sets;
+};
+
 class App : public AppBase
 {
 public:
@@ -52,8 +63,8 @@ protected:
     void Update() override;
 
 private:
-    const std::string MODEL_PATH = "C:/dev/VulkanProjs/Start/code/finished-projects/model-loading/application/bugatti/bugatti.obj";
-    const std::string MTL_PATH = "C:/dev/VulkanProjs/Start/code/finished-projects/model-loading/application/bugatti";
+    const std::string MODEL_PATH;
+    const std::string MTL_PATH;
 
     struct FrameData
     {
@@ -71,6 +82,7 @@ private:
 
     struct
     {
+        size_t                materialsCount;
         std::vector<Material> materials;
         std::vector<Buffer>   buffers;
         std::unordered_map<int, std::vector<Vertex>> vertices;
@@ -80,38 +92,32 @@ private:
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     void InitMeshVertexBuffer();
 
-    VkDescriptorSetLayout _set0Layout;
-    VkDescriptorSetLayout _set1Layout;
-    VkDescriptorPool      _descriptorPool;
+    struct Layout0UBO
+    {
+        Buffer model;
+        Buffer light;
+        Buffer cameraPosition;
+    };
+    struct Layout1UBO
+    {
+        Buffer material;
+    };
+
+    VkDescriptorPool   _descriptorPool;
+    Layout<Layout0UBO> _layout0;
+    Layout<Layout1UBO> _layout1;
 
     void CreateDescriptorLayouts();
     void CreateDescriptorPool();
-
-    struct Set0
-    {
-        Buffer modelUbo;
-        Buffer lightUbo;
-        Buffer cameraPositionUbo;
-        VkDescriptorSet set;
-    };
-    std::vector<Set0> _sets0;
-
-    struct Set1
-    {
-        Buffer materialUbo;
-        VkDescriptorSet set;
-    };
-    std::vector<Set1> _sets1;
-
     void CreateDescriptorSets();
-    void UpdateDesciptorUbos(uint32_t frameNumber);
+    void UpdateDesciptorUbos();
 
     VkPipelineLayout _pipelineLayout;
     VkPipeline       _graphicsPipeline;
     DeletionQueue    _deletionQueue;
 
-    void        CreateGraphicsPipeline();
-    void        RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
+    void CreateGraphicsPipeline();
+    void RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
 };
 
 } // namespace tlr
