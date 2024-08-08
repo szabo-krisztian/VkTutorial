@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/development/images/bugatti.gif" alt="bugatti" />
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/bugatti.gif" alt="bugatti" />
 </p>
 
 # Model loading
