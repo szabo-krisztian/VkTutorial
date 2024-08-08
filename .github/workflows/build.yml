@@ -82,15 +82,3 @@ jobs:
           cd build
           cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm
           cmake --build .
-
-      # There is no build for the model-shooter project yet.
-      # I find the physX setup quite cumbersome but I hope I
-      # will succeed in the near future.
-
-      - name: Build model-loading project
-        run: |
-          cd ${{ github.workspace }}/code/finished-projects/model-loading
-          mkdir build
-          cd build
-          cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm
-          cmake --build .
