@@ -97,7 +97,7 @@ void App::InitSyncStructures()
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].swapchainSemaphore));
         VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCI, nullptr, &_frames[i].renderSemaphore));
 
-        ENQUEUE_OBJ_DEL(( [this, i]() {
+        ENQUEUE_OBJ_DEL(( [this, i] {
             vkDestroySemaphore(device, _frames[i].renderSemaphore, nullptr);
             vkDestroySemaphore(device, _frames[i].swapchainSemaphore, nullptr);
             vkDestroyFence(device, _frames[i].renderFence, nullptr);
@@ -253,7 +253,7 @@ void App::CreateDescriptorLayouts()
     VkDescriptorSetLayoutCreateInfo layoutInfoSet0 = init::DescriptorSetLayoutCreateInfo(3, bindingsSet0);
 
     VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfoSet0, nullptr, _layout0));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _layout0, nullptr); } ));
+    ENQUEUE_OBJ_DEL(( [this] { vkDestroyDescriptorSetLayout(device, _layout0, nullptr); } ));
 
     VkDescriptorSetLayoutBinding materialBindingSet1 = init::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1);
     VkDescriptorSetLayoutBinding bindingsSet1[] =
@@ -263,7 +263,7 @@ void App::CreateDescriptorLayouts()
     VkDescriptorSetLayoutCreateInfo layoutInfoSet1 = init::DescriptorSetLayoutCreateInfo(1, bindingsSet1);
 
     VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &layoutInfoSet1, nullptr, _layout1));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorSetLayout(device, _layout1, nullptr); } ));
+    ENQUEUE_OBJ_DEL(( [this] { vkDestroyDescriptorSetLayout(device, _layout1, nullptr); } ));
 }
 
 void App::CreateDescriptorPool()
@@ -285,7 +285,7 @@ void App::CreateDescriptorPool()
     VkDescriptorPoolCreateInfo poolInfo = init::DescriptorPoolCreateInfo(4, poolsizes, maxDescriptorCount);
 
     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyDescriptorPool(device, _descriptorPool, nullptr); } ));
+    ENQUEUE_OBJ_DEL(( [this] { vkDestroyDescriptorPool(device, _descriptorPool, nullptr); } ));
 }
 
 void App::CreateDescriptorSets()
@@ -300,15 +300,15 @@ void App::CreateDescriptorSets()
         auto& ubo = _layout0.ubos[i];
 
         VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &ubo.model, sizeof(ModelTransform)));
-        ENQUEUE_OBJ_DEL(( [&]() { ubo.model.Destroy(); } ));
+        ENQUEUE_OBJ_DEL(( [&] { ubo.model.Destroy(); } ));
         VK_CHECK_RESULT(ubo.model.Map());
 
         VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &ubo.light, sizeof(Light)));
-        ENQUEUE_OBJ_DEL(( [&]() { ubo.light.Destroy(); } ));
+        ENQUEUE_OBJ_DEL(( [&] { ubo.light.Destroy(); } ));
         VK_CHECK_RESULT(ubo.light.Map());
         
         VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &ubo.cameraPosition, sizeof(glm::vec3)));
-        ENQUEUE_OBJ_DEL(( [&]() { ubo.cameraPosition.Destroy(); } ));
+        ENQUEUE_OBJ_DEL(( [&] { ubo.cameraPosition.Destroy(); } ));
         VK_CHECK_RESULT(ubo.cameraPosition.Map())
     }
 
@@ -319,7 +319,7 @@ void App::CreateDescriptorSets()
             auto& ubo = _layout1.ubos[i * _mesh.materialsCount + j];
 
             VK_CHECK_RESULT(device.CreateBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &ubo.material, sizeof(Material)));
-            ENQUEUE_OBJ_DEL(( [&]() { ubo.material.Destroy(); } ));
+            ENQUEUE_OBJ_DEL(( [&] { ubo.material.Destroy(); } ));
             VK_CHECK_RESULT(ubo.material.Map());
         }
     }
@@ -374,9 +374,11 @@ void App::UpdateDesciptorUbos()
     memcpy(_layout0.ubos[_frameNumber].model.mapped, &modelUbo, sizeof(ModelTransform));
 
     Light lightUbo {};
-    lightUbo.position = {-0.0999182, 22.4754, -1.63288};
+    glm::vec3 pos{-0.753088, 9.57204,-1.55403};
+    glm::vec3 circle{std::cos(timer.GetElapsedTime()) * 10.0f, 0.0, std::sin(timer.GetElapsedTime()) * 10.0f};
+    lightUbo.position = pos + circle;
     lightUbo.lightColor = {1,1,1};
-    lightUbo.lightPower = 40.0f;
+    lightUbo.lightPower = 20.0f;
     memcpy(_layout0.ubos[_frameNumber].light.mapped, &lightUbo, sizeof(Light));
 
     glm::vec3 cameraUbo = camera.GetPosition();
@@ -461,7 +463,7 @@ void App::CreateGraphicsPipeline()
     pipelineLayoutCI.pSetLayouts = layout;
     
     VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &_pipelineLayout));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipelineLayout(device, _pipelineLayout, nullptr); } ));
+    ENQUEUE_OBJ_DEL(( [this] { vkDestroyPipelineLayout(device, _pipelineLayout, nullptr); } ));
 
     // Pipeline
     VkGraphicsPipelineCreateInfo pipelineCI = init::PipelineCreateInfo();
@@ -479,7 +481,7 @@ void App::CreateGraphicsPipeline()
     pipelineCI.layout = _pipelineLayout;
     pipelineCI.subpass = 0;
     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &_graphicsPipeline));
-    ENQUEUE_OBJ_DEL(( [this]() { vkDestroyPipeline(device, _graphicsPipeline, nullptr); } ));
+    ENQUEUE_OBJ_DEL(( [this] { vkDestroyPipeline(device, _graphicsPipeline, nullptr); } ));
 }
 
 void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
