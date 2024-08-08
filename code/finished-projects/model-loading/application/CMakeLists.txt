@@ -2,7 +2,7 @@ add_library(App app.cpp)
 target_include_directories(App
     PUBLIC ${BOOTSTRAP_DIR}
            shaders
-           "C:/tinyobjloader"
+           ${TINYLOADER_PATH}
 )
 
 target_link_libraries(App

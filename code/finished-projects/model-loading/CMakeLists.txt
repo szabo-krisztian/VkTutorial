@@ -1,5 +1,5 @@
 # My build command:
-# cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3" -DGLM_PATH="C:/glm"
+# cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3" -DGLM_PATH="C:/glm" -DTINYLOADER_PATH="C:/tinyobjloader"
 
 cmake_minimum_required(VERSION 3.10)
 project(MyVulkanProject)

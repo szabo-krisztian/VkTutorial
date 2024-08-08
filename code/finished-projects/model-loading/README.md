@@ -31,9 +31,9 @@ mkdir build
 
 cd build
 
-cmake .. -DCMAKE_PREFIX_PATH="location-of-glfw3;location-of-vulkan" -DGLM_PATH="location-of-glm"
+cmake .. -DCMAKE_PREFIX_PATH="location-of-glfw3;location-of-vulkan" -DTINYLOADER_PATH="location-of-tinyobjloader"
 
-REM mine is: cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake;C:/VulkanAPI/Lib/cmake" -DGLM_PATH="C:/glm"
+REM mine is: cmake .. -DCMAKE_PREFIX_PATH="C:/Program Files (x86)/GLFW/lib/cmake/glfw3" -DGLM_PATH="C:/glm" -DTINYLOADER_PATH="C:/tinyobjloader"
 
 cmake --build .
 ```
