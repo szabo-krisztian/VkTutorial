@@ -958,7 +958,7 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	\[
 		r(t) := \vec{n} \cdot t + a \quad (t \in \R^+_0)
 	\]
-	Segments can be defines between two points $a, \, b \in \R^3$ as follows:
+	Segments can be defined with two points $a, \, b \in \R^3$ as follows:
 	\[
 		s(t) := (b - a) \cdot t + a \quad (t \in [0, \, 1])
 	\]
@@ -973,12 +973,165 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	\]
 	This will easen our task, with avoiding ambiguity. With this restriction we can say the following: our segment $s(t) \, \, (t \in [0, \, 1])$ intersects our cube (that is represented as above) if and only if there exits a parameter $t \in [0, \, 1]$ such that
 	\[
-		(c_1)_x \leq s(t)_x \text{ and } (c_1)_y \leq s(t)_y \text{ and } (c_1)_z \leq s(t)_z
+		(c_1)_x \leq s(t)_x \leq (c_2)_x
 	\]
 	\[
-		s(t)_x \leq (c_2)_x \text{ and } s(t)_y \leq (c_2)_y \text{ and } s(t)_z \leq (c_2)_z.
+		(c_1)_y \leq s(t)_y \leq (c_2)_y
 	\]
-	Let us see an example:
+	\[
+		(c_1)_z \leq s(t)_z \leq (c_2)_z
+	\]
+
+	Let us see an example:\\
+	\[
+		c_1 :=
+		\begin{pmatrix}
+			-1\\
+			-1\\
+			0
+		\end{pmatrix}, \,
+		c_2 :=
+		\begin{pmatrix}
+			0\\
+			0\\
+			1
+		\end{pmatrix}, \,
+		a :=
+		\begin{pmatrix}
+			-1.5\\
+			-2\\
+			0.65
+		\end{pmatrix}, \,
+		b :=
+		\begin{pmatrix}
+			0.8\\
+			0.65\\
+			-0.25
+		\end{pmatrix}
+	\]
+
+	\begin{center}
+		\tdplotsetmaincoords{70}{40}
+		\begin{tikzpicture}[tdplot_main_coords, scale=2]	
+			\draw[thick,<->] (-1.5,0,0) -- (1.5,0,0) node[anchor=north east]{$x$};
+			\draw[thick,<->] (0,-1.5,0) -- (0,1.5,0) node[anchor=north west]{$y$};
+			\draw[thick,<->] (0,0,-0.5) -- (0,0,1.5) node[anchor=south]{$z$};
+			
+			\coordinate (A) at (-1, -1, 0);    % Bottom-left-front
+			\coordinate (B) at (0, -1, 0);     % Bottom-right-front
+			\coordinate (C) at (0, 0, 0);      % Top-right-front
+			\coordinate (D) at (-1, 0, 0);     % Top-left-front
+			\coordinate (E) at (-1, -1, 1);    % Bottom-left-back
+			\coordinate (F) at (0, -1, 1);     % Bottom-right-back
+			\coordinate (G) at (0, 0, 1);      % Top-right-back
+			\coordinate (H) at (-1, 0, 1);     % Top-left-back
+
+			% Draw the edges of the cube
+			\draw (A) -- (B) -- (C) -- (D) -- cycle; % Front face
+			\draw (E) -- (F) -- (G) -- (H) -- cycle; % Back face
+			\draw (A) -- (E); % Connecting edges
+			\draw (B) -- (F);
+			\draw (C) -- (G);
+			\draw (D) -- (H);
+		
+			\coordinate (RS) at (-1.5, -2, 0.65);
+			\coordinate (RE) at (0.8, 0.65, -0.25);
+
+			\coordinate (MS) at (-0.63, -1, 0.31);
+			\coordinate (ME) at (0, -0.27, 0.06);
+
+			\draw[red, thick] (RS) -- (MS);
+			\draw[dashed, red, thick] (MS) -- (ME);
+			\draw[red, thick] (ME) -- (RE);
+
+			\node at (A) [anchor=north east] {$c_1$};
+			\node at (G) [anchor=south west] {$c_2$};
+			\node at (RS) [anchor=east] {$a$};
+			\node at (RE) [anchor=south west] {$b$};
+
+			\filldraw[red] (MS) circle (1pt);
+    		\filldraw[red] (ME) circle (1pt);
+
+		\end{tikzpicture}
+	\end{center}
+
+	\[
+		s(t) =
+		(b - a) \cdot t + a
+		=
+		\begin{pmatrix}
+			2.3 \\
+			2.65 \\
+			-0.9 
+		\end{pmatrix}
+		\cdot t +
+		\begin{pmatrix}
+			-1.5 \\
+			-2 \\
+			0.65
+		\end{pmatrix}
+		\quad (t \in [0, \, 1])
+	\]
+
+	If we have two points $u, \, v \in \R^3$ let $\overset{\star}{\leq}$ denote the comparison which is considered true if
+	\[
+		x_x \leq y_x \text { and } x_y \leq y_y \text{ and } x_z \leq y_z.
+	\]
+	Now the segment we have defined earlier intersects the cube if and only if there exists $t \in [0, \, 1]$ such that
+	\[
+		c_1 \overset{\star}{\leq} s(t) \overset{\star}{\leq} c_2
+	\]
+	\[
+		\Longleftrightarrow
+	\]
+	\[
+		\begin{pmatrix}
+			-1\\
+			-1\\
+			0
+		\end{pmatrix}
+		\overset{\star}{\leq}
+		\begin{pmatrix}
+			2.3\\
+			2.65\\
+			-0.9
+		\end{pmatrix}
+		\cdot t +
+		\begin{pmatrix}
+			-1.5\\
+			-2\\
+			0.65
+		\end{pmatrix}
+		\overset{\star}{\leq}
+		\begin{pmatrix}
+			0\\
+			0\\
+			1
+		\end{pmatrix}
+	\]
+	\[
+		\Longleftrightarrow
+	\]
+	\[
+		\begin{pmatrix}
+			0.5\\
+			1\\
+			-0.65
+		\end{pmatrix}
+		\overset{\star}{\leq}
+		\begin{pmatrix}
+			2.3\\
+			2.65\\
+			-0.9
+		\end{pmatrix} \cdot t
+		\overset{\star}{\leq}
+		\begin{pmatrix}
+			1.5\\
+			2\\
+			0.35
+		\end{pmatrix}.
+	\]
+
 
 
 \end{document}
