@@ -11,6 +11,16 @@
 \usepackage{tikz-3dplot}
 \usetikzlibrary{shadows.blur}
 
+\newcommand{\drawcube}[4]{
+    \draw[#4] (#1,#2,#3) -- (#1+1,#2,#3) -- (#1+1,#2+1,#3) -- (#1,#2+1,#3) -- cycle;
+    \draw[#4] (#1,#2,#3+1) -- (#1+1,#2,#3+1) -- (#1+1,#2+1,#3+1) -- (#1,#2+1,#3+1) -- cycle;
+    \draw[#4] (#1,#2,#3) -- (#1,#2,#3+1);
+    \draw[#4] (#1+1,#2,#3) -- (#1+1,#2,#3+1);
+    \draw[#4] (#1+1,#2+1,#3) -- (#1+1,#2+1,#3+1);
+    \draw[#4] (#1,#2+1,#3) -- (#1,#2+1,#3+1);
+  
+}
+
 \lstdefinestyle{customcpp}
 {
 	language=C++,
@@ -1132,6 +1142,74 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 		\end{pmatrix}.
 	\]
 
+	\subsection{Ray-Voxel path}
+	Let us say, we have a finite length ray. We would like to determine all the cubes in our world that our ray intersects. I have tried to search for algorithms written by others but I only found the DDA algorithm, which takes two arguments (two cubes in our space) and return a path of cubes. However I want to input two points in space that determine a finite length ray and then output the cubes that are intersected. You can image that we have two segments in space where each start and endpoint are in the same two cubes but the intersection path is different. It is easy to do this in 2D, but there are a lot more cases to consider when it comes to 3D calculations.\\
+	
+	Let us start with the simpler solutions. First, let us have two points in space $p_1, \, p_2 \in \R^3$. These define the following segment:
+	\[
+		s(t) := (p_2 - p_1) \cdot t + p_1 \quad (t \in [0, \, 1]).
+	\]
+	We would like to find all the cubes that are intersected. The brute-force method would be to iterate through all the cubes in our space and check for intersection, with the algorithm in the previous section.
+
+	\begin{center}
+		\tdplotsetmaincoords{60}{40}
+		\begin{tikzpicture}[tdplot_main_coords, scale=2]
+		  \draw[thick,<->] (-3.5,0,0) -- (3.5,0,0) node[anchor=north east]{$x$};
+		  \draw[thick,<->] (0,-3.5,0) -- (0,3.5,0) node[anchor=north west]{$y$};
+		  \draw[thick,<->] (0,0,-0.5) -- (0,0,3.5) node[anchor=south]{$z$};
+		  
+		  \drawcube{-1}{-1}{0}{red, dashed}
+		  \drawcube{-1}{0}{0}{red, dashed}
+		  \drawcube{0}{0}{0}{red, dashed}
+		  \drawcube{0}{1}{0}{red, dashed}
+		  \drawcube{1}{1}{0}{red, dashed}
+		  \drawcube{1}{1}{1}{red, dashed}
+		  \drawcube{1}{2}{1}{red, dashed}
+		  \drawcube{2}{2}{1}{red, dashed}
+		
+		  \coordinate (A) at (-0.64602,-0.57894,0.2027);
+		  \coordinate (B) at (2.07, 2.25, 1.5);
+		  \draw[thick, red] (A) -- (B);
+
+			
+
+		\end{tikzpicture}
+	  \end{center}
+
+	  A slightly better approach would be to narrow the list of cubes which we examine. This could be done easily with calculating the smallest rectangular prism that contains all the cubes that our segment intersects. We first calculate the 2 corner cubes and iterate through the rectangular prism. 
 
 
+	  \begin{center}
+		\tdplotsetmaincoords{60}{40}
+		\begin{tikzpicture}[tdplot_main_coords, scale=2]
+		  \draw[thick,<->] (-3.5,0,0) -- (3.5,0,0) node[anchor=north east]{$x$};
+		  \draw[thick,<->] (0,-3.5,0) -- (0,3.5,0) node[anchor=north west]{$y$};
+		  \draw[thick,<->] (0,0,-0.5) -- (0,0,3.5) node[anchor=south]{$z$};
+		
+		  \coordinate (A) at (-0.64602,-0.57894,0.2027);
+		  \coordinate (B) at (2.07, 2.25, 1.5);
+		  \draw[thick, red] (A) -- (B);
+
+		  \foreach \i in {-1,0,1,2} {
+			\foreach \j in {-1,0,1,2} {
+			  \foreach \k in {0,1} {
+				\drawcube{\i}{\j}{\k}{black, dotted, thin};
+			  }
+			}
+		  }
+
+		  \drawcube{-1}{-1}{0}{red, dashed}
+		  \drawcube{-1}{0}{0}{red, dashed}
+		  \drawcube{0}{0}{0}{red, dashed}
+		  \drawcube{0}{1}{0}{red, dashed}
+		  \drawcube{1}{1}{0}{red, dashed}
+		  \drawcube{1}{1}{1}{red, dashed}
+		  \drawcube{1}{2}{1}{red, dashed}
+		  \drawcube{2}{2}{1}{red, dashed}
+
+		\end{tikzpicture}
+	  \end{center}
+
+	  
+	
 \end{document}
