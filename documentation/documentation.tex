@@ -973,7 +973,8 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	\[
 		s(t) := (b - a) \cdot t + a \quad (t \in [0, \, 1])
 	\]
-	where $a$ is the starting point and $b$ is the endpoint. Our goal now is to be able to examine if our segment intersects a cube or not. Let us define a cube in space with two points $c_1, \, c_2 \in \R^3$. Let us make a restriction when it comes to defining cubes with 2 points: the points $c_1 \in \R^3$ should hold the rule that
+	where \( a \) is the starting point and \( b \) is the endpoint. Our goal now is to determine whether our segment intersects a cube or not. Let us define a cube in space using two points \( c_1, \, c_2 \in \R^3 \). We impose the following restriction when defining a cube with these two points: the point \( c_1 \in \R^3 \) must satisfy the condition that
+
 	\[
 		c_1 + \begin{pmatrix}
 			t \\
