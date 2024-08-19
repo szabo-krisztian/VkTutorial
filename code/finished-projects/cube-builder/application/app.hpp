@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 
 #include "app_base.hpp"
+#include "world.hpp"
 
 #define FRAME_OVERLAP 2
 
@@ -43,6 +44,8 @@ private:
     VkCommandPool    _transferPool;
     
     DeletionQueue    _deletionQueue;
+
+    World _world;
 
     void       InitCommands();
     void       InitSyncStructures();
