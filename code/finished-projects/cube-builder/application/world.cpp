@@ -3,6 +3,11 @@
 namespace tlr
 {
 
+static const std::vector<glm::vec3> DIRECTIONS =
+{
+    {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1}
+};
+
 World::World()
 {
     Initialize();
@@ -56,6 +61,21 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
     glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
 
     // TODO : find face of intersection
+    
+}
+
+bool World::GetRayCubeIntersection(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax)
+{
+    glm::vec3 tMin = (cubeMin - rayStart) / rayDirection;
+    glm::vec3 tMax = (cubeMax - rayStart) / rayDirection;
+
+    glm::vec3 t1 = glm::min(tMin, tMax);
+    glm::vec3 t2 = glm::max(tMin, tMax);
+
+    float tEnter = std::max(std::max(t1.x, t1.y), t1.z);
+    float tExit = std::min(std::min(t2.x, t2.y), t2.z);
+
+    return tEnter <= tExit && tExit >= 0;
 }
 
 void World::BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray)

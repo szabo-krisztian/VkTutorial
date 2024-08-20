@@ -960,8 +960,7 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	%%%
 	%%%
 	
-	\begin{comment}
-		\section{Cube builder}
+	\section{Cube builder}
 	In this section I will explain the methods, algorithms that I have used while creating the cube builder project. This involves a simplified 3D DDA algorithm, ray intersection with cubes, and other ideas.
 	
 	\subsection{Intersection of cubes}
@@ -1142,47 +1141,6 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 			2\\
 			0.35
 		\end{pmatrix}.
-	\]
-
-
-	
-
-	  A slightly better approach would be to narrow the list of cubes which we examine. This could be done easily with calculating the smallest rectangular prism that contains all the cubes that our segment intersects. We first calculate the 2 corner cubes and iterate through the rectangular prism. 
-
-
-	  \begin{center}
-		\tdplotsetmaincoords{60}{40}
-		\begin{tikzpicture}[tdplot_main_coords, scale=2]
-		  \draw[thick,<->] (-3.5,0,0) -- (3.5,0,0) node[anchor=north east]{$x$};
-		  \draw[thick,<->] (0,-3.5,0) -- (0,3.5,0) node[anchor=north west]{$y$};
-		  \draw[thick,<->] (0,0,-0.5) -- (0,0,3.5) node[anchor=south]{$z$};
-		
-		  \coordinate (A) at (-0.64602,-0.57894,0.2027);
-		  \coordinate (B) at (2.07, 2.25, 1.5);
-		  \draw[thick, red] (A) -- (B);
-
-		  \foreach \i in {-1,0,1,2} {
-			\foreach \j in {-1,0,1,2} {
-			  \foreach \k in {0,1} {
-				\drawcube{\i}{\j}{\k}{black, dotted, thin};
-			  }
-			}
-		  }
-
-		  \drawcube{-1}{-1}{0}{red, dashed}
-		  \drawcube{-1}{0}{0}{red, dashed}
-		  \drawcube{0}{0}{0}{red, dashed}
-		  \drawcube{0}{1}{0}{red, dashed}
-		  \drawcube{1}{1}{0}{red, dashed}
-		  \drawcube{1}{1}{1}{red, dashed}
-		  \drawcube{1}{2}{1}{red, dashed}
-		  \drawcube{2}{2}{1}{red, dashed}
-
-		\end{tikzpicture}
-	  \end{center}
-
-	  	
-	\end{comment}
-	
+	\]	
 	
 \end{document}
