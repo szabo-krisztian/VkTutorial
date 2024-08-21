@@ -22,6 +22,11 @@ public:
         return _position;
     }
 
+    glm::vec3 GetCenter() const
+    {
+        return static_cast<glm::vec3>(_position) + glm::vec3(0.5f, 0.5f, 0.5f);
+    }
+
     void operator=(bool value)
     {
         _isActive = value;
@@ -57,7 +62,8 @@ private:
     Block _world[X_DIMENSION * 2 + 1][X_DIMENSION * 2 + 1][X_DIMENSION * 2 + 1];
 
     void Initialize();
-    bool GetRayCubeIntersection(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
+    glm::ivec3 GetPositionFromCenterPosition(const glm::vec3& centerPosition);
+    bool DoesIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
     glm::ivec3 GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd);
     std::vector<glm::ivec3> GetIntersectedBlockPositions(const glm::vec3& rayStart, const glm::vec3& rayEnd);
 };

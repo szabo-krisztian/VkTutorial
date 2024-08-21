@@ -1,5 +1,7 @@
 #include "world.hpp"
 
+// TODO: check if block is out of world space
+
 namespace tlr
 {
 
@@ -55,16 +57,45 @@ std::vector<Block> World::GetActiveBlocks()
     return blocks;
 }
 
+void printvec(glm::vec3 v)
+{
+    std::cout << "> " << v.x << ", " << v.y << ", " << v.z << std::endl;
+}
+
 void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
-    glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
+    Block targetBlock = (*this)[GetTargetBlockPosition(playerPosition, rayEnd)];
+    glm::vec3 center = targetBlock.GetCenter();
 
     // TODO : find face of intersection
-    
+    for (const auto& dir : DIRECTIONS)
+    {
+        bool isFaceTowardsUs = glm::dot(dir, ray) < 0;
+        if (!isFaceTowardsUs)
+        {
+            continue;
+        }
+        center += dir / 2.0f;
+        glm::vec3 offsetVector = (glm::vec3(1,1,1) - glm::abs(dir)) / 2.0f;
+        
+        glm::vec3 minFacePosition = center - offsetVector;
+        glm::vec3 maxFacePosition = center + offsetVector;
+
+        if (DoesIntersectCube(playerPosition, ray, minFacePosition, maxFacePosition))
+        {
+            (*this)[GetPositionFromCenterPosition(center + dir)] = true;
+            break;
+        }
+    }
 }
 
-bool World::GetRayCubeIntersection(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax)
+glm::ivec3 World::GetPositionFromCenterPosition(const glm::vec3& centerPosition)
+{
+    return glm::ivec3(centerPosition.x - 0.5f, centerPosition.y - 0.5f, centerPosition.z - 0.5f);   
+}
+
+bool World::DoesIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax)
 {
     glm::vec3 tMin = (cubeMin - rayStart) / rayDirection;
     glm::vec3 tMax = (cubeMax - rayStart) / rayDirection;
@@ -90,13 +121,13 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
     std::vector<glm::ivec3> blockPositions = GetIntersectedBlockPositions(rayStart, rayEnd);
     glm::ivec3 targetBlockPosition = blockPositions[1];
 
-    for (const auto& position : blockPositions)
+    for (std::size_t i = 1; i < blockPositions.size(); ++i)
     {
-        if ((*this)[position])
+        if ((*this)[blockPositions[i]])
         {
-            targetBlockPosition = position;
+            targetBlockPosition = blockPositions[i];
             break;
-        }
+        }   
     }
 
     return targetBlockPosition;
@@ -104,6 +135,9 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
 
 std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& rayStart, const glm::vec3& rayEnd)
 {
+    /*
+     * Check out https://github.com/francisengelmann/fast_voxel_traversal
+     */
     std::vector<glm::ivec3> visitedVoxels;
     glm::ivec3 currentVoxel(static_cast<int>(std::floor(rayStart[0])), static_cast<int>(std::floor(rayStart[1])), static_cast<int>(std::floor(rayStart[2])));
     glm::ivec3 lastVoxel(static_cast<int>(std::floor(rayEnd[0])), static_cast<int>(std::floor(rayEnd[1])), static_cast<int>(std::floor(rayEnd[2])));
