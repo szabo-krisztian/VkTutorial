@@ -54,17 +54,17 @@ public:
     World();
 
     std::vector<Block> GetActiveBlocks();
-    Block& operator[](glm::ivec3 position);
-    void BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
-    void BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
+    Block&             operator[](glm::ivec3 position);
+    void               BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
+    void               BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
 
 private:
     Block _world[X_DIMENSION * 2 + 1][X_DIMENSION * 2 + 1][X_DIMENSION * 2 + 1];
 
-    void Initialize();
-    glm::ivec3 GetPositionFromCenterPosition(const glm::vec3& centerPosition);
-    bool DoesIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
-    glm::ivec3 GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd);
+    void                    Initialize();
+    glm::ivec3              GetPositionFromCenterPosition(const glm::vec3& centerPosition);
+    bool                    DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
+    glm::ivec3              GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd);
     std::vector<glm::ivec3> GetIntersectedBlockPositions(const glm::vec3& rayStart, const glm::vec3& rayEnd);
 };
 
