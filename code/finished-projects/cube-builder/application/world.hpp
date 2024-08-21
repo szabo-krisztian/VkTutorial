@@ -59,9 +59,10 @@ public:
     void               BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
 
 private:
-    Block _world[X_DIMENSION * 2 + 1][X_DIMENSION * 2 + 1][X_DIMENSION * 2 + 1];
+    std::vector<std::vector<std::vector<Block>>> _world;
 
     void                    Initialize();
+    bool                    IsPositionInBounds(const glm::ivec3& position);
     glm::ivec3              GetPositionFromCenterPosition(const glm::vec3& centerPosition);
     bool                    DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
     glm::ivec3              GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd);

@@ -22,6 +22,20 @@ Block& World::operator[](glm::ivec3 position)
 
 void World::Initialize()
 {
+    std::size_t xSize = X_DIMENSION * 2 + 1;
+    std::size_t ySize = Y_DIMENSION * 2 + 1;
+    std::size_t zSize = Z_DIMENSION * 2 + 1;
+
+    _world.resize(xSize);
+    for (int i = 0; i < xSize; ++i)
+    {
+        _world[i].resize(ySize);
+        for (int j = 0; j < ySize; ++j)
+        {
+            _world[i][j].resize(zSize);
+        }
+    }
+
     for (int x = -X_DIMENSION; x < X_DIMENSION; ++x)
     {
         for (int y = -Y_DIMENSION; y < Y_DIMENSION; ++y)
@@ -60,6 +74,12 @@ std::vector<Block> World::GetActiveBlocks()
 void printvec(glm::vec3 v)
 {
     std::cout << "> " << v.x << ", " << v.y << ", " << v.z << std::endl;
+}
+
+bool World::IsPositionInBounds(const glm::ivec3& position)
+{
+    auto absolutePosition = glm::abs(position);
+    return absolutePosition.x <= X_DIMENSION && absolutePosition.y <= Y_DIMENSION && absolutePosition.z <= Z_DIMENSION;
 }
 
 void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
@@ -123,13 +143,15 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
 
     for (std::size_t i = 1; i < blockPositions.size(); ++i)
     {
+        assert(IsPositionInBounds(blockPositions[i]) && "you went out of the world!");
+
         if ((*this)[blockPositions[i]])
         {
             targetBlockPosition = blockPositions[i];
             break;
         }   
     }
-
+    
     return targetBlockPosition;
 }
 
@@ -165,25 +187,36 @@ std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& ray
     if (currentVoxel[1] != lastVoxel[1] && ray[1] < 0) { diff[1]--; negRay = true; }
     if (currentVoxel[2] != lastVoxel[2] && ray[2] < 0) { diff[2]--; negRay = true; }
     visitedVoxels.push_back(currentVoxel);
-    if (negRay) {
+    if (negRay)
+    {
         currentVoxel += diff;
         visitedVoxels.push_back(currentVoxel);
     }
 
-    while (lastVoxel != currentVoxel) {
-        if (tMaxX < tMaxY) {
-            if (tMaxX < tMaxZ) {
+    while (lastVoxel != currentVoxel)
+    {
+        if (tMaxX < tMaxY)
+        {
+            if (tMaxX < tMaxZ)
+            {
                 currentVoxel[0] += stepX;
                 tMaxX += tDeltaX;
-            } else {
+            }
+            else
+            {
                 currentVoxel[2] += stepZ;
                 tMaxZ += tDeltaZ;
             }
-        } else {
-            if (tMaxY < tMaxZ) {
+        }
+        else
+        {
+            if (tMaxY < tMaxZ)
+            {
                 currentVoxel[1] += stepY;
                 tMaxY += tDeltaY;
-            } else {
+            }
+            else
+            {
                 currentVoxel[2] += stepZ;
                 tMaxZ += tDeltaZ;
             }
