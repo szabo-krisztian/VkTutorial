@@ -24,6 +24,9 @@ App::App() :
     MODEL_PATH{GetAbsolutePath("bugatti/bugatti.obj")},
     MTL_PATH{GetAbsolutePath("bugatti")}
 {
+    camera.SetPosition({3.82992f, 7.52581f, 23.5453f});
+    camera.SetLookAtPoint({0.458236f, 4.42813f, 1.57407f});
+
     InitCommands();
     InitSyncStructures();
 

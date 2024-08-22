@@ -17,6 +17,9 @@ namespace tlr
 
 App::App()
 {
+    camera.SetPosition({0, 0, -20});
+    camera.SetLookAtPoint({0, 0, 0});
+
     InitCommands();
     InitSyncStructures();
 

@@ -18,6 +18,9 @@ namespace tlr
 
 App::App()
 {
+    camera.SetPosition({0, 5, -20});
+    camera.SetLookAtPoint({0, 0, 0});
+    
     inputManager->AddKeyPressListener(GLFW_KEY_E, [&]() { ShootBullet(); });
 
     InitCommands();

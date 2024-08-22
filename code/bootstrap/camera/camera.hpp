@@ -43,6 +43,10 @@ public:
     void MoveLeft(float deltaTime);
     void MoveUp(float deltaTime);
     void MoveDown(float deltaTime);
+    void SetPosition(const glm::vec3& position);
+    void SetDirection(const glm::vec3& direction);
+    void SetLookAtPoint(const glm::vec3& lookAt);
+    void SetMovementSpeed(float speed);
 
 private:
     glm::vec3 _position;

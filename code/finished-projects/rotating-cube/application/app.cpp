@@ -20,6 +20,9 @@ namespace tlr
 
 App::App()
 {
+    camera.SetPosition({0, 0, -10});
+    camera.SetLookAtPoint({0, 0, 0});
+
     InitCommands();
     InitSyncStructures();
 
@@ -316,13 +319,12 @@ void App::UpdateUniformBuffer(uint32_t currentImage)
 {
     UniformBufferObject ubo{};
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(10, 10, 10));
-    auto rotation = glm::rotate(modelMatrix, glm::radians(90.0f) * timer.GetElapsedTime(), glm::vec3(1.0f, 0.0f, 0.0f));;
-    auto rotation2 = glm::rotate(rotation, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 1.0f));;
-    ubo.model = glm::translate(rotation2, glm::vec3(0,0,-0.5));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1, 1, 1));
+    auto rotation1 = glm::rotate(modelMatrix, glm::radians(90.0f) * timer.GetElapsedTime(), glm::vec3(1.0f, 0.0f, 0.0f));;
+    auto rotation2 = glm::rotate(rotation1, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 1.0f));;
     
+    ubo.model = glm::translate(rotation2, glm::vec3(0, 0, -0.5));
     ubo.view = camera.GetViewMatrix();
-    
     ubo.proj = camera.GetProjectionMatrix();
     
     memcpy(_uniformBuffers[currentImage].mapped, &ubo, sizeof(ubo));

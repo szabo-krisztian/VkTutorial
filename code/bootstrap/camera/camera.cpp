@@ -84,6 +84,27 @@ void Camera::CursorMovementCallback(float xoffset, float yoffset)
     UpdateDirections();
 }
 
+void Camera::SetPosition(const glm::vec3& position)
+{
+    _position = position;
+}
+
+void Camera::SetDirection(const glm::vec3& direction)
+{
+    _front = direction;
+}
+
+void Camera::SetLookAtPoint(const glm::vec3& lookAt)
+{
+    glm::vec3 newDirecton = lookAt - _position;
+    _front = glm::normalize(newDirecton);
+}
+
+void Camera::SetMovementSpeed(float speed)
+{
+    _movementSpeed = speed;
+}
+
 void Camera::UpdateDirections()
 {
     glm::vec3 front;
