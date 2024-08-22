@@ -1,47 +1,14 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 
 #include <glm/glm.hpp>
-#include <vector>
+
+#include "block.hpp"
 
 namespace tlr
 {
-
-class Block
-{
-public:
-    void Initialize(const glm::ivec3& position)
-    {
-        assert(!_isInitialized && "position cannot be changed after initialization!");
-        _position = position;
-    }
-
-    glm::ivec3 GetPosition() const
-    {
-        return _position;
-    }
-
-    glm::vec3 GetCenter() const
-    {
-        return static_cast<glm::vec3>(_position) + glm::vec3(0.5f, 0.5f, 0.5f);
-    }
-
-    void operator=(bool value)
-    {
-        _isActive = value;
-    }
-
-    operator bool() const
-    {
-        return _isActive;
-    }
-
-private:
-    glm::ivec3 _position;
-    bool _isActive = false;
-    bool _isInitialized = false;
-};
 
 class World
 {
@@ -54,13 +21,13 @@ public:
     World();
 
     std::vector<Block> GetActiveBlocks();
-    Block&             operator[](glm::ivec3 position);
     void               BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
     void               BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
 
 private:
     std::vector<std::vector<std::vector<Block>>> _world;
 
+    Block&                  GetBlock(const glm::ivec3& position);
     void                    Initialize();
     bool                    IsPositionInBounds(const glm::ivec3& position);
     glm::ivec3              GetPositionFromCenterPosition(const glm::vec3& centerPosition);

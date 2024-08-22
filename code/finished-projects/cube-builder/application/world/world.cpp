@@ -1,7 +1,5 @@
 #include "world.hpp"
 
-// TODO: check if block is out of world space
-
 namespace tlr
 {
 
@@ -15,7 +13,7 @@ World::World()
     Initialize();
 }
 
-Block& World::operator[](glm::ivec3 position)
+Block& World::GetBlock(const glm::ivec3& position)
 {
     return _world[position.x + X_DIMENSION][position.y + Y_DIMENSION][position.z + Z_DIMENSION];
 }
@@ -42,11 +40,12 @@ void World::Initialize()
         {
             for (int z = -Z_DIMENSION; z < Z_DIMENSION; ++z)
             {
-                (*this)[{x, y, z}].Initialize({x, y, z});
+                glm::ivec3 blockPosition{x, y, z};
+                GetBlock(blockPosition).Initialize(blockPosition);
             }
         }
     }
-    (*this)[{0, 0, 0}] = true;
+    GetBlock({0, 0, 0}).Place();
 }
 
 std::vector<Block> World::GetActiveBlocks()
@@ -59,8 +58,8 @@ std::vector<Block> World::GetActiveBlocks()
         {
             for (int z = -Z_DIMENSION; z < Z_DIMENSION; ++z)
             {
-                Block block = (*this)[{x, y, z}];
-                if (block)
+                Block block = GetBlock({x, y, z});
+                if (block.IsPlaced())
                 {
                     blocks.push_back(block);
                 }
@@ -85,10 +84,9 @@ bool World::IsPositionInBounds(const glm::ivec3& position)
 void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
-    Block targetBlock = (*this)[GetTargetBlockPosition(playerPosition, rayEnd)];
+    Block targetBlock = GetBlock(GetTargetBlockPosition(playerPosition, rayEnd));
     glm::vec3 center = targetBlock.GetCenter();
 
-    // TODO : find face of intersection
     for (const auto& dir : DIRECTIONS)
     {
         bool isFaceTowardsUs = glm::dot(dir, ray) < 0;
@@ -104,7 +102,7 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 
         if (DoesRayIntersectCube(playerPosition, ray, minFacePosition, maxFacePosition))
         {
-            (*this)[GetPositionFromCenterPosition(center + dir)] = true;
+            GetBlock(GetPositionFromCenterPosition(center + dir)).Place();
             break;
         }
     }
@@ -133,7 +131,7 @@ void World::BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
     glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
-    (*this)[targetBlockPosition] = false;
+    GetBlock(targetBlockPosition).Break();
 }
 
 glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd)
@@ -145,7 +143,7 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
     {
         assert(IsPositionInBounds(blockPositions[i]) && "you went out of the world!");
 
-        if ((*this)[blockPositions[i]])
+        if (GetBlock(blockPositions[i]).IsPlaced())
         {
             targetBlockPosition = blockPositions[i];
             break;
