@@ -96,8 +96,11 @@ void Camera::SetDirection(const glm::vec3& direction)
 
 void Camera::SetLookAtPoint(const glm::vec3& lookAt)
 {
-    glm::vec3 newDirecton = lookAt - _position;
-    _front = glm::normalize(newDirecton);
+    glm::vec3 newDirecton = glm::normalize(lookAt - _position);
+    glm::vec3 flipped{newDirecton.x, newDirecton.z, newDirecton.y};
+    _pitch = glm::acos(flipped.z);
+    _yaw = glm::atan(flipped.y, flipped.x);
+    UpdateDirections();
 }
 
 void Camera::SetMovementSpeed(float speed)
@@ -107,11 +110,15 @@ void Camera::SetMovementSpeed(float speed)
 
 void Camera::UpdateDirections()
 {
+
+
     glm::vec3 front;
-    front.x = sin(glm::radians(_pitch)) * cos(glm::radians(_yaw));
-    front.y = cos(glm::radians(_pitch));
-    front.z = sin(glm::radians(_pitch)) * sin(glm::radians(_yaw));
+    front.x = sin(_pitch) * cos(_yaw);
+    front.y = cos(_pitch);
+    front.z = sin(_pitch) * sin(_yaw);
+
     
+
     _front = glm::normalize(front);
     _right = glm::normalize(glm::cross(_front, -_worldUp));
     _up = glm::normalize(glm::cross(_right, _front));
