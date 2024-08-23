@@ -23,10 +23,6 @@ public:
     static void Init(GLFWwindow* window);
     static InputManager* GetInstance();
 
-    static void GLFWKeyboardButtonCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-    static void GLFWCursorCallback(GLFWwindow* window, double xpos, double ypos);
-
     void AddCursorPositionListener(std::function<void(float, float)>&& listener);
     void RemoveCursorPositionListener(std::function<void(float, float)>&& listener);
 
@@ -45,6 +41,10 @@ public:
 
 private:
     static bool _isInitialized;
+
+    static void GLFWKeyboardButtonCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+    static void GLFWCursorCallback(GLFWwindow* window, double xpos, double ypos);
 
     Event<float, float>              _cursorMoved;
     std::unordered_set<int>          _pressedKeys;
