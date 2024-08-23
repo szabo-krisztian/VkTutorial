@@ -110,14 +110,10 @@ void Camera::SetMovementSpeed(float speed)
 
 void Camera::UpdateDirections()
 {
-
-
     glm::vec3 front;
-    front.x = sin(_pitch) * cos(_yaw);
-    front.y = cos(_pitch);
-    front.z = sin(_pitch) * sin(_yaw);
-
-    
+    front.x = std::sin(_pitch) * std::cos(_yaw);
+    front.y = std::cos(_pitch);
+    front.z = std::sin(_pitch) * std::sin(_yaw);
 
     _front = glm::normalize(front);
     _right = glm::normalize(glm::cross(_front, -_worldUp));

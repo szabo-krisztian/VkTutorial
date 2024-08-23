@@ -23,7 +23,8 @@ public:
     static void Init(GLFWwindow* window);
     static InputManager* GetInstance();
 
-    static void GLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void GLFWKeyboardButtonCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void GLFWCursorCallback(GLFWwindow* window, double xpos, double ypos);
 
     void AddCursorPositionListener(std::function<void(float, float)>&& listener);

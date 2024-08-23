@@ -9,7 +9,8 @@ void InputManager::Init(GLFWwindow* window)
 {
     assert(!_isInitialized && "InputManager already initialized!");
     _isInitialized = true;
-    glfwSetKeyCallback(window, GLFWKeyCallback);
+    glfwSetKeyCallback(window, GLFWKeyboardButtonCallback);
+    glfwSetMouseButtonCallback(window, GLFWMouseButtonCallback);
     glfwSetCursorPosCallback(window, GLFWCursorCallback);
 }
 
@@ -19,7 +20,7 @@ InputManager* InputManager::GetInstance()
     return &instance;
 }
 
-void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void InputManager::GLFWKeyboardButtonCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     InputManager* instance = GetInstance();
     
@@ -33,6 +34,24 @@ void InputManager::GLFWKeyCallback(GLFWwindow* window, int key, int scancode, in
     case GLFW_RELEASE:
         instance->_keyReleased[key].Raise();
         instance->_pressedKeys.erase(key);
+        break;
+    }
+}
+
+void InputManager::GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+    InputManager* instance = GetInstance();
+    
+    switch (action)
+    {
+    case GLFW_PRESS:
+        instance->_keyPressed[button].Raise();
+        instance->_pressedKeys.insert(button);
+        break;
+
+    case GLFW_RELEASE:
+        instance->_keyReleased[button].Raise();
+        instance->_pressedKeys.erase(button);
         break;
     }
 }
