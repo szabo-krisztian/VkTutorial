@@ -17,22 +17,10 @@ std::string GetAbsolutePath(const std::string& relativePath)
     return absolutePath;
 }
 
-void printvvec(glm::vec3 v)
-{
-    std::cout << "> " << v.x << ", " << v.y << ", " << v.z << std::endl;
-}
-
 App::App()
 {
     InitCommands();
     InitSyncStructures();
-
-    std::cout << "player:";
-    printvvec(camera.GetPosition());
-    std::cout << "forward:";
-    printvvec(camera.GetForwardVector());
-
-    _world.BuildBlock(camera.GetPosition(), camera.GetForwardVector());
 }
 
 App::~App()
