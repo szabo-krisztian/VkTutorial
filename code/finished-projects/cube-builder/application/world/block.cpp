@@ -1,5 +1,7 @@
 #include "block.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace tlr
 {
 
@@ -32,6 +34,11 @@ void Block::Place()
 void Block::Break()
 {
     _isPlaced = false;
+}
+
+glm::mat4 Block::GetModelMatrix() const
+{
+    return glm::translate(glm::mat4(1.0f), static_cast<glm::vec3>(_position));
 }
 
 } // namespace tlr

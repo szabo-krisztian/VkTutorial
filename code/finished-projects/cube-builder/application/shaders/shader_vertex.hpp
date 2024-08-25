@@ -21,10 +21,10 @@ struct VertexInfo
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 1> GetAttributeDescriptions()
     {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
-        attributeDescriptions[0] = init::VertexInputAttributeDescription(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos));
+        std::array<VkVertexInputAttributeDescription, 1> attributeDescriptions{};
+        attributeDescriptions[0] = init::VertexInputAttributeDescription(0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexInfo, pos));
         return attributeDescriptions;
     }
 };

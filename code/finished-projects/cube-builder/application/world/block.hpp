@@ -16,6 +16,7 @@ public:
     bool       IsPlaced() const;
     void       Place();
     void       Break();
+    glm::mat4  GetModelMatrix() const;
 
 private:
     glm::ivec3 _position;
