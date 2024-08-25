@@ -1,4 +1,4 @@
-![fractal](https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal.png?raw=true)
+![fractal](https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal_new.png?raw=true)
 
 # Sierpiński triangle
 
