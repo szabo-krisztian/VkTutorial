@@ -2,46 +2,27 @@
 
 Welcome to my Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload, improve my code frequently. You can check out my finished projects [here](https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects).
 
-<div align="center">
-  <table style="width: 100%; max-width: 1200px; border-collapse: collapse;">
-    <tr>
-      <td style="width: 50%; text-align: center;">
-        <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/sierpinski-triangle" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal.png?raw=true" style="max-width: 100%; height: auto;" alt="Fractal"/>
-        </a>
-      </td>
-      <td style="width: 50%; text-align: center;">
-        <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/rotating-cube" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" style="max-width: 100%; height: auto;" alt="Spinning Cube"/>
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td style="width: 50%; text-align: center;">
-        <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-shooter" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" style="max-width: 100%; height: auto;" alt="Mesh Shooter"/>
-        </a>
-      </td>
-      <td style="width: 50%; text-align: center;">
-        <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-division" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/icosahedron.gif" style="max-width: 100%; height: auto;" alt="Icosahedron"/>
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td style="width: 50%; text-align: center;">
-        <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/cube-builder" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/cube_builder.gif" style="max-width: 100%; height: auto;" alt="Cube Builder"/>
-        </a>
-      </td>
-      <td style="width: 50%; text-align: center;">
-        <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/model-loading" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/bugatti.gif" style="max-width: 100%; height: auto;" alt="Bugatti"/>
-        </a>
-      </td>
-    </tr>
-  </table>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+  <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/sierpinski-triangle" target="_blank">
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal.png?raw=true" width="300" alt="Fractal" style="max-width: 100%; height: auto;"/>
+  </a>
+  <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/rotating-cube" target="_blank">
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" width="300" alt="Spinning Cube" style="max-width: 100%; height: auto;"/>
+  </a>
+  <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-shooter" target="_blank">
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" width="300" alt="Mesh Shooter" style="max-width: 100%; height: auto;"/>
+  </a>
+  <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-division" target="_blank">
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/icosahedron.gif" width="300" alt="Icosahedron" style="max-width: 100%; height: auto;"/>
+  </a>
+  <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/cube-builder" target="_blank">
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/cube_builder.gif" width="300" alt="Cube Builder" style="max-width: 100%; height: auto;"/>
+  </a>
+  <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/model-loading" target="_blank">
+    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/bugatti.gif" width="300" alt="Bugatti" style="max-width: 100%; height: auto;"/>
+  </a>
 </div>
+
 
 
 ## Table of Contents
