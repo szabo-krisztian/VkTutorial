@@ -4,7 +4,7 @@ int main()
 {
     try
     {
-        int fractalDepth = 7;
+        int fractalDepth = 4;
         tlr::App app(fractalDepth);
         app.Run();    
     }
