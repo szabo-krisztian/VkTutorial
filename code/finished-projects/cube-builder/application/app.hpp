@@ -24,6 +24,17 @@ struct CameraTransform
     alignas(16) glm::mat4 proj;
 };
 
+template <typename LayoutUBO>
+struct Layout
+{
+    VkDescriptorSetLayout layout;
+    operator VkDescriptorSetLayout&() { return layout; }
+    operator VkDescriptorSetLayout*() { return &layout; }
+
+    std::vector<LayoutUBO>       ubos;
+    std::vector<VkDescriptorSet> sets;
+};
+
 class App : public AppBase
 {
 public:
@@ -48,22 +59,30 @@ private:
     void       InitSyncStructures();
     FrameData& GetCurrentFrameData();
 
-    /*
     struct
     {
         Buffer vertexBuffer;
         std::vector<VertexInfo> vertices;
     } _cube;
+    
+    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    void InitMeshVertexBuffer();
 
-    VkPipelineLayout _pipelineLayout;
-    VkPipeline       _graphicsPipeline;
-    */
 
-    DeletionQueue    _deletionQueue;
+    struct Layout0UBO
+    {
+        Buffer cameraTransform;
+    };
+    VkDescriptorPool   _descriptorPool;
+    Layout<Layout0UBO> _layout0;
+
+    void CreateDescriptorSetLayout();
+    void CreateDescriptorPool();
 
     World _world;
+    DeletionQueue _deletionQueue;
 
-   
+    
 };
 
 } // namespace tlr

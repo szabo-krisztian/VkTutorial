@@ -27,8 +27,8 @@ public:
 private:
     std::vector<std::vector<std::vector<Block>>> _world;
 
-    Block&                  GetBlock(const glm::ivec3& position);
     void                    Initialize();
+    Block&                  GetBlock(const glm::ivec3& position);
     bool                    IsPositionInBounds(const glm::ivec3& position);
     glm::ivec3              GetPositionFromCenterPosition(const glm::vec3& centerPosition);
     bool                    DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
