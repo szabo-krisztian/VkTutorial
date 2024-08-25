@@ -5,6 +5,7 @@
 namespace tlr
 {
 
+// TODO: make first block unbreakable
 static const std::vector<glm::vec3> DIRECTIONS =
 {
     {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1}
@@ -78,6 +79,7 @@ bool World::IsPositionInBounds(const glm::ivec3& position)
     return absolutePosition.x <= X_DIMENSION && absolutePosition.y <= Y_DIMENSION && absolutePosition.z <= Z_DIMENSION;
 }
 
+// TODO: clean up this code, really noisy
 void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
@@ -105,7 +107,6 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
             break;
         }
     }
-    std::cout << "------------------" << std::endl;
 }
 
 glm::ivec3 World::GetPositionFromCenterPosition(const glm::vec3& centerPosition)
@@ -134,6 +135,7 @@ void World::BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
     GetBlock(targetBlockPosition).Break();
 }
 
+// TODO: check if sort is really needed here
 glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd)
 {
     std::vector<glm::ivec3> blockPositions = GetIntersectedBlockPositions(rayStart, rayEnd);
@@ -163,10 +165,10 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
 
 bool Contains(const std::vector<glm::ivec3>& vec, const glm::ivec3& element)
 {
-    // Use std::find to search for the element
     return std::find(vec.begin(), vec.end(), element) != vec.end();
 }
 
+// TODO: change vector to std::unordered_set
 std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& rayStart, const glm::vec3& rayEnd)
 {
     /*
@@ -204,7 +206,6 @@ std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& ray
     {
         visitedVoxels.push_back(currentVoxel);
     }
-    
 
     while (currentVoxel != lastVoxel)
     {
