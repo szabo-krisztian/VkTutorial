@@ -2,9 +2,22 @@
 
 Welcome to my Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload, improve my code frequently. You can check out my finished projects [here](https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects).
 
-<p align="center">
-    <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal.png" alt="polyhedron" />
-</p>
+<div style="text-align: center;">
+  <table style="margin: 0 auto;">
+    <tr>
+      <td><img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal.png?raw=true" width="300"/></td>
+      <td><img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" width="300"/></td>
+    </tr>
+    <tr>
+        <td><img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" width="300"/></td>
+        <td><img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/icosahedron.gif" width="300"/></td>
+    </tr>
+    <tr>
+      <td><img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/cube_builder.gif" width="300"/></td>
+      <td><img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/bugatti.gif" width="300"/></td>
+    </tr>
+  </table>
+</div>
 
 ## Table of Contents
 - [Introduction](#introduction)

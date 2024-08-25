@@ -19,6 +19,8 @@ std::string GetAbsolutePath(const std::string& relativePath)
 
 App::App()
 {
+    camera.SetMovementSpeed(5.0f);
+    
     inputManager->AddKeyPressListener(GLFW_MOUSE_BUTTON_RIGHT, [&]() {
         _world.BuildBlock(camera.GetPosition(), camera.GetForwardVector());
     });
