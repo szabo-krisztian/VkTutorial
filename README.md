@@ -7,36 +7,36 @@ Welcome to my Vulkan API tutorial repository! This repository represents my pers
     <tr>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/sierpinski-triangle" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal_new.png?raw=true" width="350" alt="Fractal"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal_new.png?raw=true" width="375" alt="Fractal"/>
         </a>
       </td>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/rotating-cube" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" width="350" alt="Spinning Cube"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" width="375" alt="Spinning Cube"/>
         </a>
       </td>
     </tr>
     <tr>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-shooter" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" width="350" alt="Mesh Shooter"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" width="375" alt="Mesh Shooter"/>
         </a>
       </td>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-division" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/icosahedron.gif" width="350" alt="Icosahedron"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/icosahedron.gif" width="375" alt="Icosahedron"/>
         </a>
       </td>
     </tr>
     <tr>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/cube-builder" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/cube_builder.gif" width="350" alt="Cube Builder"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/cube_builder.gif" width="375" alt="Cube Builder"/>
         </a>
       </td>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/model-loading" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/bugatti.gif" width="350" alt="Bugatti"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/bugatti.gif" width="375" alt="Bugatti"/>
         </a>
       </td>
     </tr>
