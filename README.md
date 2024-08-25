@@ -7,24 +7,24 @@ Welcome to my Vulkan API tutorial repository! This repository represents my pers
     <tr>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/sierpinski-triangle" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal.png?raw=true" width="300" alt="Fractal"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/fractal.png?raw=true" width="400" alt="Fractal"/>
         </a>
       </td>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/rotating-cube" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" width="300" alt="Spinning Cube"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/spinning_cube.gif" width="400" alt="Spinning Cube"/>
         </a>
       </td>
     </tr>
     <tr>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-shooter" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" width="300" alt="Mesh Shooter"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/mesh_shooter.gif" width="400" alt="Mesh Shooter"/>
         </a>
       </td>
       <td>
         <a href="https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects/mesh-division" target="_blank">
-          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/icosahedron.gif" width="300" alt="Icosahedron"/>
+          <img src="https://github.com/szabo-krisztian/VkTutorial/blob/master/images/icosahedron.gif" width="400" alt="Icosahedron"/>
         </a>
       </td>
     </tr>
