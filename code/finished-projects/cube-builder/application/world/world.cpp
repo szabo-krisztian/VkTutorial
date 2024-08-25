@@ -5,11 +5,6 @@
 namespace tlr
 {
 
-void printvec(glm::vec3 v)
-{
-    std::cout << " > (" << v.x << ", " << v.y << ", " << v.z << ")" << std::endl;
-}
-
 static const std::vector<glm::vec3> DIRECTIONS =
 {
     {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1}
@@ -87,15 +82,6 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
     Block targetBlock = GetBlock(GetTargetBlockPosition(playerPosition, rayEnd));
-    
-    std::cout << "------------------" << std::endl;
-
-    std::cout << "target: ";
-    printvec(targetBlock.GetPosition());
-    std::cout << "start: ";
-    printvec(playerPosition);
-    std::cout << "end: ";
-    printvec(rayEnd);
 
     for (const auto& dir : DIRECTIONS)
     {
@@ -104,35 +90,19 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
         bool isFaceTowardsUs = glm::dot(dir, ray) < 0;
         if (!isFaceTowardsUs || GetBlock(static_cast<glm::ivec3>(static_cast<glm::vec3>(targetBlock.GetPosition()) + dir)).IsPlaced())
         {
-            std::cout << "not towards or placed: ";
-            printvec(center + dir);
             continue;
         }
         center += (dir / 2.0f);
         glm::vec3 offsetVector = (glm::vec3(1,1,1) - glm::abs(dir)) / 2.0f;
         
-        std::cout << "THIS1-center: ";
-        printvec(center);
-        std::cout << "THIS1-offset: ";
-        printvec(offsetVector);
 
         glm::vec3 minFacePosition = center - offsetVector;
         glm::vec3 maxFacePosition = center + offsetVector;
 
         if (DoesRayIntersectCube(playerPosition, ray, minFacePosition, maxFacePosition))
         {
-            std::cout << "PLACED: ";
-            printvec(center + dir);
             GetBlock(GetPositionFromCenterPosition(center + dir)).Place();
             break;
-        }
-        else
-        {
-            std::cout << "no intersection: ";
-            printvec(playerPosition);
-            printvec(ray);
-            printvec(minFacePosition);
-            printvec(maxFacePosition);
         }
     }
     std::cout << "------------------" << std::endl;

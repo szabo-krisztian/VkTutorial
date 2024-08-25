@@ -17,18 +17,6 @@ std::string GetAbsolutePath(const std::string& relativePath)
     return absolutePath;
 }
 
-void PrintMat4(const glm::mat4& matrix)
-{
-    for (int row = 0; row < 4; ++row)
-    {
-        for (int col = 0; col < 4; ++col)
-        {
-            std::cout << matrix[col][row] << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-
 App::App()
 {
     inputManager->AddKeyPressListener(GLFW_MOUSE_BUTTON_RIGHT, [&]() {
