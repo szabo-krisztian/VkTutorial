@@ -7,8 +7,8 @@ namespace tlr
 
 struct CubeInfo
 {
-    glm::vec3 color;
     glm::mat4 transform;
+    glm::vec3 color;
 };
 
 } // namespace tlr

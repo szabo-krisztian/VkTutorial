@@ -12,6 +12,7 @@ public:
 
     void       Initialize(const glm::ivec3& position);
     glm::ivec3 GetPosition() const;
+    glm::vec3  GetColor() const;
     glm::vec3  GetCenter() const;
     bool       IsPlaced() const;
     void       Place();

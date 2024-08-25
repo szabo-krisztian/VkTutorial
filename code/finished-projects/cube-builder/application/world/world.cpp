@@ -1,7 +1,14 @@
 #include "world.hpp"
 
+#include <algorithm>
+
 namespace tlr
 {
+
+void printvec(glm::vec3 v)
+{
+    std::cout << " > (" << v.x << ", " << v.y << ", " << v.z << ")" << std::endl;
+}
 
 static const std::vector<glm::vec3> DIRECTIONS =
 {
@@ -70,11 +77,6 @@ std::vector<Block> World::GetActiveBlocks()
     return blocks;
 }
 
-void printvec(glm::vec3 v)
-{
-    std::cout << "> " << v.x << ", " << v.y << ", " << v.z << std::endl;
-}
-
 bool World::IsPositionInBounds(const glm::ivec3& position)
 {
     auto absolutePosition = glm::abs(position);
@@ -85,27 +87,55 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
     Block targetBlock = GetBlock(GetTargetBlockPosition(playerPosition, rayEnd));
-    glm::vec3 center = targetBlock.GetCenter();
+    
+    std::cout << "------------------" << std::endl;
+
+    std::cout << "target: ";
+    printvec(targetBlock.GetPosition());
+    std::cout << "start: ";
+    printvec(playerPosition);
+    std::cout << "end: ";
+    printvec(rayEnd);
 
     for (const auto& dir : DIRECTIONS)
     {
+        glm::vec3 center = targetBlock.GetCenter();
+
         bool isFaceTowardsUs = glm::dot(dir, ray) < 0;
-        if (!isFaceTowardsUs)
+        if (!isFaceTowardsUs || GetBlock(static_cast<glm::ivec3>(static_cast<glm::vec3>(targetBlock.GetPosition()) + dir)).IsPlaced())
         {
+            std::cout << "not towards or placed: ";
+            printvec(center + dir);
             continue;
         }
-        center += dir / 2.0f;
+        center += (dir / 2.0f);
         glm::vec3 offsetVector = (glm::vec3(1,1,1) - glm::abs(dir)) / 2.0f;
         
+        std::cout << "THIS1-center: ";
+        printvec(center);
+        std::cout << "THIS1-offset: ";
+        printvec(offsetVector);
+
         glm::vec3 minFacePosition = center - offsetVector;
         glm::vec3 maxFacePosition = center + offsetVector;
 
         if (DoesRayIntersectCube(playerPosition, ray, minFacePosition, maxFacePosition))
         {
+            std::cout << "PLACED: ";
+            printvec(center + dir);
             GetBlock(GetPositionFromCenterPosition(center + dir)).Place();
             break;
         }
+        else
+        {
+            std::cout << "no intersection: ";
+            printvec(playerPosition);
+            printvec(ray);
+            printvec(minFacePosition);
+            printvec(maxFacePosition);
+        }
     }
+    std::cout << "------------------" << std::endl;
 }
 
 glm::ivec3 World::GetPositionFromCenterPosition(const glm::vec3& centerPosition)
@@ -137,6 +167,14 @@ void World::BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd)
 {
     std::vector<glm::ivec3> blockPositions = GetIntersectedBlockPositions(rayStart, rayEnd);
+    std::sort(blockPositions.begin(), blockPositions.end(), [&](const glm::ivec3& a, const glm::ivec3& b) {
+        glm::vec3 vecA = GetBlock(a).GetCenter();
+        glm::vec3 vecB = GetBlock(b).GetCenter();
+        float distA = glm::length(rayStart - vecA);
+        float distB = glm::length(rayStart - vecB);
+        return distA < distB;
+    });
+    
     glm::ivec3 targetBlockPosition = blockPositions[1];
 
     for (std::size_t i = 1; i < blockPositions.size(); ++i)
@@ -149,8 +187,14 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
             break;
         }   
     }
-    
+
     return targetBlockPosition;
+}
+
+bool Contains(const std::vector<glm::ivec3>& vec, const glm::ivec3& element)
+{
+    // Use std::find to search for the element
+    return std::find(vec.begin(), vec.end(), element) != vec.end();
 }
 
 std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& rayStart, const glm::vec3& rayEnd)
@@ -159,50 +203,51 @@ std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& ray
      * Check out https://github.com/francisengelmann/fast_voxel_traversal
      */
     std::vector<glm::ivec3> visitedVoxels;
-    glm::ivec3 currentVoxel(static_cast<int>(std::floor(rayStart[0])), static_cast<int>(std::floor(rayStart[1])), static_cast<int>(std::floor(rayStart[2])));
-    glm::ivec3 lastVoxel(static_cast<int>(std::floor(rayEnd[0])), static_cast<int>(std::floor(rayEnd[1])), static_cast<int>(std::floor(rayEnd[2])));
+
+    glm::ivec3 currentVoxel(static_cast<int>(std::floor(rayStart.x)),
+                            static_cast<int>(std::floor(rayStart.y)),
+                            static_cast<int>(std::floor(rayStart.z)));
+
+    glm::ivec3 lastVoxel(static_cast<int>(std::floor(rayEnd.x)),
+                         static_cast<int>(std::floor(rayEnd.y)),
+                         static_cast<int>(std::floor(rayEnd.z)));
+
     glm::vec3 ray = rayEnd - rayStart;
 
-    int stepX = (ray[0] >= 0) ? 1 : -1;
-    int stepY = (ray[1] >= 0) ? 1 : -1;
-    int stepZ = (ray[2] >= 0) ? 1 : -1;
+    int stepX = (ray.x >= 0) ? 1 : -1;
+    int stepY = (ray.y >= 0) ? 1 : -1;
+    int stepZ = (ray.z >= 0) ? 1 : -1;
 
-    double nextVoxelBoundaryX = (currentVoxel[0] + stepX);
-    double nextVoxelBoundaryY = (currentVoxel[1] + stepY);
-    double nextVoxelBoundaryZ = (currentVoxel[2] + stepZ);
+    double nextVoxelBoundaryX = currentVoxel.x + (stepX > 0 ? 1 : 0);
+    double nextVoxelBoundaryY = currentVoxel.y + (stepY > 0 ? 1 : 0);
+    double nextVoxelBoundaryZ = currentVoxel.z + (stepZ > 0 ? 1 : 0);
 
-    double tMaxX = (ray[0] != 0) ? (nextVoxelBoundaryX - rayStart[0]) / ray[0] : DBL_MAX;
-    double tMaxY = (ray[1] != 0) ? (nextVoxelBoundaryY - rayStart[1]) / ray[1] : DBL_MAX;
-    double tMaxZ = (ray[2] != 0) ? (nextVoxelBoundaryZ - rayStart[2]) / ray[2] : DBL_MAX;
+    double tMaxX = (ray.x != 0) ? (nextVoxelBoundaryX - rayStart.x) / ray.x : DBL_MAX;
+    double tMaxY = (ray.y != 0) ? (nextVoxelBoundaryY - rayStart.y) / ray.y : DBL_MAX;
+    double tMaxZ = (ray.z != 0) ? (nextVoxelBoundaryZ - rayStart.z) / ray.z : DBL_MAX;
 
-    double tDeltaX = (ray[0] != 0) ? ray[0] * stepX : DBL_MAX;
-    double tDeltaY = (ray[1] != 0) ? ray[1] * stepY : DBL_MAX;
-    double tDeltaZ = (ray[2] != 0) ? ray[2] * stepZ : DBL_MAX;
+    double tDeltaX = (ray.x != 0) ? 1.0 / std::abs(ray.x) : DBL_MAX;
+    double tDeltaY = (ray.y != 0) ? 1.0 / std::abs(ray.y) : DBL_MAX;
+    double tDeltaZ = (ray.z != 0) ? 1.0 / std::abs(ray.z) : DBL_MAX;
 
-    glm::ivec3 diff(0, 0, 0);
-    bool negRay = false;
-    if (currentVoxel[0] != lastVoxel[0] && ray[0] < 0) { diff[0]--; negRay = true; }
-    if (currentVoxel[1] != lastVoxel[1] && ray[1] < 0) { diff[1]--; negRay = true; }
-    if (currentVoxel[2] != lastVoxel[2] && ray[2] < 0) { diff[2]--; negRay = true; }
-    visitedVoxels.push_back(currentVoxel);
-    if (negRay)
+    if (!Contains(visitedVoxels, currentVoxel))
     {
-        currentVoxel += diff;
         visitedVoxels.push_back(currentVoxel);
     }
+    
 
-    while (lastVoxel != currentVoxel)
+    while (currentVoxel != lastVoxel)
     {
         if (tMaxX < tMaxY)
         {
             if (tMaxX < tMaxZ)
             {
-                currentVoxel[0] += stepX;
+                currentVoxel.x += stepX;
                 tMaxX += tDeltaX;
             }
             else
             {
-                currentVoxel[2] += stepZ;
+                currentVoxel.z += stepZ;
                 tMaxZ += tDeltaZ;
             }
         }
@@ -210,17 +255,21 @@ std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& ray
         {
             if (tMaxY < tMaxZ)
             {
-                currentVoxel[1] += stepY;
+                currentVoxel.y += stepY;
                 tMaxY += tDeltaY;
             }
             else
             {
-                currentVoxel[2] += stepZ;
+                currentVoxel.z += stepZ;
                 tMaxZ += tDeltaZ;
             }
         }
-        visitedVoxels.push_back(currentVoxel);
+        if (!Contains(visitedVoxels, currentVoxel))
+        {
+            visitedVoxels.push_back(currentVoxel);
+        }
     }
+
     return visitedVoxels;
 }
 

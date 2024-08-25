@@ -80,7 +80,7 @@ void Camera::CursorMovementCallback(float xoffset, float yoffset)
 {    
     _yaw -= xoffset * _sensitivity;
     _pitch -= yoffset * _sensitivity;
-    _pitch = glm::clamp(_pitch, 1.0f, 179.0f);
+    _pitch = glm::clamp(_pitch, 0.01f, 3.13f);
     UpdateDirections();
 }
 

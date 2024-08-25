@@ -1,6 +1,8 @@
 #include "block.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <random>
+#include <iostream>
 
 namespace tlr
 {
@@ -9,11 +11,17 @@ void Block::Initialize(const glm::ivec3& position)
 {
     assert(!_isInitialized && "position cannot be changed after initialization!");
     _position = position;
+    _color = {1.0f, 0.0f, 0.0f};
 }
 
 glm::ivec3 Block::GetPosition() const
 {
     return _position;
+}
+
+glm::vec3 Block::GetColor() const
+{
+    return _color;
 }
 
 glm::vec3 Block::GetCenter() const
@@ -26,8 +34,23 @@ bool Block::IsPlaced() const
     return _isPlaced;
 }
 
+glm::vec3 GenerateRandomVec3()
+{
+    std::random_device rd;  // Obtain a random number from hardware
+    std::mt19937 gen(rd()); // Seed the generator
+    std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range
+
+    // Generate random float values for each component
+    float x = dis(gen);
+    float y = dis(gen);
+    float z = dis(gen);
+
+    return glm::vec3(x, y, z);
+}
+
 void Block::Place()
 {
+    _color = GenerateRandomVec3();
     _isPlaced = true;
 }
 

@@ -62,12 +62,14 @@ private:
     struct
     {
         Buffer vertexBuffer;
+        Buffer indexBuffer;
         std::vector<VertexInfo> vertices;
+        std::vector<int16_t> indices;
     } _cube;
-    
-    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void InitMeshVertexBuffer();
 
+    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+    void InitVertexBuffer();
+    void InitIndexBuffer();
 
     struct Layout0UBO
     {
@@ -78,6 +80,15 @@ private:
 
     void CreateDescriptorSetLayout();
     void CreateDescriptorPool();
+    void CreateDescriptorSets();
+    void UpdateDesciptorUbos();
+
+
+    VkPipelineLayout _pipelineLayout;
+    VkPipeline _graphicsPipeline;
+
+    void CreateGraphicsPipeline();
+    void RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex);
 
     World _world;
     DeletionQueue _deletionQueue;
