@@ -1,5 +1,7 @@
 #include "app.hpp"
 
+#include <cstring>
+
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 

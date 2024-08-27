@@ -1,5 +1,7 @@
 #include "app.hpp"
 
+#include <cstring>
+
 #include "initializers.hpp"
 #include "toolset.hpp"
 #include "shader_module.hpp"

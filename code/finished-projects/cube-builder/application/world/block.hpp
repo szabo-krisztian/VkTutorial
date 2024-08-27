@@ -24,6 +24,8 @@ private:
     glm::vec3  _color;
     bool       _isPlaced = false;
     bool       _isInitialized = false;
+
+    glm::vec3 GetRandomVec3();
 };
 
 } // namespace tlr

@@ -1,3 +1,6 @@
+# Only projects are built that do not use other dependencies other than
+# GLFW, Vulkan, and GLM libraries. This may change in the future.
+
 name: Build projects
 
 on:
@@ -78,6 +81,14 @@ jobs:
       - name: Build mesh-division project
         run: |
           cd ${{ github.workspace }}/code/finished-projects/mesh-division
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm
+          cmake --build .
+
+      - name: Build cube-builder project
+        run: |
+          cd ${{ github.workspace }}/code/finished-projects/cube-builder
           mkdir build
           cd build
           cmake .. -DCMAKE_PREFIX_PATH="${{ github.workspace }}/glfw_build/install/lib/cmake/glfw3" -DGLM_PATH=${{ github.workspace }}/glm

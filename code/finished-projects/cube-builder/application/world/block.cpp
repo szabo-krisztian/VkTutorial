@@ -34,13 +34,12 @@ bool Block::IsPlaced() const
     return _isPlaced;
 }
 
-glm::vec3 GenerateRandomVec3()
+glm::vec3 Block::GetRandomVec3()
 {
-    std::random_device rd;  // Obtain a random number from hardware
-    std::mt19937 gen(rd()); // Seed the generator
-    std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
 
-    // Generate random float values for each component
     float x = dis(gen);
     float y = dis(gen);
     float z = dis(gen);
@@ -50,7 +49,7 @@ glm::vec3 GenerateRandomVec3()
 
 void Block::Place()
 {
-    _color = GenerateRandomVec3();
+    _color = GetRandomVec3();
     _isPlaced = true;
 }
 
