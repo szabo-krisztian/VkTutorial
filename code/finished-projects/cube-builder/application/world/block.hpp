@@ -14,10 +14,10 @@ public:
     glm::ivec3 GetPosition() const;
     glm::vec3  GetColor() const;
     glm::vec3  GetCenter() const;
+    glm::mat4  GetModelMatrix() const;
     bool       IsPlaced() const;
     void       Place();
     void       Break();
-    glm::mat4  GetModelMatrix() const;
 
 private:
     glm::ivec3 _position;

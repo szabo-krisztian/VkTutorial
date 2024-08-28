@@ -91,7 +91,11 @@ void Camera::SetPosition(const glm::vec3& position)
 
 void Camera::SetDirection(const glm::vec3& direction)
 {
-    _front = direction;
+    glm::vec3 newDirecton = glm::normalize(direction);
+    glm::vec3 flipped{newDirecton.x, newDirecton.z, newDirecton.y};
+    _pitch = glm::acos(flipped.z);
+    _yaw = glm::atan(flipped.y, flipped.x);
+    UpdateDirections();
 }
 
 void Camera::SetLookAtPoint(const glm::vec3& lookAt)

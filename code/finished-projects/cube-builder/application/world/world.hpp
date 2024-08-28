@@ -16,7 +16,7 @@ public:
     static constexpr int X_DIMENSION = 10;
     static constexpr int Y_DIMENSION = 10;
     static constexpr int Z_DIMENSION = 10;
-    static constexpr float PLAYER_REACH_LENGTH = 8;
+    static constexpr float PLAYER_REACH_LENGTH = 5;
 
     World();
 

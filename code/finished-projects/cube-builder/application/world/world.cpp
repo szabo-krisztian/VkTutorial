@@ -5,7 +5,6 @@
 namespace tlr
 {
 
-// TODO: make first block unbreakable
 static const std::vector<glm::vec3> DIRECTIONS =
 {
     {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1}
@@ -79,25 +78,29 @@ bool World::IsPositionInBounds(const glm::ivec3& position)
     return absolutePosition.x <= X_DIMENSION && absolutePosition.y <= Y_DIMENSION && absolutePosition.z <= Z_DIMENSION;
 }
 
-// TODO: clean up this code, really noisy
 void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
-    Block targetBlock = GetBlock(GetTargetBlockPosition(playerPosition, rayEnd));
+    glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
+    bool isTargetBlockNotFound = !IsPositionInBounds(targetBlockPosition);
+    if (isTargetBlockNotFound)
+    {
+        return;
+    }
+    
+    Block targetBlock = GetBlock(targetBlockPosition);
 
     for (const auto& dir : DIRECTIONS)
     {
         glm::vec3 center = targetBlock.GetCenter();
-
-        bool isFaceTowardsUs = glm::dot(dir, ray) < 0;
-        if (!isFaceTowardsUs || GetBlock(static_cast<glm::ivec3>(static_cast<glm::vec3>(targetBlock.GetPosition()) + dir)).IsPlaced())
+        bool isFaceNotTowardsUs = glm::dot(dir, ray) > 0;
+        bool isWrongNeighbor = GetBlock(static_cast<glm::ivec3>(static_cast<glm::vec3>(targetBlock.GetPosition()) + dir)).IsPlaced();
+        if (isWrongNeighbor || isFaceNotTowardsUs)
         {
             continue;
         }
         center += (dir / 2.0f);
-        glm::vec3 offsetVector = (glm::vec3(1,1,1) - glm::abs(dir)) / 2.0f;
-        
-
+        glm::vec3 offsetVector = (Block::CORNER_OFFSET - glm::abs(dir)) / 2.0f;
         glm::vec3 minFacePosition = center - offsetVector;
         glm::vec3 maxFacePosition = center + offsetVector;
 
@@ -132,43 +135,42 @@ void World::BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
     glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
+
+    bool isTargetBlockNotFound = !IsPositionInBounds(targetBlockPosition);
+    if (isTargetBlockNotFound || targetBlockPosition == glm::ivec3(0, 0, 0))
+    {
+        return;
+    }
+
     GetBlock(targetBlockPosition).Break();
 }
 
-// TODO: check if sort is really needed here
 glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd)
 {
     std::vector<glm::ivec3> blockPositions = GetIntersectedBlockPositions(rayStart, rayEnd);
-    std::sort(blockPositions.begin(), blockPositions.end(), [&](const glm::ivec3& a, const glm::ivec3& b) {
-        glm::vec3 vecA = GetBlock(a).GetCenter();
-        glm::vec3 vecB = GetBlock(b).GetCenter();
-        float distA = glm::length(rayStart - vecA);
-        float distB = glm::length(rayStart - vecB);
-        return distA < distB;
-    });
-    
-    glm::ivec3 targetBlockPosition = blockPositions[1];
 
+    bool isTargetBlockFound = false;    
+    glm::ivec3 targetBlockPosition = blockPositions[1];
     for (std::size_t i = 1; i < blockPositions.size(); ++i)
     {
         assert(IsPositionInBounds(blockPositions[i]) && "you went out of the world!");
 
         if (GetBlock(blockPositions[i]).IsPlaced())
         {
+            isTargetBlockFound = true;
             targetBlockPosition = blockPositions[i];
             break;
         }   
     }
 
+    if (!isTargetBlockFound)
+    {
+        return glm::ivec3(X_DIMENSION + 1, Y_DIMENSION + 1, Z_DIMENSION + 1);
+    }
+
     return targetBlockPosition;
 }
 
-bool Contains(const std::vector<glm::ivec3>& vec, const glm::ivec3& element)
-{
-    return std::find(vec.begin(), vec.end(), element) != vec.end();
-}
-
-// TODO: change vector to std::unordered_set
 std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& rayStart, const glm::vec3& rayEnd)
 {
     /*
@@ -202,11 +204,6 @@ std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& ray
     double tDeltaY = (ray.y != 0) ? 1.0 / std::abs(ray.y) : DBL_MAX;
     double tDeltaZ = (ray.z != 0) ? 1.0 / std::abs(ray.z) : DBL_MAX;
 
-    if (!Contains(visitedVoxels, currentVoxel))
-    {
-        visitedVoxels.push_back(currentVoxel);
-    }
-
     while (currentVoxel != lastVoxel)
     {
         if (tMaxX < tMaxY)
@@ -235,10 +232,7 @@ std::vector<glm::ivec3> World::GetIntersectedBlockPositions(const glm::vec3& ray
                 tMaxZ += tDeltaZ;
             }
         }
-        if (!Contains(visitedVoxels, currentVoxel))
-        {
-            visitedVoxels.push_back(currentVoxel);
-        }
+        visitedVoxels.push_back(currentVoxel);
     }
 
     return visitedVoxels;

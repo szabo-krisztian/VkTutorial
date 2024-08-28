@@ -40,9 +40,9 @@ glm::vec3 Block::GetRandomVec3()
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
-    float x = dis(gen);
-    float y = dis(gen);
-    float z = dis(gen);
+    float x = static_cast<float>(dis(gen));
+    float y = static_cast<float>(dis(gen));
+    float z = static_cast<float>(dis(gen));
 
     return glm::vec3(x, y, z);
 }
