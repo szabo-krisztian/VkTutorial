@@ -363,7 +363,6 @@ void App::CreateGraphicsPipeline()
 
 void App::RecordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 {
-    
     VkCommandBufferBeginInfo beginInfo = init::CommandBufferBeginInfo();
     VK_CHECK_RESULT(vkBeginCommandBuffer(cmd, &beginInfo));
 

@@ -961,10 +961,12 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	%%%
 	
 	\section{Cube builder}
-	In this section I will explain the methods, algorithms that I have used while creating the cube builder project. This involves a simplified 3D DDA algorithm, ray intersection with cubes, and other ideas.
+	In this section, I will outline the methods and algorithms used in the development of the Cube Builder project. This includes a simplified 3D Digital Differential Analyzer (DDA) algorithm, ray-cube intersection techniques, and other relevant concepts.\\
+
+	Before diving into the implementation details, let's first discuss the primary goal of this project. From the player's perspective, the concept is straightforward: you have a space divided into cubes where you can place and destroy blocks. The implementation works as follows: when the player wants to build or break a block, the first step is to identify the \textit{target} block, which is the cube the player is looking at. To achieve this, I initially used a DDA algorithm to determine all the cubes intersected by the ray defined by the player's position and facing direction. Next, I identified the closest block to the player that is already placed. If the player wants to break a block, the target block is destroyed. If the player wants to place a block, we determine which side of the target block the player is currently looking at and place a new block adjacent to it.
 	
 	\subsection{Intersection of cubes}
-	First, let us see a simple method for examining ray intersection with cubes. In this project I used finite length rays (technically segments would be a more precise name for this). We can define a ray with it's starting point $a \in \R^3$ and direction vector $\vec{n} \in \R^3$.
+	First, let's explore a straightforward method for examining ray intersections with cubes. In this project, I used rays of finite length (more accurately referred to as segments). A ray can be defined by its starting point $a \in \R^3$ and direction vector $\vec{n} \in \R^3$.
 	\[
 		r(t) := \vec{n} \cdot t + a \quad (t \in \R^+_0)
 	\]
@@ -1141,6 +1143,32 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 			2\\
 			0.35
 		\end{pmatrix}.
-	\]	
+	\]
+
+	These inequalities yield the following result: two intersection points, $s(t_1) = (-0.63, \, -1, \, 0.31)$ and $s(t_2) = (0, \, -0.27, \, 0.06)$, with parameters $t_1 = 0.377358$ and $t_2 = 0.652174$. Note that in my project, I only needed to determine whether any intersection points exist. For this purpose, we can use the following function.
+
+
+	\begin{lstlisting}[style=customcpp]
+bool DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax)
+{
+	glm::vec3 tMin = (cubeMin - rayStart) / rayDirection;
+	glm::vec3 tMax = (cubeMax - rayStart) / rayDirection;
+
+	glm::vec3 t1 = glm::min(tMin, tMax);
+	glm::vec3 t2 = glm::max(tMin, tMax);
+
+	float tEnter = std::max(std::max(t1.x, t1.y), t1.z);
+	float tExit = std::min(std::min(t2.x, t2.y), t2.z);
+
+	return tEnter <= tExit && tExit >= 0;
+}
+	\end{lstlisting}
 	
+	\subsection{DDA algorithm}
+
+	The Digital Differential Analyzer (DDA) algorithm is a simple and efficient method used for rasterizing lines, curves, and surfaces in computer graphics. It works by incrementally plotting points along the line between two given endpoints. The DDA algorithm calculates the intermediate values along the line by iteratively adding a fixed small step to the start point, ensuring that the plotted line closely approximates the true line.
+
+	In 3D graphics, a variant of the DDA algorithm is often used for tasks such as ray tracing, where it helps in stepping through 3D space to find intersections with objects like cubes. The algorithm operates by advancing the ray in small, discrete steps, checking for intersections with the grid or objects at each step. The DDA algorithm is particularly valued for its simplicity and ease of implementation, though it may not be as accurate or efficient as other more complex algorithms in certain scenarios.
+
+
 \end{document}

@@ -83,7 +83,6 @@ private:
     void CreateDescriptorSets();
     void UpdateDesciptorUbos();
 
-
     VkPipelineLayout _pipelineLayout;
     VkPipeline _graphicsPipeline;
 
@@ -92,8 +91,6 @@ private:
 
     World _world;
     DeletionQueue _deletionQueue;
-
-    
 };
 
 } // namespace tlr
