@@ -1166,9 +1166,47 @@ bool DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirecti
 	
 	\subsection{DDA algorithm}
 
-	The Digital Differential Analyzer (DDA) algorithm is a simple and efficient method used for rasterizing lines, curves, and surfaces in computer graphics. It works by incrementally plotting points along the line between two given endpoints. The DDA algorithm calculates the intermediate values along the line by iteratively adding a fixed small step to the start point, ensuring that the plotted line closely approximates the true line.
+	The Digital Differential Analyzer (DDA) algorithm is a simple and efficient method used for rasterizing lines, curves, and surfaces in computer graphics. It works by incrementally plotting points along the line between two given endpoints. The DDA algorithm calculates the intermediate values along the line by iteratively adding a fixed small step to the start point, ensuring that the plotted line closely approximates the true line.\\
 
 	In 3D graphics, a variant of the DDA algorithm is often used for tasks such as ray tracing, where it helps in stepping through 3D space to find intersections with objects like cubes. The algorithm operates by advancing the ray in small, discrete steps, checking for intersections with the grid or objects at each step. The DDA algorithm is particularly valued for its simplicity and ease of implementation, though it may not be as accurate or efficient as other more complex algorithms in certain scenarios.
+
+	\begin{center}
+		\tdplotsetmaincoords{70}{40}
+		\begin{tikzpicture}[tdplot_main_coords, scale=1]
+			\draw[thick,<->] (-8.5,0,0) -- (8.5,0,0) node[anchor=north east]{$x$};
+			\draw[thick,<->] (0,-8.5,0) -- (0,8.5,0) node[anchor=north west]{$y$};
+			\draw[thick,<->] (0,0,-1.5) -- (0,0,6.5) node[anchor=south]{$z$};
+			
+			\coordinate (A) at (-2.9258,-3.28327,-1.56664);
+			\coordinate (B) at (5.25561,1.5153,2);
+
+			\draw[thick, red] (A) -- (B);
+			\filldraw [red] (A) circle (2pt);
+			\filldraw [red] (B) circle (2pt);
+
+			\drawcube{-3}{-3}{-2}{dashed, very thin}
+			\drawcube{-2}{-3}{-2}{dashed, very thin}
+			\drawcube{-2}{-3}{-1}{dashed, very thin}
+			\drawcube{-1}{-3}{-1}{dashed, very thin}
+			\drawcube{-1}{-2}{-1}{dashed, very thin}
+			\drawcube{0}{-2}{-1}{dashed, very thin}
+			\drawcube{0}{-2}{0}{dashed, very thin}
+			\drawcube{0}{-1}{0}{dashed, very thin}
+			\drawcube{1}{-1}{0}{dashed, very thin}
+			\drawcube{2}{-1}{0}{dashed, very thin}
+			\drawcube{2}{0}{0}{dashed, very thin}
+			\drawcube{2}{0}{1}{dashed, very thin}
+			\drawcube{3}{0}{1}{dashed, very thin}
+			\drawcube{4}{0}{1}{dashed, very thin}
+			\drawcube{4}{1}{1}{dashed, very thin}
+			\drawcube{5}{1}{1}{dashed, very thin}
+			\drawcube{5}{1}{2}{dashed, very thin}
+
+
+		\end{tikzpicture}	
+	\end{center}
+	
+	The implementation of the algorithm I ultimately used can be found at the follwing  \href{https://github.com/francisengelmann/fast_voxel_traversal}{\textbf{\textcolor{blue}{GitHub repository}}}.
 
 
 \end{document}
