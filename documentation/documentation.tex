@@ -190,7 +190,7 @@
 			\end{tikzpicture}	
 		\end{center}
 		
-		Vulkan will transform the view volume as described above. Each pixel coordinate corresponds to a specific NDC (Normalized Device Coordinates) coordinate. Note that I have intentionally omitted the \( z \) axis here, as understanding the canonical view volume, particularly the \( z \) axis, can be complex. Let's explore this concept further. 
+		Vulkan transforms the view volume as described above. Each pixel coordinate corresponds to a specific NDC (Normalized Device Coordinates) coordinate. Note that the \( z \) axis is intentionally omitted here, as understanding the canonical view volume, particularly the \( z \) axis, can be complex. This concept will be explored further.
 		
 		Consider the first vertex, \( p1(0, 0, 0) \). This point is at the center of your screen with a depth value of 0. Next, take the second vertex, \( p2(1, -1, 1) \). This vertex is located at the top-right corner of your screen with a depth value of 1. Lastly, we have \( p3(1, 1, 0.5) \). The triangle formed by these vertices can be visualized as follows:
 		
@@ -223,7 +223,8 @@
 		After the vertex shader outputs these vertices, the \( z \) values will be interpolated at each fragment during the rasterization stage. In the fragment shader, you can even access these interpolated \( z \) values. If a functional depth buffer attachment is set up, Vulkan will use these interpolated values to determine which fragments are visible on top. In this case, the exact \( z \) values of the fragments might not be crucial, but their relative positions to each other are.
 		
 		\subsection{Local to world}
-		Let us start building the model for our object. Note, that this can be done by a lot of different ways. In this case, I am going to use a really simple Cartesian coordinate system where I represent each point of our cube with $p \in \R^3$ point values. \newline
+		The process of building the model for the object will now be initiated. It is important to note that this can be done in a variety of ways. In this case, a simple Cartesian coordinate system will be used, where each point of the cube is represented by $p \in \R^3$ point values.\newline
+
 		
 		Local coordinate systems:
 		\begin{center}
@@ -307,7 +308,8 @@
 			\end{tikzpicture}
 		\end{center}
 		
-		As I mentioned, there might be a lot of different way to model an object. When you start sketching your project, you can think of any model that you find more convenient. However these models all boil down to the same idea of representing object with a finite set of $p \in \R^3$ points, when it comes to placing our object in our world. Here we are, with our set of points:
+		As previously mentioned, there are numerous ways to model an object. When sketching a project, any model that is found to be more convenient can be considered. However, these models ultimately reduce to the same concept of representing an object with a finite set of $p \in \R^3$ points when placing the object in the world. Here, the set of points is presented:
+
 		\[
 		H := \{ p_1, \, p_2, \, p_3, \, p_4, \, p_5, \, p_6 \} \subset \R^3
 		\]
@@ -511,7 +513,7 @@
 	
 	
 	\section{Convex Mesh Division}
-	In this section, I will explain a simple yet effective method to divide any convex polyhedron into arbitrarily small tetrahedrons. This can be useful for creating destructible objects. Let us assume we have a convex polyhedron, where we only know the vertices of each face, and each face can be any polygon.
+	In this section, a simple yet effective method to divide any convex polyhedron into arbitrarily small tetrahedrons is explained. This approach is useful for creating destructible objects. It is assumed that a convex polyhedron is provided, where only the vertices of each face are known, and each face can be any polygon.
 	
 	\subsection{Polyhedron to Tetrahedrons}
 	First, we aim to divide our polyhedron into smaller tetrahedrons and subsequently divide those tetrahedrons further. As you might have guessed, a tetrahedron is also a polyhedron. We will use a slightly different approach for dividing tetrahedrons. For simplicity, convert all faces into triangles, which is straightforward:
@@ -961,12 +963,12 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	%%%
 	
 	\section{Cube builder}
-	In this section, I will outline the methods and algorithms used in the development of the Cube Builder project. This includes a simplified 3D Digital Differential Analyzer (DDA) algorithm, ray-cube intersection techniques, and other relevant concepts.\\
+	In this section, the methods and algorithms used in the development of the Cube Builder project are outlined. This includes a simplified 3D Digital Differential Analyzer (DDA) algorithm, ray-cube intersection techniques, and other relevant concepts.\\
 
-	Before diving into the implementation details, let's first discuss the primary goal of this project. From the player's perspective, the concept is straightforward: you have a space divided into cubes where you can place and destroy blocks. The implementation works as follows: when the player wants to build or break a block, the first step is to identify the \textit{target} block, which is the cube the player is looking at. To achieve this, I initially used a DDA algorithm to determine all the cubes intersected by the ray defined by the player's position and facing direction. Next, I identified the closest block to the player that is already placed. If the player wants to break a block, the target block is destroyed. If the player wants to place a block, we determine which side of the target block the player is currently looking at and place a new block adjacent to it.
+	Before diving into the implementation details, the primary goal of this project is first discussed. From the player's perspective, the concept is straightforward: a space is divided into cubes where blocks can be placed and destroyed. The implementation works as follows: when the player wishes to build or break a block, the first step is to identify the \textit{target} block, which is the cube the player is looking at. To achieve this, a DDA algorithm is initially used to determine all the cubes intersected by the ray defined by the player's position and facing direction. Next, the closest block to the player that is already placed is identified. If the player wishes to break a block, the target block is destroyed. If the player wishes to place a block, the side of the target block currently being observed is determined, and a new block is placed adjacent to it.
 	
 	\subsection{Intersection of cubes}
-	First, let's explore a straightforward method for examining ray intersections with cubes. In this project, I used rays of finite length (more accurately referred to as segments). A ray can be defined by its starting point $a \in \R^3$ and direction vector $\vec{n} \in \R^3$.
+	First, a straightforward method for examining ray intersections with cubes is explored. In this project, rays of finite length (more accurately referred to as segments) are used. A ray can be defined by its starting point $a \in \R^3$ and direction vector $\vec{n} \in \R^3$.
 	\[
 		r(t) := \vec{n} \cdot t + a \quad (t \in \R^+_0)
 	\]
@@ -1145,8 +1147,7 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 		\end{pmatrix}.
 	\]
 
-	These inequalities yield the following result: two intersection points, $s(t_1) = (-0.63, \, -1, \, 0.31)$ and $s(t_2) = (0, \, -0.27, \, 0.06)$, with parameters $t_1 = 0.377358$ and $t_2 = 0.652174$. Note that in my project, I only needed to determine whether any intersection points exist. For this purpose, we can use the following function.
-
+	These inequalities yield the following result: two intersection points, $s(t_1) = (-0.63, \, -1, \, 0.31)$ and $s(t_2) = (0, \, -0.27, \, 0.06)$, with parameters $t_1 = 0.377358$ and $t_2 = 0.652174$. It is important to note that in this project, the objective was only to determine whether any intersection points exist. For this purpose, the following function can be used.
 
 	\begin{lstlisting}[style=customcpp]
 bool DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax)
@@ -1206,7 +1207,29 @@ bool DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirecti
 		\end{tikzpicture}	
 	\end{center}
 	
-	The implementation of the algorithm I ultimately used can be found at the follwing  \href{https://github.com/francisengelmann/fast_voxel_traversal}{\textbf{\textcolor{blue}{GitHub repository}}}.
+	The implementation of the algorithm that was ultimately used can be found in the following \href{https://github.com/francisengelmann/fast_voxel_traversal}{\textbf{\textcolor{blue}{GitHub repository}}}.
 
+	\subsection{Intersection of faces}
+	Given the information from the previous two sections, breaking the target block in the game can be accomplished quite easily. However, when the player wants to build a block, additional calculations are required to determine the adjacent block to the target. It is necessary to identify the correct side where the player intends to place a new block. Note that if the target block is known, its side-neighbors can be associated with the cube's side normal vectors:
+
+	\begin{center}
+		\tdplotsetmaincoords{70}{40}
+		\begin{tikzpicture}[tdplot_main_coords, scale=2]
+			
+			\draw[->, red, thick] (1, 0.5, 0.5) -- (1.5, 0.5, 0.5);
+			\draw[->, red, thick, dashed] (0, 0.5, 0.5) -- (-0.5, 0.5, 0.5);
+
+			\draw[->, red, thick] (0.5, 0, 0.5) -- (0.5, -0.5, 0.5);
+			\draw[->, red, thick, dashed] (0.5, 1, 0.5) -- (0.5, 1.5, 0.5);
+
+			\draw[->, red, thick] (0.5, 0.5, 1) -- (0.5, 0.5, 1.5);
+			\draw[->, red, thick, dashed] (0.5, 0.5, 0) -- (0.5, 0.5, -0.5);
+
+			\drawcube{0}{0}{0}{}
+
+		\end{tikzpicture}
+	\end{center}
+
+	A straightforward technique can be employed to eliminate some sides before determining intersections. This involves calculating the dot product of the ray's direction vector with each side normal of the cube. Only the sides where the dot product is negative are of interest, as this indicates that the normal vector is oriented towards the observer. In cases where the dot product is zero, the ray's direction vector is perpendicular to the normal vectors, meaning you can only see the edge of the side.
 
 \end{document}
