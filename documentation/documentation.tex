@@ -1230,6 +1230,7 @@ bool DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirecti
 		\end{tikzpicture}
 	\end{center}
 
-	A straightforward technique can be employed to eliminate some sides before determining intersections. This involves calculating the dot product of the ray's direction vector with each side normal of the cube. Only the sides where the dot product is negative are of interest, as this indicates that the normal vector is oriented towards the observer. In cases where the dot product is zero, the ray's direction vector is perpendicular to the normal vectors, meaning you can only see the edge of the side.
+	A straightforward technique can be employed to eliminate some sides before determining intersections. This involves calculating the dot product of the ray's direction vector with each side normal of the cube. Only the sides where the dot product is negative are of interest, as this indicates that the normal vector is oriented towards the observer. When the dot product is zero, the ray's direction vector is perpendicular to the normal vectors, meaning only the edge of the side is visible. Additionally, it is possible to check if there is a block in the neighboring position; if so, the corresponding neighbor can be disregarded.
+		
 
 \end{document}
