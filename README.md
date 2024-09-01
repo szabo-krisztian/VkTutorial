@@ -1,6 +1,6 @@
 # Vulkan API Tutorial
 
-Welcome to my Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload, improve my code frequently. You can check out my finished projects [here](https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects).
+Welcome to this Vulkan API tutorial repository! This repository represents my personal learning curve with the Vulkan API. I have compiled this as a resource to share my journey and potentially help others who are also navigating the complexities of Vulkan. I try to keep my study ongoing and upload, improve my code frequently. You can check out my finished projects [here](https://github.com/szabo-krisztian/VkTutorial/tree/master/code/finished-projects).
 
 <p align="center">
   <table style="border-collapse: collapse;">
