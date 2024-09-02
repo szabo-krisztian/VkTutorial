@@ -82,6 +82,7 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
     glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
+    
     bool isTargetBlockNotFound = !IsPositionInBounds(targetBlockPosition);
     if (isTargetBlockNotFound)
     {
@@ -93,12 +94,14 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
     for (const auto& dir : DIRECTIONS)
     {
         glm::vec3 center = targetBlock.GetCenter();
+        
         bool isFaceNotTowardsUs = glm::dot(dir, ray) > 0;
         bool isWrongNeighbor = GetBlock(static_cast<glm::ivec3>(static_cast<glm::vec3>(targetBlock.GetPosition()) + dir)).IsPlaced();
         if (isWrongNeighbor || isFaceNotTowardsUs)
         {
             continue;
         }
+        
         center += (dir / 2.0f);
         glm::vec3 offsetVector = (Block::CORNER_OFFSET - glm::abs(dir)) / 2.0f;
         glm::vec3 minFacePosition = center - offsetVector;

@@ -60,7 +60,8 @@ void Block::Break()
 
 glm::mat4 Block::GetModelMatrix() const
 {
-    return glm::translate(glm::mat4(1.0f), static_cast<glm::vec3>(_position));
+    glm::mat4 identity = glm::mat4(1.0f);
+    return glm::translate(identity, static_cast<glm::vec3>(_position));
 }
 
 } // namespace tlr
