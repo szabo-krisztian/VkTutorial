@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-#include "block.hpp"
+#include "world_space.hpp"
 
 namespace tlr
 {
@@ -13,9 +13,6 @@ namespace tlr
 class World
 {
 public:
-    static constexpr int X_DIMENSION = 10;
-    static constexpr int Y_DIMENSION = 10;
-    static constexpr int Z_DIMENSION = 10;
     static constexpr float PLAYER_REACH_LENGTH = 5;
 
     World();
@@ -25,11 +22,11 @@ public:
     void               BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
 
 private:
-    std::vector<std::vector<std::vector<Block>>> _world;
+    WorldSpace _worldSpace;
 
     void                    Initialize();
-    Block&                  GetBlock(const glm::ivec3& position);
-    bool                    IsPositionInBounds(const glm::ivec3& position);
+    
+    
     glm::ivec3              GetPositionFromCenterPosition(const glm::vec3& centerPosition);
     bool                    DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
     glm::ivec3              GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd);

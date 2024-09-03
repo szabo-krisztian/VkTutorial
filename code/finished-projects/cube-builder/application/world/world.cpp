@@ -15,52 +15,33 @@ World::World()
     Initialize();
 }
 
-Block& World::GetBlock(const glm::ivec3& position)
-{
-    return _world[position.x + X_DIMENSION][position.y + Y_DIMENSION][position.z + Z_DIMENSION];
-}
-
 void World::Initialize()
 {
-    std::size_t xSize = X_DIMENSION * 2 + 1;
-    std::size_t ySize = Y_DIMENSION * 2 + 1;
-    std::size_t zSize = Z_DIMENSION * 2 + 1;
-
-    _world.resize(xSize);
-    for (int i = 0; i < xSize; ++i)
+    for (int x = -WorldSpace::X_DIMENSION; x < WorldSpace::X_DIMENSION; ++x)
     {
-        _world[i].resize(ySize);
-        for (int j = 0; j < ySize; ++j)
+        for (int y = -WorldSpace::Y_DIMENSION; y < WorldSpace::Y_DIMENSION; ++y)
         {
-            _world[i][j].resize(zSize);
-        }
-    }
-
-    for (int x = -X_DIMENSION; x < X_DIMENSION; ++x)
-    {
-        for (int y = -Y_DIMENSION; y < Y_DIMENSION; ++y)
-        {
-            for (int z = -Z_DIMENSION; z < Z_DIMENSION; ++z)
+            for (int z = -WorldSpace::Z_DIMENSION; z < WorldSpace::Z_DIMENSION; ++z)
             {
-                glm::ivec3 blockPosition{x, y, z};
-                GetBlock(blockPosition).Initialize(blockPosition);
+                glm::ivec3 position{x, y, z};
+                _worldSpace[position].Initialize(position);
             }
         }
     }
-    GetBlock({0, 0, 0}).Place();
+    _worldSpace[{0, 0, 0}].Place();
 }
 
 std::vector<Block> World::GetActiveBlocks()
 {
     std::vector<Block> blocks;
 
-    for (int x = -X_DIMENSION; x < X_DIMENSION; ++x)
+    for (int x = -WorldSpace::X_DIMENSION; x < WorldSpace::X_DIMENSION; ++x)
     {
-        for (int y = -Y_DIMENSION; y < Y_DIMENSION; ++y)
+        for (int y = -WorldSpace::Y_DIMENSION; y < WorldSpace::Y_DIMENSION; ++y)
         {
-            for (int z = -Z_DIMENSION; z < Z_DIMENSION; ++z)
+            for (int z = -WorldSpace::Z_DIMENSION; z < WorldSpace::Z_DIMENSION; ++z)
             {
-                Block block = GetBlock({x, y, z});
+                Block block = _worldSpace[{x, y, z}];
                 if (block.IsPlaced())
                 {
                     blocks.push_back(block);
@@ -72,31 +53,25 @@ std::vector<Block> World::GetActiveBlocks()
     return blocks;
 }
 
-bool World::IsPositionInBounds(const glm::ivec3& position)
-{
-    auto absolutePosition = glm::abs(position);
-    return absolutePosition.x <= X_DIMENSION && absolutePosition.y <= Y_DIMENSION && absolutePosition.z <= Z_DIMENSION;
-}
-
 void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 {
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
     glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
     
-    bool isTargetBlockNotFound = !IsPositionInBounds(targetBlockPosition);
+    bool isTargetBlockNotFound = !_worldSpace.IsPositionInBounds(targetBlockPosition);
     if (isTargetBlockNotFound)
     {
         return;
     }
     
-    Block targetBlock = GetBlock(targetBlockPosition);
+    Block targetBlock = _worldSpace[targetBlockPosition];
 
     for (const auto& dir : DIRECTIONS)
     {
         glm::vec3 center = targetBlock.GetCenter();
         
         bool isFaceNotTowardsUs = glm::dot(dir, ray) > 0;
-        bool isWrongNeighbor = GetBlock(static_cast<glm::ivec3>(static_cast<glm::vec3>(targetBlock.GetPosition()) + dir)).IsPlaced();
+        bool isWrongNeighbor = _worldSpace[static_cast<glm::ivec3>(static_cast<glm::vec3>(targetBlock.GetPosition()) + dir)].IsPlaced();
         if (isWrongNeighbor || isFaceNotTowardsUs)
         {
             continue;
@@ -109,7 +84,7 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 
         if (DoesRayIntersectCube(playerPosition, ray, minFacePosition, maxFacePosition))
         {
-            GetBlock(GetPositionFromCenterPosition(center + dir)).Place();
+            _worldSpace[GetPositionFromCenterPosition(center + dir)].Place();
             break;
         }
     }
@@ -139,13 +114,13 @@ void World::BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
     glm::vec3 rayEnd = playerPosition + glm::normalize(ray) * PLAYER_REACH_LENGTH;
     glm::ivec3 targetBlockPosition = GetTargetBlockPosition(playerPosition, rayEnd);
 
-    bool isTargetBlockNotFound = !IsPositionInBounds(targetBlockPosition);
+    bool isTargetBlockNotFound = !_worldSpace.IsPositionInBounds(targetBlockPosition);
     if (isTargetBlockNotFound || targetBlockPosition == glm::ivec3(0, 0, 0))
     {
         return;
     }
 
-    GetBlock(targetBlockPosition).Break();
+    _worldSpace[targetBlockPosition].Break();
 }
 
 glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd)
@@ -156,9 +131,9 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
     glm::ivec3 targetBlockPosition = blockPositions[1];
     for (std::size_t i = 1; i < blockPositions.size(); ++i)
     {
-        assert(IsPositionInBounds(blockPositions[i]) && "you went out of the world!");
+        assert(_worldSpace.IsPositionInBounds(blockPositions[i]) && "you went out of the world!");
 
-        if (GetBlock(blockPositions[i]).IsPlaced())
+        if (_worldSpace[blockPositions[i]].IsPlaced())
         {
             isTargetBlockFound = true;
             targetBlockPosition = blockPositions[i];
@@ -168,7 +143,7 @@ glm::ivec3 World::GetTargetBlockPosition(const glm::vec3& rayStart, const glm::v
 
     if (!isTargetBlockFound)
     {
-        return glm::ivec3(X_DIMENSION + 1, Y_DIMENSION + 1, Z_DIMENSION + 1);
+        return WorldSpace::NULL_POSITION;
     }
 
     return targetBlockPosition;
