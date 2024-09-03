@@ -25,9 +25,6 @@ private:
     WorldSpace _worldSpace;
 
     void                    Initialize();
-    
-    
-    glm::ivec3              GetPositionFromCenterPosition(const glm::vec3& centerPosition);
     bool                    DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax);
     glm::ivec3              GetTargetBlockPosition(const glm::vec3& rayStart, const glm::vec3& rayEnd);
     std::vector<glm::ivec3> GetIntersectedBlockPositions(const glm::vec3& rayStart, const glm::vec3& rayEnd);

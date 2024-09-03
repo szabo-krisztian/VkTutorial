@@ -10,6 +10,8 @@ class Block
 public:
     static constexpr glm::vec3 CORNER_OFFSET{1, 1, 1};
 
+    static glm::ivec3 GetPositionFromCenter(const glm::vec3& center);
+
     void       Initialize(const glm::ivec3& position);
     glm::ivec3 GetPosition() const;
     glm::vec3  GetColor() const;

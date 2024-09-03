@@ -84,15 +84,10 @@ void World::BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray)
 
         if (DoesRayIntersectCube(playerPosition, ray, minFacePosition, maxFacePosition))
         {
-            _worldSpace[GetPositionFromCenterPosition(center + dir)].Place();
+            _worldSpace[Block::GetPositionFromCenter(center + dir)].Place();
             break;
         }
     }
-}
-
-glm::ivec3 World::GetPositionFromCenterPosition(const glm::vec3& centerPosition)
-{
-    return glm::ivec3(centerPosition.x - 0.5f, centerPosition.y - 0.5f, centerPosition.z - 0.5f);   
 }
 
 bool World::DoesRayIntersectCube(const glm::vec3& rayStart, const glm::vec3& rayDirection, const glm::vec3& cubeMin, const glm::vec3& cubeMax)

@@ -14,6 +14,11 @@ void Block::Initialize(const glm::ivec3& position)
     _color = {1.0f, 0.0f, 0.0f};
 }
 
+glm::ivec3 Block::GetPositionFromCenter(const glm::vec3& center)
+{
+    return glm::ivec3(center.x - 0.5f, center.y - 0.5f, center.z - 0.5f);   
+}
+
 glm::ivec3 Block::GetPosition() const
 {
     return _position;
