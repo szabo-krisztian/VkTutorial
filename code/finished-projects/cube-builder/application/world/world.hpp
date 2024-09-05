@@ -17,7 +17,7 @@ public:
 
     World();
 
-    std::vector<Block> GetActiveBlocks();
+    std::vector<Block> GetActiveBlocks() const;
     void               BuildBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
     void               BreakBlock(const glm::vec3& playerPosition, const glm::vec3& ray);
 

@@ -22,6 +22,11 @@ WorldSpace::WorldSpace()
     }
 }
 
+Block WorldSpace::operator[](const glm::ivec3& position) const
+{
+    return _world[position.x + X_DIMENSION][position.y + Y_DIMENSION][position.z + Z_DIMENSION];
+}
+
 Block& WorldSpace::operator[](const glm::ivec3& position)
 {
     return _world[position.x + X_DIMENSION][position.y + Y_DIMENSION][position.z + Z_DIMENSION];

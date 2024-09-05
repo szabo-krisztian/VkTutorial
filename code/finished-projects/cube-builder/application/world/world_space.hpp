@@ -18,6 +18,7 @@ public:
     static const glm::ivec3 NULL_POSITION;
 
     WorldSpace();
+    Block operator[](const glm::ivec3& position) const;
     Block& operator[](const glm::ivec3& position);
     bool IsPositionInBounds(const glm::ivec3& position) const;
 

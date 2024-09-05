@@ -12,12 +12,13 @@ public:
 
     static glm::ivec3 GetPositionFromCenter(const glm::vec3& center);
 
-    void       Initialize(const glm::ivec3& position);
-    glm::ivec3 GetPosition() const;
-    glm::vec3  GetColor() const;
-    glm::vec3  GetCenter() const;
+    glm::ivec3 GetPosition()    const;
+    glm::vec3  GetColor()       const;
+    glm::vec3  GetCenter()      const;
     glm::mat4  GetModelMatrix() const;
-    bool       IsPlaced() const;
+    bool       IsPlaced()       const;
+
+    void       Initialize(const glm::ivec3& position);
     void       Place();
     void       Break();
 

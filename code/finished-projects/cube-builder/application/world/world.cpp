@@ -31,7 +31,7 @@ void World::Initialize()
     _worldSpace[{0, 0, 0}].Place();
 }
 
-std::vector<Block> World::GetActiveBlocks()
+std::vector<Block> World::GetActiveBlocks() const
 {
     std::vector<Block> blocks;
 

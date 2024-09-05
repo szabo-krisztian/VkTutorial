@@ -6,7 +6,7 @@ int main()
     {
         int fractalDepth = 5;
         tlr::App app(fractalDepth);
-        app.Run();    
+        app.Run();
     }
     catch(const std::exception& e)
     {

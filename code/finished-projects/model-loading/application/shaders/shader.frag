@@ -31,8 +31,12 @@ const float screenGamma = 2.2;
 
 layout(location = 0) out vec4 outColor;
 
-void main() {
+/*
+ *  Blinn-Phong model: https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model
+ */
 
+void main()
+{
     vec3 normal = normalize(normalInterp);
     vec3 lightDir = light.position - vertPos;
     float distance = length(lightDir);
@@ -42,7 +46,8 @@ void main() {
     float lambertian = max(dot(lightDir, normal), 0.0);
     float specular = 0.0;
 
-    if (lambertian > 0.0) {
+    if (lambertian > 0.0)
+    {
         vec3 viewDir = normalize(camera.position - vertPos);
 
         // Blinn-Phong
@@ -51,7 +56,8 @@ void main() {
         specular = pow(specAngle, material.shininess);
 
         // Phong (for comparison)
-        if (material.shininess < 0.0) { // Use a negative shininess value as a flag for Phong
+        if (material.shininess < 0.0)
+        {
             vec3 reflectDir = reflect(-lightDir, normal);
             specAngle = max(dot(reflectDir, viewDir), 0.0);
             specular = pow(specAngle, material.shininess / 4.0);

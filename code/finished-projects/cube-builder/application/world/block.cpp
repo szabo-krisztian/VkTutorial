@@ -2,7 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <random>
-#include <iostream>
 
 namespace tlr
 {
@@ -34,22 +33,15 @@ glm::vec3 Block::GetCenter() const
     return static_cast<glm::vec3>(_position) + CORNER_OFFSET / 2.0f;
 }
 
+glm::mat4 Block::GetModelMatrix() const
+{
+    glm::mat4 identity = glm::mat4(1.0f);
+    return glm::translate(identity, static_cast<glm::vec3>(_position));
+}
+
 bool Block::IsPlaced() const
 {
     return _isPlaced;
-}
-
-glm::vec3 Block::GetRandomVec3()
-{
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0, 1.0);
-
-    float x = static_cast<float>(dis(gen));
-    float y = static_cast<float>(dis(gen));
-    float z = static_cast<float>(dis(gen));
-
-    return glm::vec3(x, y, z);
 }
 
 void Block::Place()
@@ -63,10 +55,17 @@ void Block::Break()
     _isPlaced = false;
 }
 
-glm::mat4 Block::GetModelMatrix() const
+glm::vec3 Block::GetRandomVec3()
 {
-    glm::mat4 identity = glm::mat4(1.0f);
-    return glm::translate(identity, static_cast<glm::vec3>(_position));
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    float x = static_cast<float>(dis(gen));
+    float y = static_cast<float>(dis(gen));
+    float z = static_cast<float>(dis(gen));
+
+    return glm::vec3(x, y, z);
 }
 
 } // namespace tlr
