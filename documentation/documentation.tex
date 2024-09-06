@@ -972,6 +972,25 @@ bool IsClockwise(const Triangle& triangle, const glm::vec3& polyCenter)
 	\[
 		r(t) := \vec{n} \cdot t + a \quad (t \in \R^+_0)
 	\]
+	\begin{center}
+		\tdplotsetmaincoords{70}{40}
+		\begin{tikzpicture}[tdplot_main_coords, scale=2]	
+			% Drawing the axes
+			\draw[thick,<->] (-1.5,0,0) -- (1.5,0,0) node[anchor=north east]{$x$};
+			\draw[thick,<->] (0,-1.5,0) -- (0,1.5,0) node[anchor=north west]{$y$};
+			\draw[thick,<->] (0,0,-0.5) -- (0,0,1.5) node[anchor=south]{$z$};
+			
+			\coordinate (A) at (-0.7,-0.7,0.2);
+			\coordinate (B) at (0.1, -0.35, 0.55);
+			\coordinate (C) at (1.19, 0.13, 1.03);
+			
+
+			\draw[->, thick, blue] (A) -- (B) node[midway, above] {$\vec{n}$};
+			\draw[dotted, thick, blue] (B) -- (C) node[right] {$r$};
+			\filldraw[red] (A) circle (1pt) node[anchor=north east] {$a$};
+			
+		\end{tikzpicture}
+	\end{center}
 	Segments can be defined with two points $a, \, b \in \R^3$ as follows:
 	\[
 		s(t) := (b - a) \cdot t + a \quad (t \in [0, \, 1])
